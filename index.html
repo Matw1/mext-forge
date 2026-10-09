@@ -1,0 +1,827 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c0e1b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>MEXT Forge</title>
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+/* ===== Tema 和紙 (claro) ===== */
+:root{--bg:#f6f0e4;--surface:#fffdf8;--surface2:#f2eadb;--text:#211b17;--muted:#74695e;--line:#e4d8c4;
+  --accent:#2457d6;--accent2:#b07d12;--accent-t:#fff;--ok:#1d8a50;--okbg:#e2f3e8;--bad:#c9302c;--badbg:#fbe6e2;--warn:#b26b00;--warnbg:#fbefd9;--focus:#d63a2f;
+  --glow:rgba(36,87,214,.16);--shadow:0 1px 2px rgba(60,40,20,.06),0 6px 20px rgba(60,40,20,.07);
+  --cop:#d63a2f;--inf:#2457d6;--neg:#7348d1;--unc:#1c9459;--ind:#bb7400;--c1:#0b8aa3;--mix:#211b17;--buf:#b26b00;--fos:#c23c7c}
+/* ===== Tema 夜 (oscuro) ===== */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
+  --accent:#6e95ff;--accent2:#ffc857;--accent-t:#0a1230;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
+  --glow:rgba(110,149,255,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
+  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6}}
+:root[data-theme="dark"]{--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
+  --accent:#6e95ff;--accent2:#ffc857;--accent-t:#0a1230;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
+  --glow:rgba(110,149,255,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
+  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--text);background-color:var(--bg)}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;min-height:100dvh;
+  background-image:radial-gradient(900px 420px at 50% -120px,var(--glow),transparent 70%),var(--pat,none);background-attachment:fixed}
+#app{max-width:780px;margin:0 auto;padding:14px 16px calc(28px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;cursor:pointer}
+.row{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.muted{color:var(--muted)}
+.small{font-size:.82rem}
+.center{text-align:center}
+.hide{display:none!important}
+.stack>*+*{margin-top:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+h3{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:22px 2px 10px;font-weight:700}
+.card h3{margin:0 0 10px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;min-height:44px}
+.icon-btn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:1.1rem;flex:none}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.kbd{font-family:ui-monospace,monospace;font-size:.75rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:0 5px;color:var(--muted);background:var(--surface)}
+
+/* ===== Marca ===== */
+.brand{display:flex;align-items:center;gap:10px}
+.hanko{width:42px;height:42px;border-radius:10px;background:var(--accent);color:var(--accent-t);display:grid;place-items:center;font-weight:900;font-size:1.25rem;transform:rotate(-4deg);box-shadow:0 4px 14px var(--glow)}
+.brand b{display:block;font-size:1.15rem;letter-spacing:.02em}
+.brand small{color:var(--muted);font-size:.78rem}
+
+/* ===== Hero ===== */
+.hero{display:flex;align-items:center;gap:16px;margin-top:16px;padding:16px;border-radius:22px;background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--line);box-shadow:var(--shadow)}
+.ring{position:relative;flex:none;width:104px;height:104px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .in{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1}
+.ring .in b{font-size:1.9rem;font-weight:900;font-variant-numeric:tabular-nums;display:block}
+.ring .in small{font-size:.7rem;color:var(--muted)}
+.eyebrow{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:800}
+.hero .h{font-size:1.05rem;font-weight:700;margin:4px 0 10px}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+
+/* ===== Botón principal ===== */
+.start{position:relative;width:100%;margin-top:16px;border:0;border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:16px;text-align:left;color:#fff;
+  background:linear-gradient(120deg,#3b6cf0,#2447c4 55%,#3a1f8e);box-shadow:0 10px 30px var(--glow),inset 0 1px 0 rgba(255,255,255,.25);overflow:hidden}
+.start::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.22) 50%,transparent 70%);transform:translateX(-100%);animation:shine 3.2s ease-in-out infinite}
+@keyframes shine{0%,55%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.start .play{flex:none;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:1.4rem;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.35)}50%{box-shadow:0 0 0 10px rgba(255,255,255,0)}}
+.start b{display:block;font-size:1.3rem}
+.start small{opacity:.85;font-size:.85rem}
+.start:active{transform:scale(.99)}
+
+/* ===== Mosaicos ===== */
+.modes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:640px){.modes{grid-template-columns:repeat(4,1fr)}}
+.mode{position:relative;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px;min-height:104px;display:flex;flex-direction:column;gap:2px;box-shadow:var(--shadow);overflow:hidden;transition:transform .12s,border-color .12s}
+.mode:hover{transform:translateY(-2px);border-color:var(--c)}
+.mode:active{transform:scale(.98)}
+.mode.on{border-color:var(--c);box-shadow:0 0 0 1.5px var(--c),var(--shadow)}
+.glyph{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:900;font-size:.95rem;letter-spacing:-.02em;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);margin-bottom:6px;flex:none}
+.mode .mn{font-weight:800;font-size:.98rem}
+.mode .ms{font-size:.74rem;color:var(--muted);line-height:1.25}
+.mode .acc{position:absolute;top:12px;right:12px;font-size:.78rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
+.mode .mb{position:absolute;left:0;bottom:0;height:3px;background:var(--c);opacity:.9}
+.mode .badge{position:absolute;top:10px;right:10px;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--c);color:var(--bg);font-size:.75rem;font-weight:900;display:grid;place-items:center}
+
+/* ===== Regla del día ===== */
+.rule-day{position:relative;overflow:hidden;display:flex;gap:12px;align-items:flex-start;border-left:4px solid var(--c)}
+.rule-day .glyph{margin:0}
+.rule-day p{margin:2px 0 8px;font-size:.98rem;font-weight:600}
+.rule-day .wm{position:absolute;right:-4px;bottom:-30px;font-size:6.5rem;font-weight:900;color:var(--c);opacity:.07;pointer-events:none;line-height:1}
+
+/* ===== Medidores ===== */
+.meter{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px;background:var(--ok);transition:width .6s}
+.meter i.warn{background:var(--warn)} .meter i.bad{background:var(--bad)} .meter i.none{background:var(--line)}
+.catrow{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.catrow:first-of-type{border-top:0;padding-top:2px}
+.catrow .glyph{margin:0;grid-row:span 2}
+.catrow .meter,.catrow .sub{grid-column:2/-1}
+.catrow .sub{font-size:.75rem;color:var(--muted)}
+.pct{font-variant-numeric:tabular-nums;font-weight:800}
+
+/* ===== Ajustes ===== */
+details.card summary{cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;gap:8px}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary::after{content:"＋";margin-left:auto;color:var(--muted)}
+details[open].card summary::after{content:"－"}
+.set{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface2)}
+.seg button{border:0;background:transparent;padding:8px 12px;min-height:40px;font-size:.9rem}
+.seg button.on{background:var(--text);color:var(--bg);font-weight:700}
+
+/* ===== Drill ===== */
+.hud{display:flex;align-items:center;gap:10px;position:relative}
+.score{line-height:1}
+.score b{font-size:1.6rem;font-weight:900;font-variant-numeric:tabular-nums;display:block}
+.score small{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.float{position:absolute;left:58px;top:-6px;font-weight:900;color:var(--accent2);font-size:1.1rem;pointer-events:none;animation:floatUp .9s ease-out forwards}
+@keyframes floatUp{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1;transform:translateY(0) scale(1.15)}100%{opacity:0;transform:translateY(-26px) scale(1)}}
+.combo{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-weight:900;font-variant-numeric:tabular-nums;color:#2a1a00;background:linear-gradient(135deg,#ffe08a,#ffb547);box-shadow:0 4px 16px rgba(255,181,71,.35);animation:bump .3s}
+.combo.hot{color:#fff;background:linear-gradient(135deg,#ff8a3d,#ff3d5a);box-shadow:0 4px 20px rgba(255,61,90,.45)}
+@keyframes bump{0%{transform:scale(.8)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+.lives{font-weight:900;letter-spacing:2px;color:var(--bad)}
+.tring{position:relative;width:48px;height:48px;flex:none}
+.tring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.tring span{position:absolute;inset:0;display:grid;place-items:center;font-weight:800;font-size:.85rem;font-variant-numeric:tabular-nums}
+.tring.low circle.fg{stroke:var(--bad)}
+.tring.low span{color:var(--bad)}
+.qcard{position:relative;margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 16px 0;box-shadow:var(--shadow);overflow:hidden}
+.qcard::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--c)}
+.qcard .wm{position:absolute;right:-6px;bottom:-26px;font-size:7.5rem;font-weight:900;color:var(--c);opacity:.07;pointer-events:none;line-height:1}
+.qcard.pop{animation:okpulse .45s}
+@keyframes okpulse{0%{box-shadow:0 0 0 0 var(--ok)}100%{box-shadow:0 0 0 16px transparent}}
+.tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{font-size:.74rem;font-weight:700;padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--c,var(--muted)) 14%,transparent);color:var(--c,var(--muted))}
+.tag.buf{--c:var(--warn)}
+.tag.fos{--c:var(--fos)}
+.head{font-size:.84rem;color:var(--muted);text-align:center;margin-top:10px}
+.prompt{position:relative;font-size:1.4rem;line-height:2.6;padding:10px 4px 22px;text-align:center;overflow-wrap:anywhere}
+.prompt.rb{line-height:1.8;padding-bottom:18px}
+.blank{display:inline-block;min-width:3em;color:var(--c);font-weight:800;white-space:nowrap;border-bottom:3px solid var(--c);line-height:1.2}
+.blank.ok{color:var(--ok);border-color:var(--ok)}
+.segm{position:relative;border:0;background:color-mix(in srgb,var(--c) 9%,transparent);border-bottom:3px solid var(--c);border-radius:6px 6px 2px 2px;padding:0 5px;line-height:1.5;font-size:inherit;transition:background .12s}
+.segm:hover{background:color-mix(in srgb,var(--c) 22%,transparent)}
+.segm .k{position:absolute;left:50%;transform:translateX(-50%);bottom:-1.45em;font-size:.6rem;font-weight:900;color:var(--muted);line-height:1}
+.segm.ok{background:var(--okbg);border-color:var(--ok);animation:pop .35s}
+.segm.ok .k{color:var(--ok)}
+.segm.bad{background:var(--badbg);border-color:var(--bad);text-decoration:line-through;text-decoration-color:var(--bad)}
+.segm.bad .k{color:var(--bad)}
+.segm.dim{opacity:.45}
+.prompt.shake{animation:shake .38s}
+.qtimer{height:5px;background:var(--surface2);margin:0 -16px}
+.qtimer i{display:block;height:100%;width:100%;background:var(--ok);transition:background .3s}
+.qtimer i.mid{background:var(--warn)} .qtimer i.low{background:var(--bad)}
+.opts{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+@media (min-width:640px){.opts{grid-template-columns:1fr 1fr}}
+.opt{position:relative;display:flex;align-items:center;gap:14px;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;min-height:62px;font-size:1.15rem;line-height:1.4;box-shadow:var(--shadow);transition:transform .08s,border-color .12s,background .12s}
+.opt:hover{border-color:var(--c)}
+.opt:active{transform:scale(.98)}
+.opt .k{flex:none;width:30px;height:30px;border-radius:9px;background:var(--surface2);color:var(--muted);font-size:.85rem;display:grid;place-items:center;font-weight:800;transition:background .12s,color .12s}
+.opt:hover .k{background:var(--c);color:var(--bg)}
+.opt.ok{border-color:var(--ok);background:var(--okbg);animation:pop .35s}
+.opt.ok .k{background:var(--ok);color:var(--bg)}
+.opt.bad{border-color:var(--bad);background:var(--badbg)}
+.opt.bad .k{background:var(--bad);color:var(--bg)}
+.opt.dim{opacity:.4;box-shadow:none}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+.opts.shake{animation:shake .38s}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.fb{display:flex;gap:12px;margin-top:14px;border-radius:18px;padding:14px;background:var(--surface);border:1.5px solid var(--bad);box-shadow:0 8px 26px var(--badbg);animation:rise .25s ease-out;cursor:pointer}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fb .ic{flex:none;width:34px;height:34px;border-radius:50%;background:var(--bad);color:var(--bg);display:grid;place-items:center;font-weight:900}
+.fb .h{font-size:.92rem;color:var(--muted);margin-bottom:6px}
+.fb .h b{color:var(--text)}
+.fb .fix{font-size:1.08rem;font-weight:600;margin:0 0 6px}
+.fix ins{text-decoration:none;color:var(--ok);font-weight:800;border-bottom:2px solid var(--ok)}
+.fb .r2{margin:0;color:var(--muted)}
+.fb .r2 b{color:var(--text)}
+.fosbox{border-radius:12px;padding:8px 10px;margin:0 0 8px;background:color-mix(in srgb,var(--fos) 13%,transparent);border:1px solid color-mix(in srgb,var(--fos) 45%,transparent)}
+.fosbox b{display:block;color:var(--fos);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+.fb .n{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:.78rem;color:var(--muted)}
+.fb .go-on{margin-left:auto;font-weight:800;color:var(--text);background:var(--surface2);border-radius:99px;padding:6px 14px}
+#flash{position:fixed;inset:0;pointer-events:none;opacity:0;background:var(--fos);transition:opacity .35s;z-index:8}
+
+/* ===== Final ===== */
+.endhero{position:relative;text-align:center;padding:26px 16px 20px;border-radius:24px;background:linear-gradient(160deg,var(--surface),var(--surface2));border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}
+.stamp{width:108px;height:108px;margin:0 auto 10px;border:5px solid var(--focus);border-radius:50%;display:grid;place-items:center;color:var(--focus);font-size:3.1rem;font-weight:900;transform:rotate(-12deg);animation:stamp .5s cubic-bezier(.2,1.6,.4,1) both;box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 5px var(--focus)}
+@keyframes stamp{0%{opacity:0;transform:rotate(-12deg) scale(2.2)}100%{opacity:1;transform:rotate(-12deg) scale(1)}}
+.stamp-l{font-weight:800;color:var(--focus);letter-spacing:.08em;font-size:.82rem}
+.big{font-size:3rem;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:6px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.kpi b{display:block;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.kpi span{font-size:.72rem;color:var(--muted)}
+.proj{display:flex;gap:12px;align-items:center;border-left:4px solid var(--c)}
+.proj b{font-size:1.5rem;font-variant-numeric:tabular-nums;color:var(--c)}
+.cta{display:flex;gap:10px}
+.cta .start{margin-top:0;flex:2;padding:16px}
+.cta .btn{flex:1;border-radius:20px}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(420px) rotate(540deg);opacity:0}}
+.miss{padding:10px 0;border-top:1px solid var(--line)}
+.miss:first-of-type{border-top:0;padding-top:0}
+.miss .fix{font-weight:600;margin:0 0 3px}
+.miss .r{font-size:.84rem;color:var(--muted)}
+
+/* ===== Listas ===== */
+.list{margin:0;padding:0;list-style:none}
+.list li{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:.95rem}
+.list li:first-child{border-top:0}
+.list li .glyph{margin:0}
+.list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dots{letter-spacing:2px;color:var(--warn);font-size:.8rem;white-space:nowrap}
+
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translate(-50%,10px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:14px;font-weight:700;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);text-align:center;z-index:9;box-shadow:var(--shadow)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.foot{margin-top:22px;text-align:center;font-size:.78rem;color:var(--muted);line-height:2}
+
+@media (max-width:420px){.prompt{font-size:1.22rem}.opt{font-size:1.05rem}.ring{width:92px;height:92px}.ring .in b{font-size:1.6rem}.hero{gap:12px;padding:14px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="flash"></div>
+<div id="app"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<input id="imp" type="file" accept="application/json" class="hide">
+<script>
+"use strict";
+/* ================= DATA ================= */
+const CATS={
+  COP:{n:"Cópula vs verbo",r:"BE + verbo léxico = ✗. O «I'm + adjetivo / -ing» o «I + verbo». Nunca los dos."},
+  INF:{n:"Complementación",r:"want / decide / need / hope / plan / refuse + TO + verbo base. enjoy / avoid / finish / mind + -ING."},
+  NEG:{n:"No longer / Any longer",r:"S + NO LONGER + verbo  |  S + not + verbo … ANY LONGER. «not longer» NO existe."},
+  UNC:{n:"Incontables MEXT",r:"homework, classwork, advice, information, equipment, evidence: sin -s, sin a/an, verbo singular, much (no many)."},
+  IND:{n:"Compuestos y doble negación",r:"Una sola negación: not + ANY- | NO- sin not. every-/some-/no-one = SINGULAR (Everyone IS)."},
+  C1:{n:"Colocaciones e inversión C1",r:"Inversión formal: Should/Had/Were + S… | Never/Rarely/Not only + AUX + S."}
+};
+// Error Hunter: 4 segmentos [..]; e = índice del erróneo; fx = corrección
+const EH=[
+ // COP
+ {c:"COP",t:"When the exam is over, [I'm feel] much [more relaxed] [than] I was [before].",e:0,fx:"I feel"},
+ {c:"COP",t:"My sister [is] a nurse, and she [is work] [at] a hospital [near] our house.",e:1,fx:"works"},
+ {c:"COP",t:"[I'm want] to apply [for] the scholarship [because] it [covers] tuition.",e:0,fx:"I want"},
+ {c:"COP",t:"We [are need] to finish [the report] [before] the teacher [arrives].",e:0,fx:"need"},
+ {c:"COP",t:"He [doesn't like] coffee, but he [is like] tea [very much] [in the morning].",e:1,fx:"likes"},
+ {c:"COP",t:"[I'm] interested in physics, [so] [I'm study] it [every day].",e:2,fx:"I study"},
+ {c:"COP",t:"Many students [who] [are live] in Osaka [take] the train [to school].",e:1,fx:"live"},
+ {c:"COP",t:"[I'm agree] with [your opinion] [about] the [new] policy.",e:0,fx:"I agree"},
+ {c:"COP",t:"[I'm think] that the [results] of the survey [are] [reliable].",e:0,fx:"I think"},
+ {c:"COP",t:"[I'm] sure that you [are know] the answer [to] [this question].",e:1,fx:"know"},
+ {c:"COP",t:"The students [are] ready, but the teacher [is not want] [to start] [yet].",e:1,fx:"does not want"},
+ {c:"COP",t:"She [is] tired [because] she [is miss] her family [in] Peru.",e:2,fx:"misses"},
+ // INF
+ {c:"INF",t:"I [want] [work] in Japan [after] I [graduate].",e:1,fx:"to work"},
+ {c:"INF",t:"We [decided] [go] to the library [instead of] [staying] home.",e:1,fx:"to go"},
+ {c:"INF",t:"She [hopes] [studying] engineering [at] a [national] university.",e:1,fx:"to study"},
+ {c:"INF",t:"He [refused] [answering] the question [because] he [didn't know] it.",e:1,fx:"to answer"},
+ {c:"INF",t:"My parents [expect] me [get] good grades [in] [every] subject.",e:1,fx:"to get",r:"expect / want / ask / tell + OBJETO + TO + verbo."},
+ {c:"INF",t:"I [enjoy] [to read] books [about] [Japanese] history.",e:1,fx:"reading",r:"enjoy / finish / avoid / mind + -ING (nunca + to)."},
+ {c:"INF",t:"They [plan] [visiting] Kyoto [during] the [spring] holiday.",e:1,fx:"to visit"},
+ {c:"INF",t:"It is important [for] students [practice] [every day] [to succeed].",e:1,fx:"to practice",r:"It is + adjetivo + for + persona + TO + verbo."},
+ {c:"INF",t:"She [would like] [studying] abroad [next year] [if possible].",e:1,fx:"to study",r:"would like + TO + verbo (≠ like + -ing)."},
+ {c:"INF",t:"He [avoided] [to make] the same mistake [on] [the second] test.",e:1,fx:"making",r:"enjoy / finish / avoid / mind + -ING (nunca + to)."},
+ {c:"INF",t:"I need to [improving] my [reading] [skills] [quickly].",e:0,fx:"improve",r:"TO + verbo BASE: to improve (nunca «to improving» tras need/want)."},
+ {c:"INF",t:"The teacher [told] us [don't use] our phones [during] [the] exam.",e:1,fx:"not to use",r:"tell / ask + objeto + (NOT) TO + verbo."},
+ // NEG
+ {c:"NEG",t:"She [is not longer] [interested] [in] [the project].",e:0,fx:"is no longer"},
+ {c:"NEG",t:"I [don't] live [in Tokyo] [no longer]; I [moved] last year.",e:2,fx:"any longer"},
+ {c:"NEG",t:"We [can] [no longer] [to wait] [for] the bus.",e:2,fx:"wait",r:"Modal + no longer + verbo BASE (sin to): can no longer wait."},
+ {c:"NEG",t:"He [doesn't] [work] [here] [no more].",e:3,fx:"anymore"},
+ {c:"NEG",t:"[I'm not longer] afraid [of] [speaking] [in public].",e:0,fx:"I'm no longer"},
+ {c:"NEG",t:"The shop [no longer] [sell] [any] [newspapers].",e:1,fx:"sells",r:"«no longer» no quita la -s: The shop no longer SELLS."},
+ {c:"NEG",t:"I [am no longer want] [that] job [because] the salary [is] low.",e:0,fx:"no longer want"},
+ {c:"NEG",t:"She [can't] [stand] the noise [no longer], so she [moved].",e:2,fx:"any longer"},
+ {c:"NEG",t:"The professor [is] [no longer] [teach] [at] this university.",e:2,fx:"teaching"},
+ {c:"NEG",t:"[Since] the update, the app [doesn't] work [no longer] [on] my phone.",e:2,fx:"any longer"},
+ // UNC
+ {c:"UNC",t:"The teacher [gave] us [a lot of] [homeworks] [for] the weekend.",e:2,fx:"homework"},
+ {c:"UNC",t:"I [finished] [all] my [classworks] [before] lunch.",e:2,fx:"classwork"},
+ {c:"UNC",t:"Can you [give] me [some] [advices] [about] the interview?",e:2,fx:"advice"},
+ {c:"UNC",t:"We [need] [more] [informations] [about] the deadline.",e:2,fx:"information"},
+ {c:"UNC",t:"The laboratory [bought] [some] new [equipments] [last] year.",e:2,fx:"equipment"},
+ {c:"UNC",t:"There [are] [no] [evidence] [that] the drug works.",e:0,fx:"is",r:"Incontable = verbo SINGULAR: There IS no evidence."},
+ {c:"UNC",t:"The [information] [you gave] me [were] [very useful].",e:2,fx:"was",r:"Incontable = verbo SINGULAR: The information WAS."},
+ {c:"UNC",t:"She [gave] me [an advice] [about] [studying] abroad.",e:1,fx:"some advice"},
+ {c:"UNC",t:"[How many] homework [do] you [have] [tonight]?",e:0,fx:"How much",r:"Incontable → MUCH / a lot of. Contable → many."},
+ {c:"UNC",t:"Researchers [found] [new evidences] [of] water [on] Mars.",e:1,fx:"new evidence"},
+ {c:"UNC",t:"The [furnitures] in our classroom [is] [very] [old].",e:0,fx:"furniture"},
+ {c:"UNC",t:"My [knowledges] [of] Japanese [is] [still] limited.",e:0,fx:"knowledge"},
+ // IND
+ {c:"IND",t:"I [didn't] see [nobody] [at] the station [this morning].",e:1,fx:"anybody"},
+ {c:"IND",t:"She [can't] find her keys [nowhere] [in] [the house].",e:1,fx:"anywhere"},
+ {c:"IND",t:"Nobody [don't want] [to leave] [early] [today].",e:0,fx:"wants"},
+ {c:"IND",t:"[Everybody] [are] [ready] [for] the exam.",e:1,fx:"is"},
+ {c:"IND",t:"I [have] [anything] [to say] [about] that.",e:1,fx:"nothing",r:"Afirmación sin not → NO-thing / SOME-thing, nunca ANY-thing."},
+ {c:"IND",t:"We [looked] [everywhere], but we [didn't find] [nothing].",e:3,fx:"anything"},
+ {c:"IND",t:"[Someone] [have] [left] their bag [in] the classroom.",e:1,fx:"has"},
+ {c:"IND",t:"He [never] [tells] [nothing] [to] his parents.",e:2,fx:"anything",r:"NEVER ya es negativo → never + ANY-thing."},
+ {c:"IND",t:"[Is] there [anyone] [who] [don't understand] the question?",e:3,fx:"doesn't understand"},
+ {c:"IND",t:"[No one] in my class [didn't pass] [the] [test].",e:1,fx:"passed"},
+ {c:"IND",t:"[Everyone] [in the class] [have] [finished] the test.",e:2,fx:"has"},
+ // C1
+ {c:"C1",t:"[Should you] [failed] the exam, you [can] [retake] it in March.",e:1,fx:"fail",r:"Should + S + VERBO BASE = If + S + verbo (Should you fail)."},
+ {c:"C1",t:"[Had I] [knew] about the deadline, I [would have] [submitted] the essay earlier.",e:1,fx:"known",r:"Had + S + PARTICIPIO = If I had known."},
+ {c:"C1",t:"A judge [must remain] [uninterested] [in] the outcome [of] the trial.",e:1,fx:"disinterested",r:"disinterested = IMPARCIAL | uninterested = aburrido, sin interés."},
+ {c:"C1",t:"The spy [managed] [to escape] [from detection] [for] ten years.",e:2,fx:"detection",r:"Colocación fija: ESCAPE DETECTION (sin from)."},
+ {c:"C1",t:"This study [sheds] [light] [at] [the causes] of the disease.",e:2,fx:"on",r:"SHED LIGHT ON something = aclarar algo."},
+ {c:"C1",t:"[Not only] [she speaks] English, [but] she [also] speaks Japanese.",e:1,fx:"does she speak",r:"Not only al inicio → inversión: Not only DOES SHE speak…"},
+ {c:"C1",t:"[Were I] [to win] the scholarship, I [will] [study] in Tokyo.",e:2,fx:"would",r:"Were I to… = hipótesis → WOULD, nunca will."},
+ {c:"C1",t:"The audience [seemed] [uninterested] [about] [the lecture].",e:2,fx:"in",r:"(un)interested IN."},
+ {c:"C1",t:"[Never] [I have] [seen] such [a beautiful] temple.",e:1,fx:"have I",r:"Never / Rarely / Seldom al inicio → AUX + SUJETO: Never have I seen."},
+ {c:"C1",t:"The experiment [made] [a significant] [contribution] [for] science.",e:3,fx:"to",r:"make a contribution TO."},
+ {c:"C1",t:"We must [do] [an] [effort] [to reduce] waste.",e:0,fx:"make",r:"MAKE an effort / MAKE a decision / DO research."},
+ {c:"C1",t:"[Hardly] [had] we arrived [than] [it] started to rain.",e:2,fx:"when",r:"Hardly / Scarcely … WHEN  |  No sooner … THAN."},
+ {c:"C1",t:"The report [pays] [special] attention [on] the [risks].",e:2,fx:"to",r:"pay attention TO."}
+];
+// Rapid Rebuilder: o[0] siempre es la correcta (se baraja al mostrar)
+const RB=[
+ // COP
+ {c:"COP",q:"After the long trip, ___ exhausted.",o:["I feel","I'm feel","I feeling"]},
+ {c:"COP",q:"___ to study medicine in Japan.",o:["I want","I'm want","I wanting"]},
+ {c:"COP",q:"___ with the author's main argument.",o:["I agree","I'm agree","I agreeing"],r:"agree es VERBO: I agree (nunca «I'm agree»)."},
+ {c:"COP",q:"She is a teacher and ___ at a high school.",o:["works","is work","is works"]},
+ {c:"COP",q:"___ that this method is effective.",o:["I believe","I'm believe","I believing"]},
+ {c:"COP",q:"My brother ___ basketball every weekend.",o:["plays","is play","is plays"]},
+ {c:"COP",q:"___ interested in robotics.",o:["I'm","I","I'm feel"],r:"Con ADJETIVO sí va BE: I'm interested."},
+ {c:"COP",q:"Right now, ___ about the exam.",o:["I'm thinking","I'm think","I thinking"],r:"BE + verbo-ING es correcto (progresivo). BE + verbo base, nunca."},
+ {c:"COP",q:"He ___ the answer, but he won't tell us.",o:["knows","is know","is knowing"],r:"know es estativo: sin BE y sin -ing → He knows."},
+ {c:"COP",q:"I ___ my family very much.",o:["miss","am miss","missing"]},
+ {c:"COP",q:"We ___ more time to finish.",o:["need","are need","needing"]},
+ // INF
+ {c:"INF",q:"We decided ___ the museum.",o:["to visit","visit","visiting"]},
+ {c:"INF",q:"I want ___ in a research lab.",o:["to work","work","working"]},
+ {c:"INF",q:"She enjoys ___ novels in English.",o:["reading","to read","read"],r:"enjoy / finish / avoid / mind + -ING."},
+ {c:"INF",q:"He promised ___ late again.",o:["not to be","to not being","don't be"],r:"Infinitivo negativo: NOT + TO + verbo."},
+ {c:"INF",q:"They hope ___ the scholarship.",o:["to win","winning","win"]},
+ {c:"INF",q:"I'm looking forward ___ you.",o:["to meeting","to meet","meeting"],r:"look forward TO + -ING (aquí «to» es preposición)."},
+ {c:"INF",q:"My teacher made me ___ the essay.",o:["rewrite","to rewrite","rewriting"],r:"make / let + objeto + verbo BASE (sin to)."},
+ {c:"INF",q:"Would you mind ___ the window?",o:["opening","to open","open"],r:"mind + -ING."},
+ {c:"INF",q:"She finished ___ her report at midnight.",o:["writing","to write","write"],r:"finish + -ING."},
+ {c:"INF",q:"I need ___ my vocabulary.",o:["to expand","expand","expanding"]},
+ {c:"INF",q:"The committee refused ___ the results.",o:["to publish","publish","publishing"]},
+ // NEG
+ {c:"NEG",q:"She ___ works here; she quit last month.",o:["no longer","not longer","any longer"]},
+ {c:"NEG",q:"I can't wait ___.",o:["any longer","no longer","not longer"]},
+ {c:"NEG",q:"He is ___ a student at this school.",o:["no longer","not longer","any longer"]},
+ {c:"NEG",q:"We ___ live in Lima.",o:["no longer","don't no longer","not longer"]},
+ {c:"NEG",q:"They don't use paper dictionaries ___.",o:["anymore","no more","no longer"]},
+ {c:"NEG",q:"___ afraid of making mistakes.",o:["I'm no longer","I'm not longer","I'm any longer"]},
+ {c:"NEG",q:"The company can ___ ignore climate change.",o:["no longer","not longer","any longer"]},
+ {c:"NEG",q:"I won't tolerate this behavior ___.",o:["any longer","no longer","not longer"]},
+ {c:"NEG",q:"Nobody uses this room ___.",o:["any longer","no longer","not longer"],r:"«Nobody» ya es negativo → ANY longer (una sola negación)."},
+ {c:"NEG",q:"My grandfather ___ drives at night.",o:["no longer","doesn't any longer","not longer"]},
+ // UNC
+ {c:"UNC",q:"The teacher gave us too much ___.",o:["homework","homeworks","a homework"]},
+ {c:"UNC",q:"I need ___ about the application process.",o:["some information","an information","some informations"]},
+ {c:"UNC",q:"Let me give you ___.",o:["a piece of advice","an advice","some advices"]},
+ {c:"UNC",q:"We have ___ classwork today.",o:["a lot of","many","a"]},
+ {c:"UNC",q:"The new laboratory ___ is very expensive.",o:["equipment","equipments","equipment's"]},
+ {c:"UNC",q:"There ___ strong evidence for this theory.",o:["is","are"]},
+ {c:"UNC",q:"How ___ homework do you have tonight?",o:["much","many"]},
+ {c:"UNC",q:"The information on this website ___ outdated.",o:["is","are"]},
+ {c:"UNC",q:"She has made ___ progress this year.",o:["a lot of","many","a"],r:"progress también es incontable: a lot of progress."},
+ {c:"UNC",q:"I finished all my ___ before the bell rang.",o:["classwork","classworks","classwork's"]},
+ {c:"UNC",q:"The police found new ___ at the scene.",o:["evidence","evidences","an evidence"]},
+ // IND
+ {c:"IND",q:"I didn't see ___ at the party.",o:["anybody","nobody"]},
+ {c:"IND",q:"Everyone ___ ready for the test.",o:["is","are"]},
+ {c:"IND",q:"There's ___ in the fridge. It's empty.",o:["nothing","anything"]},
+ {c:"IND",q:"Would you like ___ to drink?",o:["something","nothing"],r:"Ofrecimientos (Would you like…?) → SOME- aunque sea pregunta."},
+ {c:"IND",q:"She can't find her phone ___.",o:["anywhere","nowhere"]},
+ {c:"IND",q:"___ called you while you were out.",o:["Someone","Anyone"],r:"Afirmación → SOME-one. ANY- es para negaciones y preguntas."},
+ {c:"IND",q:"Nobody ___ the answer.",o:["knows","know","doesn't know"]},
+ {c:"IND",q:"Is there ___ who can help me?",o:["anyone","everyone"]},
+ {c:"IND",q:"He never says ___ in class.",o:["anything","nothing"]},
+ {c:"IND",q:"I looked ___ but couldn't find my keys.",o:["everywhere","anywhere","nowhere"]},
+ {c:"IND",q:"We didn't go ___ during the holidays.",o:["anywhere","nowhere"]},
+ // C1
+ {c:"C1",q:"___ you need further information, please contact the office.",o:["Should","Would","Had"],r:"Should + S + verbo base = If + S + verbo (formal)."},
+ {c:"C1",q:"___ I known about the problem, I would have helped.",o:["Had","Have","If"],r:"Had + S + participio = If I had known."},
+ {c:"C1",q:"A judge must be ___ — completely impartial.",o:["disinterested","uninterested"],r:"disinterested = IMPARCIAL | uninterested = sin interés."},
+ {c:"C1",q:"The students looked bored and ___ in the lecture.",o:["uninterested","disinterested"],r:"disinterested = IMPARCIAL | uninterested = sin interés."},
+ {c:"C1",q:"The new data ___ on the origin of the virus.",o:["sheds light","sheds a light","throws lights"],r:"SHED LIGHT ON = aclarar (sin artículo)."},
+ {c:"C1",q:"The prisoner managed to ___ for three months.",o:["escape detection","escape from detection","avoid to be detected"],r:"ESCAPE DETECTION = no ser descubierto (sin from)."},
+ {c:"C1",q:"Not only ___ English, but she also speaks Korean.",o:["does she speak","she speaks","she does speak"],r:"Not only al inicio → AUX + SUJETO."},
+ {c:"C1",q:"___ had we arrived when it began to rain.",o:["Hardly","No sooner","Only"],r:"Hardly … WHEN  |  No sooner … THAN."},
+ {c:"C1",q:"We must ___ an effort to reduce waste.",o:["make","do","take"],r:"MAKE an effort / MAKE a decision / DO research."},
+ {c:"C1",q:"Were I ___ the prize, I would donate it.",o:["to win","win","winning"],r:"Were + S + TO + verbo = If I won (hipótesis formal)."},
+ {c:"C1",q:"Schools should pay more attention ___ rural students.",o:["to","on","at"],r:"pay attention TO."},
+ {c:"C1",q:"Rarely ___ such dedication in a student.",o:["have I seen","I have seen","I saw"],r:"Rarely / Seldom / Never al inicio → AUX + SUJETO."}
+];
+// Detectores de errores fosilizados (lista negra)
+const FOSSILS=[
+ {re:/\bnot longer\b/i,n:"«NOT LONGER»",r:"«not longer» NO EXISTE → S + NO LONGER + verbo  |  S + not + verbo … ANY LONGER."},
+ {re:/(?:\b(?:am|is|are|was|were)|'m|'re)\s+(?:not\s+|no longer\s+)?(?:feel|want|need|agree|think|believe|know|like|live|work|works|study|play|plays|miss|have|teach)\b/i,n:"BE + VERBO («I'm want»)",r:"BE + verbo = ✗. Elige UNO: «I want» / «I feel»  o  «I'm tired» / «I'm working»."},
+ {re:/\b(?:want|wants|wanted|decide|decides|decided|need|needs|needed|hope|hopes|hoped|plan|plans|planned|refuse|refuses|refused|expect|expects|expected|would like|promise|promised)\s+(?:me\s+|us\s+|him\s+|her\s+|them\s+)?(?:(?!(?:no|some|any|every)thing\b)\w+ing\b|(?:go|work|study|visit|get|be|win|expand|improve|practice|learn|apply|answer|make|publish|become|leave)\b)/i,n:"SIN «TO» («want work»)",r:"want / decide / need / hope / plan / refuse (+ objeto) + TO + verbo base. SIEMPRE."},
+ {re:/\b(?:homeworks|classworks|advices|informations|equipments|evidences|furnitures|knowledges)\b|\ban (?:advice|information|equipment|evidence)\b|\ba (?:homework|classwork)\b/i,n:"INCONTABLE CON -S / A",r:"homework · classwork · advice · information · equipment · evidence → JAMÁS -s ni a/an."},
+ {re:/(?:\bnot\b|n't\b|\bnever\b|\bnobody\b|\bno one\b|\bnothing\b)[^.;,?]*\b(?:nobody|nothing|nowhere|no one|no longer|no more)\b|\b(?:nobody|no one|nothing)\b[^.;,?]*n't\b/i,n:"DOBLE NEGACIÓN",r:"UNA sola negación por cláusula: didn't + ANY- (anybody, anything, any longer)  |  o NO- sin not."}
+];
+
+/* ================= CONFIG ================= */
+const EXAM=new Date(2027,6,15,9,0,0);
+const JOURNEY_START=new Date(2026,6,30);          // primer registro en «Ingles Avance»
+const PHASES=[                                      // checkpoints del temario (Ingles Avance.pdf)
+  {n:1,d:new Date(2026,11,6),cats:["COP","INF","NEG","UNC","IND"]},
+  {n:2,d:new Date(2027,1,19),cats:["COP","INF","NEG","UNC","IND"]},
+  {n:3,d:new Date(2027,4,20),cats:["C1"]},
+  {n:4,d:EXAM,cats:["COP","INF","NEG","UNC","IND","C1"]}
+];
+const ROUND=12;
+const SPEEDS={warm:{n:"8 s",eh:8000,rb:7000},mext:{n:"5 s",eh:5000,rb:5000},brutal:{n:"3,5 s",eh:3500,rb:3000}};
+// interfaz por categoría / foco
+const CUI={
+  mix:{g:"Mx",n:"Mezcla",s:"Prioriza tus débiles",v:"mix"},
+  COP:{g:"Be",n:"Cópula",s:"I'm want → I want",v:"cop"},
+  INF:{g:"to",n:"Complemento",s:"want TO · enjoy -ING",v:"inf"},
+  NEG:{g:"no",n:"No longer",s:"no longer · any longer",v:"neg"},
+  UNC:{g:"∅s",n:"Incontables",s:"homework, advice…",v:"unc"},
+  IND:{g:"any",n:"Some / any / no",s:"Doble negación",v:"ind"},
+  C1:{g:"C1",n:"Formal C1",s:"Inversión y colocaciones",v:"c1"},
+  buf:{g:"↻",n:"Errores",s:"Buffer pendiente",v:"buf"}
+};
+const FOCI=["mix","COP","INF","NEG","UNC","IND","C1","buf"];
+// modos de juego
+const MODES={
+  hunter:{g:"A–D",n:"Detectar el error",s:"Toca la parte incorrecta · Sección III",v:"inf"},
+  rebuild:{g:"__",n:"Completar",s:"Elige la estructura correcta",v:"c1"},
+  fossil:{g:"!",n:"Errores persistentes",s:"Tu lista negra: I'm want, classworks…",v:"fos"},
+  death:{g:"♥3",n:"Contrarreloj",s:"3 vidas · el tiempo se acelera",v:"ind"}
+};
+const cv=k=>`var(--${(CUI[k]||MODES[k]).v})`;
+
+/* ================= HELPERS ================= */
+const $=s=>document.querySelector(s);
+const clean=t=>t.replace(/[\[\]]/g,"");
+const fill=(q,o)=>q.replace("___",o);
+const fossilOf=txt=>{for(const f of FOSSILS)if(f.re.test(txt))return f;return null};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const today=(d=new Date())=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const daysTo=d=>Math.max(0,Math.ceil((d-new Date())/864e5));
+const ehFixed=it=>{let k=0;return it.t.replace(/\[([^\]]+)\]/g,(m,s)=>(k++===it.e?`<ins>${it.fx}</ins>`:s))};
+const ITEMS=[...EH.map((x,i)=>({...x,k:"E",id:"E"+i})),...RB.map((x,i)=>({...x,k:"R",id:"R"+i}))];
+ITEMS.forEach(it=>{it.fos=it.k==="E"?!!fossilOf(clean(it.t)):it.o.slice(1).some(o=>fossilOf(fill(it.q,o)))});
+const BYID=Object.fromEntries(ITEMS.map(x=>[x.id,x]));
+const correctText=it=>it.k==="E"?ehFixed(it):fill(it.q,`<ins>${it.o[0]}</ins>`);
+const label=it=>it.k==="E"?ehFixed(it).replace(/<\/?ins>/g,""):fill(it.q,it.o[0]);
+const glyph=k=>`<span class="glyph" style="--c:${cv(k)}">${(CUI[k]||MODES[k]).g}</span>`;
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove("on"),1900)}
+
+/* ================= STORAGE ================= */
+const KEY="mextforge.v1";
+const fresh=()=>({cats:{},items:{},sessions:[],fossils:0,buffer:{},best:{score:0,combo:0},bestMode:{},streak:{d:null,n:0},
+  settings:{speed:"warm",mute:false,theme:"auto",focus:"mix"}});
+let DB;
+try{DB=JSON.parse(localStorage.getItem(KEY))||fresh()}catch(e){DB=fresh()}
+(function migrate(){
+  const f=fresh();DB=Object.assign(f,DB);DB.settings=Object.assign(fresh().settings,DB.settings||{});
+  if(typeof DB.best.score!=="number"){const old=DB.best||{};DB.bestMode=old;DB.best={score:Math.max(0,...Object.values(old).map(Number).filter(n=>!isNaN(n))),combo:0}}
+  DB.buffer=DB.buffer||{};
+  for(const id in DB.buffer)if(!BYID[id])delete DB.buffer[id];
+})();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}};
+const cs=c=>{const s=DB.cats[c]||(DB.cats[c]={n:0,w:0,to:0,ms:0,f:0});if(!s.r)s.r=[];return s};
+const errRate=c=>{const s=cs(c);return (s.w+1)/(s.n+2)};
+const catAcc=c=>{const s=cs(c);if(s.r.length)return s.r.reduce((a,b)=>a+b,0)/s.r.length;return s.n?1-s.w/s.n:null};
+const meterCls=p=>p==null?"none":p<.6?"bad":p<.8?"warn":"";
+const todayStats=()=>{const t=DB.sessions.filter(x=>x.d===today());const n=t.reduce((a,x)=>a+x.n,0),ok=t.reduce((a,x)=>a+Math.round(x.acc*x.n/100),0);return {n,ok}};
+function streakNow(){const y=today(new Date(Date.now()-864e5));return DB.streak.d===today()||DB.streak.d===y?DB.streak.n:0}
+
+/* ================= THEME ================= */
+function seigaiha(bg,st){
+  const c=(x,y)=>[19,14,9,4].map(r=>`<circle cx='${x}' cy='${y}' r='${r}'/>`).join("");
+  return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='20'><g fill='${bg}' stroke='${st}' stroke-width='1'>${c(20,0)}${c(0,10)}${c(40,10)}${c(20,20)}</g></svg>`)}")`;
+}
+function applyTheme(){
+  const r=document.documentElement;
+  if(DB.settings.theme==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",DB.settings.theme);
+  if(!applyTheme.done){applyTheme.done=1;const L=seigaiha("#f6f0e4","#ece1cd"),D=seigaiha("#0c0e1b","#151a31"),st=document.createElement("style");
+    st.textContent=`:root{--pat:${L}}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pat:${D}}}:root[data-theme="dark"]{--pat:${D}}`;document.head.appendChild(st)}
+}
+
+/* ================= AUDIO ================= */
+let AC=null;
+function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==="suspended")AC.resume();return AC}
+function tone(f,d,type,vol,when,f2){const a=ac();if(!a||DB.settings.mute)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+(when||0);
+  o.type=type||"sine";o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(vol||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.03)}
+const SFX={
+  ok(){tone(660,.08,"sine",.12);tone(990,.12,"sine",.12,.07)},
+  combo(){tone(880,.07,"triangle",.12);tone(1175,.07,"triangle",.12,.06);tone(1568,.14,"triangle",.12,.12)},
+  bad(){tone(190,.28,"square",.07,0,110)},
+  fossil(){for(let i=0;i<4;i++){tone(1040,.13,"sawtooth",.12,i*.26);tone(520,.13,"sawtooth",.12,i*.26+.13)}try{navigator.vibrate&&navigator.vibrate([120,60,120,60,260])}catch(e){}},
+  end(){[523,659,784,1047].forEach((f,i)=>tone(f,.15,"triangle",.11,i*.09))}
+};
+
+/* ================= SESSION ================= */
+let view="home",G=null;
+function weightOf(it,blind){
+  const s=DB.items[it.id]||{w:0,c:0};
+  let w=1+s.w*2-Math.min(s.c,4)*.2;
+  if(blind)w*=1+errRate(it.c)*8;
+  return Math.max(.15,w);
+}
+function pick(pool,n,blind,exclude){
+  const out=[],cand=pool.filter(x=>!(exclude&&exclude.has(x.id)));
+  while(out.length<n&&cand.length){
+    const ws=cand.map(x=>weightOf(x,blind));let r=Math.random()*ws.reduce((a,b)=>a+b,0),i=0;
+    while(i<ws.length-1&&r>ws[i]){r-=ws[i];i++}
+    out.push(cand.splice(i,1)[0]);
+  }
+  return out;
+}
+function bufItems(filter){return Object.keys(DB.buffer).map(id=>BYID[id]).filter(x=>x&&(!filter||filter(x)))}
+function buildQueue(key){
+  let pool,blind=false,lead=[];
+  if(key==="buf"){const b=shuffle(bufItems());return b.slice(0,ROUND)}
+  if(key==="mix"){pool=ITEMS;blind=true;lead=shuffle(bufItems()).slice(0,3)}
+  else if(CATS[key]){pool=ITEMS.filter(x=>x.c===key);lead=shuffle(bufItems(x=>x.c===key)).slice(0,3)}
+  else if(key==="hunter")pool=ITEMS.filter(x=>x.k==="E");
+  else if(key==="rebuild")pool=ITEMS.filter(x=>x.k==="R");
+  else if(key==="fossil")pool=ITEMS.filter(x=>x.fos);
+  else if(key==="death")pool=ITEMS;
+  const ex=new Set(lead.map(x=>x.id));
+  return shuffle(lead).concat(pick(pool,(key==="death"?20:ROUND)-lead.length,blind,ex));
+}
+function start(key,custom){
+  ac();
+  const queue=custom||buildQueue(key);
+  if(!queue.length){toast(key==="buf"?"Buffer vacío. Nada pendiente ✨":"No hay ejercicios aquí");return}
+  G={key,queue,pool:key==="death"?ITEMS:null,death:key==="death",idx:0,score:0,combo:0,maxCombo:0,lives:3,res:[],speedMul:1,freed:0,state:"q",raf:0,timer:0,byCat:{}};
+  view="drill";nextQ();
+}
+function limitFor(it){const sp=SPEEDS[DB.settings.speed];return (it.k==="E"?sp.eh:sp.rb)*G.speedMul}
+function nextQ(){
+  clearTimeout(G.timer);
+  if(G.death){
+    if(G.lives<=0)return finish();
+    if(G.idx>=G.queue.length)G.queue.push(...pick(ITEMS,15,false,new Set(G.queue.slice(-10).map(x=>x.id))));
+  }else if(G.idx>=G.queue.length)return finish();
+  const it=G.it=G.queue[G.idx];
+  G.state="q";G.chosen=null;G.gain=0;G.fos=null;G.limit=limitFor(it);G.qEl=0;G.last=performance.now();
+  if(it.k==="R")G.order=shuffle(it.o.map((_,i)=>i));
+  renderDrill();
+  cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick);
+}
+const RC=2*Math.PI*20;
+function tick(t){
+  if(view!=="drill"||!G||G.state!=="q")return;
+  const dt=t-G.last;G.last=t;
+  if(!document.hidden)G.qEl+=dt;
+  if(G.qEl>=G.limit)return answer(-1);
+  updateClock();
+  G.raf=requestAnimationFrame(tick);
+}
+function updateClock(){
+  const fg=$("#tfg"),tx=$("#ttx"),tr=$("#tring"),qt=$("#qt");
+  const p=G.state==="q"?Math.max(0,1-G.qEl/G.limit):0;
+  if(fg)fg.style.strokeDashoffset=RC*(1-p);
+  if(tx)tx.textContent=G.state==="q"?Math.ceil((G.limit-G.qEl)/1000):"";
+  if(tr)tr.classList.toggle("low",p<.3);
+  if(qt){qt.style.width=(100*p)+"%";qt.className=p<.25?"low":p<.5?"mid":""}
+}
+function answer(choice){
+  if(!G||G.state!=="q")return;
+  cancelAnimationFrame(G.raf);
+  const it=G.it,ms=Math.min(G.qEl,G.limit),timeout=choice<0;
+  const orig=it.k==="R"&&!timeout?G.order[choice]:choice;
+  const ok=!timeout&&(it.k==="E"?choice===it.e:orig===0);
+  let fos=null;
+  if(!ok){if(it.k==="E")fos=fossilOf(clean(it.t));else if(!timeout)fos=fossilOf(fill(it.q,it.o[orig]))}
+  // estadísticas
+  const s=cs(it.c);s.n++;s.ms+=ms;s.r.push(ok?1:0);if(s.r.length>15)s.r.shift();
+  const is=DB.items[it.id]||(DB.items[it.id]={w:0,c:0});
+  const bc=G.byCat[it.c]||(G.byCat[it.c]={n:0,ok:0});bc.n++;
+  if(ok){is.c++;bc.ok++;
+    const b=DB.buffer[it.id];if(b){b.s++;if(b.s>=3){delete DB.buffer[it.id];G.freed++}}
+  }else{s.w++;is.w++;is.c=0;if(timeout)s.to++;if(fos){s.f++;DB.fossils++}
+    const b=DB.buffer[it.id];DB.buffer[it.id]={s:0,f:(b?b.f:0)+1};
+  }
+  save();
+  if(ok){G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
+    const mult=1+Math.min(4,Math.floor(G.combo/3))*.5;
+    G.gain=Math.round((100+100*(1-ms/G.limit))*mult);G.score+=G.gain;
+    if(G.death)G.speedMul=Math.max(.55,G.speedMul*.95);
+    (G.combo%3===0?SFX.combo:SFX.ok)();
+  }else{G.combo=0;if(G.death)G.lives--;
+    if(fos){SFX.fossil();const f=$("#flash");f.style.opacity=".18";setTimeout(()=>f.style.opacity="0",180)}else SFX.bad();
+  }
+  G.res.push({it,ok,ms,timeout,fos});
+  G.state="fb";G.chosen=choice;G.ok=ok;G.fos=fos;G.timeout=timeout;G.fbAt=performance.now();
+  renderDrill();
+  if(ok)G.timer=setTimeout(cont,650);
+}
+function cont(){if(!G||G.state!=="fb")return;if(!G.ok&&performance.now()-G.fbAt<350)return;clearTimeout(G.timer);G.idx++;nextQ()}
+function quit(){if(G){clearTimeout(G.timer);cancelAnimationFrame(G.raf)}G=null;view="home";render()}
+function finish(){
+  const r=G.res,n=r.length,good=r.filter(x=>x.ok).length,acc=n?good/n:0;
+  const t=today(),y=today(new Date(Date.now()-864e5));
+  if(n){if(DB.streak.d!==t){DB.streak.n=DB.streak.d===y?DB.streak.n+1:1;DB.streak.d=t}}
+  G.record=n&&G.score>(DB.best.score||0);
+  if(G.record)DB.best.score=G.score;
+  DB.best.combo=Math.max(DB.best.combo||0,G.maxCombo);
+  if(n&&G.score>(DB.bestMode[G.key]||0))DB.bestMode[G.key]=G.score;
+  if(n)DB.sessions.push({d:t,ts:Date.now(),m:G.key,acc:Math.round(acc*100),s:G.score,n,ok:good});
+  DB.sessions=DB.sessions.slice(-80);save();SFX.end();
+  G.acc=acc;G.n=n;G.good=good;view="end";render();
+}
+
+/* ================= RENDER ================= */
+function catRows(){
+  return Object.keys(CATS).map(c=>{
+    const st=cs(c),p=catAcc(c);
+    return `<div class="catrow">${glyph(c)}<div><b>${CUI[c].n}</b> <span class="muted small">${CATS[c].n}</span></div>
+      <div class="pct">${p==null?'<span class="muted small">—</span>':Math.round(p*100)+"%"}</div>
+      <div class="meter"><i class="${meterCls(p)}" style="width:${p==null?100:Math.max(3,p*100)}%"></i></div>
+      <div class="sub">${st.n?`${st.n} resp. · total ${Math.round(100*(1-st.w/st.n))}% · ${(st.ms/st.n/1000).toFixed(1)} s/resp.${st.f?` · <span style="color:var(--fos)">${st.f} persistentes</span>`:""} · barra = últimas ${st.r.length}`:"Sin datos todavía"}</div>
+    </div>`}).join("");
+}
+function phaseInfo(){
+  const ph=PHASES.find(p=>p.d>new Date())||PHASES[PHASES.length-1];
+  const done=ph.cats.filter(c=>{const st=cs(c),p=catAcc(c);return st.n>=15&&p!=null&&p>=.9}).length;
+  return {ph,pct:Math.round(100*done/ph.cats.length),days:daysTo(ph.d)};
+}
+function renderHome(){
+  const ts=todayStats(),bufN=Object.keys(DB.buffer).length,f=DB.settings.focus;
+  const exam=daysTo(EXAM),prog=Math.min(1,Math.max(0,(new Date()-JOURNEY_START)/(EXAM-JOURNEY_START))),C=2*Math.PI*44;
+  const {ph,pct,days}=phaseInfo();
+  const keys=Object.keys(CATS),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
+  const fmode=CUI[f];
+  $("#app").innerHTML=`
+    <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
+      <button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
+    <section class="hero">
+      <div class="ring" aria-label="${exam} días para el examen">
+        <svg viewBox="0 0 100 100"><defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#8fb0ff"/><stop offset="1" stop-color="var(--accent)"/></linearGradient></defs>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="var(--surface2)" stroke-width="9"/>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#g1)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-prog)}"/></svg>
+        <div class="in"><div><b>${exam}</b><small>días</small></div></div>
+      </div>
+      <div>
+        <div class="eyebrow">Exam · 15 jul 2027</div>
+        <div class="h">${ph.n<4?`Checkpoint Fase ${ph.n} (${pct}%) en <span style="color:var(--accent)">${days} días</span>`:`Simulacro final en <span style="color:var(--accent)">${days} días</span>`}</div>
+        <div class="pills"><span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}</div>
+      </div>
+    </section>
+    <button class="start" data-act="go"><span class="play">▶</span><span><b>Ronda de ${ROUND}</b><small>${fmode.n}${f!=="mix"&&f!=="buf"?" · "+CATS[f].n:""} · Enter</small></span></button>
+    <h3>Elige tu debilidad</h3>
+    <div class="modes">${FOCI.map(k=>{
+      const p=CATS[k]?catAcc(k):null;
+      return `<button class="mode ${k===f?"on":""}" data-focus="${k}" style="--c:${cv(k)}">
+        <span class="glyph">${CUI[k].g}</span><span class="mn">${CUI[k].n}</span><span class="ms">${k==="buf"?(bufN?bufN+" por liberar":"Vacío ✨"):CUI[k].s}</span>
+        ${k==="buf"&&bufN?`<span class="badge">${bufN}</span>`:p!=null?`<span class="acc">${Math.round(p*100)}%</span>`:""}
+        ${p!=null?`<span class="mb" style="width:${p*100}%"></span>`:""}</button>`}).join("")}</div>
+    <h3>Regla del día</h3>
+    <div class="card rule-day" style="--c:${cv(tipCat)}"><span class="wm" aria-hidden="true">${CUI[tipCat].g}</span>${glyph(tipCat)}
+      <div><p>${CATS[tipCat].r}</p><span class="tag">${CATS[tipCat].n}</span></div></div>
+    <h3>Modos de juego</h3>
+    <div class="modes">${Object.entries(MODES).map(([k,m])=>{
+      const fosN=k==="fossil"?ITEMS.filter(x=>x.fos).length:0;
+      return `<button class="mode" data-mode="${k}" style="--c:${cv(k)}">
+        <span class="glyph">${m.g}</span><span class="mn">${m.n}</span><span class="ms">${m.s}</span>
+        ${DB.bestMode[k]?`<span class="acc">🏆 ${DB.bestMode[k]}</span>`:k==="fossil"?`<span class="badge">${fosN}</span>`:""}</button>`}).join("")}</div>
+    <h3>Precisión por debilidad</h3>
+    <div class="card">${catRows()}</div>
+    <h3>Ajustes</h3>
+    <details class="card"><summary>⚙️ Tiempo, sonido, tema y respaldo</summary><div class="stack" style="margin-top:14px">
+      <div class="set"><span>Tiempo por pregunta</span><span class="seg">${Object.entries(SPEEDS).map(([k,v])=>`<button data-speed="${k}" class="${DB.settings.speed===k?"on":""}">${v.n}</button>`).join("")}</span></div>
+      <div class="set"><span>Sonido y alerta</span><span class="seg"><button data-mute="0" class="${!DB.settings.mute?"on":""}">Sí</button><button data-mute="1" class="${DB.settings.mute?"on":""}">No</button></span></div>
+      <div class="set"><span>Tema</span><span class="seg">${[["auto","Auto"],["light","和紙"],["dark","夜"]].map(([k,n])=>`<button data-theme="${k}" class="${DB.settings.theme===k?"on":""}">${n}</button>`).join("")}</span></div>
+      <p class="muted small" style="margin:0">Empieza en 8 s. Cuando la barra de una categoría pase el 85 %, baja a 5 s (ritmo de examen).</p>
+      <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="export">Exportar respaldo</button><button class="btn" data-act="import">Importar</button><span class="sp"></span><button class="btn" data-act="reset" style="color:var(--bad)">Borrar todo</button></div>
+    </div></details>
+    <div class="foot"><span class="kbd">Enter</span> empezar · <span class="kbd">1</span>–<span class="kbd">4</span> / <span class="kbd">A</span>–<span class="kbd">D</span> responder · <span class="kbd">Enter</span> seguir · <span class="kbd">Esc</span> salir · <span class="kbd">S</span> estadísticas</div>`;
+}
+function renderDrill(){
+  const it=G.it,fb=G.state==="fb",ok=fb&&G.ok,c=it.c;
+  const mult=1+Math.min(4,Math.floor(G.combo/3))*.5;
+  const cm=G.combo>=3?`<span class="combo ${G.combo>=9?"hot":""}">🔥 ${G.combo} · ×${mult.toFixed(1)}</span>`:"";
+  const inBuf=DB.buffer[it.id]&&!fb?DB.buffer[it.id]:null;
+  const modeTag=MODES[G.key]?`<span class="tag" style="--c:${cv(G.key)}">${MODES[G.key].n}</span>`:"";
+  let prompt,opts="";
+  if(it.k==="E"){
+    let k=0;
+    const html=it.t.replace(/\[([^\]]+)\]/g,(m,s)=>{const i=k++;
+      const cls=fb?(i===it.e?"ok":i===G.chosen?"bad":"dim"):"";
+      return `<button class="segm ${cls}" data-ans="${i}" ${fb?'tabindex="-1"':""}>${s}<span class="k">${"ABCD"[i]}</span></button>`});
+    prompt=`<div class="head">Toca la parte <b>incorrecta</b></div><div class="prompt ${fb&&!ok?"shake":""}" lang="en">${html}</div>`;
+  }else{
+    const [a,b]=it.q.split("___");
+    prompt=`<div class="head">Elige la forma correcta</div><div class="prompt rb" lang="en">${a}<span class="blank ${fb?"ok":""}">${fb?it.o[0]:"&nbsp;?&nbsp;"}</span>${b}</div>`;
+    const ci=G.order.indexOf(0);
+    opts=`<div class="opts ${fb&&!ok?"shake":""}" lang="en" style="--c:${cv(c)}">${G.order.map((o,i)=>{
+      const cls=fb?(i===ci?"ok":i===G.chosen?"bad":"dim"):"";
+      return `<button class="opt ${cls}" data-ans="${i}" ${fb?'tabindex="-1"':""}><span class="k">${i+1}</span><span>${it.o[o]}</span></button>`}).join("")}</div>`;
+  }
+  let fbHtml="";
+  if(fb&&!ok){
+    const chosenTxt=G.timeout?null:it.k==="E"?it.t.match(/\[([^\]]+)\]/g)[G.chosen].slice(1,-1):it.o[G.order[G.chosen]];
+    const rightTxt=it.k==="E"?`${it.t.match(/\[([^\]]+)\]/g)[it.e].slice(1,-1)} → ${it.fx}`:it.o[0];
+    fbHtml=`<div class="fb" role="alert" data-act="cont"><span class="ic">${G.timeout?"⏱":"✗"}</span><div style="flex:1;min-width:0">
+      <div class="h">${G.timeout?`Se acabó el tiempo → correcta <b style="color:var(--ok)">${rightTxt}</b>`:`Elegiste <b>${chosenTxt}</b> → correcta <b style="color:var(--ok)">${rightTxt}</b>`}</div>
+      ${G.fos?`<div class="fosbox"><b>! Error persistente · ${G.fos.n}</b>${G.fos.r}</div>`:""}
+      <p class="fix" lang="en">${correctText(it)}</p>
+      <p class="r2"><b>Regla:</b> ${it.r||CATS[c].r}</p>
+      <div class="n"><span class="tag buf">↻ al buffer · 0/3</span><span class="go-on">${G.death&&G.lives<=0?"Ver resultado":"Seguir"} ⏎</span></div></div></div>`;
+  }
+  const prog=G.death?`#${G.idx+1}`:`${G.idx+1}/${G.queue.length}`;
+  $("#app").innerHTML=`
+    <div class="hud"><button class="icon-btn" data-act="quit" aria-label="Salir">✕</button>
+      <div class="score"><b>${G.score}</b><small>puntos</small></div>${fb&&ok&&G.gain?`<span class="float">+${G.gain}</span>`:""}
+      <span class="sp"></span>${G.death?`<span class="lives">${"♥".repeat(G.lives)}<span style="opacity:.25">${"♥".repeat(3-G.lives)}</span></span>`:""}${cm}
+      <div class="tring" id="tring" aria-label="Tiempo restante"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="var(--surface2)" stroke-width="5"/>
+        <circle id="tfg" class="fg" cx="24" cy="24" r="20" fill="none" stroke="var(--text)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${RC}" stroke-dashoffset="0"/></svg><span id="ttx"></span></div>
+    </div>
+    <div class="qcard ${ok?"pop":""}" style="--c:${cv(c)}"><span class="wm" aria-hidden="true">${CUI[c].g}</span>
+      <div class="tags"><span class="tag">${CUI[c].g} ${CATS[c].n}</span>${modeTag}${inBuf?`<span class="tag buf">↻ repaso ${inBuf.s}/3</span>`:""}<span class="sp"></span><span class="muted small">${prog}</span></div>
+      ${prompt}
+      <div class="qtimer"><i id="qt"></i></div>
+    </div>
+    ${opts}${fbHtml}`;
+  updateClock();
+}
+function grade(a){return a>=.9?["優","EXCELENTE"]:a>=.75?["良","BIEN"]:a>=.6?["可","PASA"]:["再","OTRA VEZ"]}
+function renderEnd(){
+  const a=G.acc,[g,gl]=grade(a),bufN=Object.keys(DB.buffer).length,fails40=Math.round((1-a)*40);
+  const misses=G.res.filter(x=>!x.ok),seen=new Set();
+  const uniq=misses.filter(x=>!seen.has(x.it.id)&&seen.add(x.it.id));
+  const conf=(G.record||a>=.9)&&G.n?`<div class="confetti">${Array.from({length:26},(_,i)=>`<i style="left:${Math.random()*100}%;background:${["#ff5a4e","#ffc857","#3cc8e6","#ad90ff","#4fe090"][i%5]};animation-delay:${Math.random()*.5}s"></i>`).join("")}</div>`:"";
+  const pc=fails40<=4?"var(--ok)":fails40<=10?"var(--warn)":"var(--bad)";
+  $("#app").innerHTML=`<div class="stack">
+    <div class="endhero">${conf}
+      <div class="stamp" lang="ja">${g}</div><div class="stamp-l">${gl}${G.record?" · 🏆 NUEVO RÉCORD":""}</div>
+      <div class="big" id="endScore">0</div><div class="muted small">puntos</div>
+      <div class="kpis"><div class="kpi"><b>${Math.round(a*100)}%</b><span>${G.good}/${G.n} correctas</span></div><div class="kpi"><b>🔥 ${G.maxCombo}</b><span>mejor combo</span></div><div class="kpi"><b>${G.freed}</b><span>liberados</span></div></div>
+    </div>
+    <div class="card proj" style="--c:${pc}"><b>~${fails40}</b><div><div style="font-weight:700">fallos proyectados de 40 en el MEXT</div><div class="muted small">${fails40<=4?"Dentro de la meta (máx. 4). Prueba un tiempo más corto.":`Meta: máx. 4. Te sobran ${fails40-4}: el buffer los trabajará.`}</div></div></div>
+    <div class="card"><h3>Esta ronda</h3>${Object.keys(G.byCat).map(c=>{const b=G.byCat[c],p=b.ok/b.n;return `<div class="catrow">${glyph(c)}<div><b>${CUI[c].n}</b></div><div class="pct">${b.ok}/${b.n}</div><div class="meter"><i class="${meterCls(p)}" style="width:${Math.max(3,p*100)}%"></i></div></div>`}).join("")||'<span class="muted">Sin respuestas</span>'}</div>
+    ${uniq.length?`<div class="card"><h3>Lo que fallaste</h3>${uniq.map(x=>`<div class="miss">${x.fos?`<span class="tag fos" style="margin-bottom:6px;display:inline-block">! ${x.fos.n}</span>`:""}<p class="fix" lang="en">${correctText(x.it)}</p><div class="r">${x.fos?x.fos.r:(x.it.r||CATS[x.it.c].r)}</div></div>`).join("")}</div>`:""}
+    <div class="muted small center">${bufN?`↻ ${bufN} ejercicio(s) en el buffer: abrirán tus próximas rondas hasta acertarlos 3 veces seguidas.`:"Buffer vacío. ✨"}</div>
+    <div class="cta"><button class="start" data-act="again"><span class="play">↻</span><span><b>Otra ronda</b><small>Enter</small></span></button><button class="btn" data-act="home">Inicio</button></div>
+  </div>`;
+  const el=$("#endScore"),to=G.score,t0=performance.now();
+  (function up(t){const p=Math.min(1,(t-t0)/700);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(up)})(t0);
+}
+function renderStats(){
+  const buf=Object.entries(DB.buffer).filter(([id])=>BYID[id]).sort((a,b)=>b[1].f-a[1].f);
+  const miss=Object.entries(DB.items).filter(([id,v])=>v.w>0&&BYID[id]).sort((a,b)=>b[1].w-a[1].w).slice(0,8);
+  const ss=DB.sessions.slice(-10).reverse(),seen=Object.keys(DB.items).filter(k=>BYID[k]).length;
+  const nameOf=k=>(CUI[k]||MODES[k]||{n:k}).n;
+  $("#app").innerHTML=`<div class="stack">
+    <div class="row"><button class="icon-btn" data-act="home" aria-label="Inicio">←</button><b style="font-size:1.15rem">Estadísticas</b><span class="sp"></span><span class="kbd">Esc</span></div>
+    <div class="kpis"><div class="kpi"><b>${DB.best.score}</b><span>🏆 récord</span></div><div class="kpi"><b>${DB.best.combo}</b><span>🔥 mejor combo</span></div><div class="kpi"><b>${seen}/${ITEMS.length}</b><span>ejercicios vistos</span></div></div>
+    <div class="card"><h3>Precisión por debilidad</h3>${catRows()}</div>
+    <div class="card"><h3>↻ Buffer de errores (${buf.length})</h3>${buf.length?`<ul class="list">${buf.map(([id,v])=>`<li>${glyph(BYID[id].c)}<span class="t" lang="en">${label(BYID[id])}</span><span class="dots">${"●".repeat(v.s)}${"○".repeat(3-v.s)}</span></li>`).join("")}</ul>
+      <button class="btn" data-focus-go="buf" style="margin-top:10px;width:100%">Practicar el buffer</button>`:'<span class="muted">Vacío. Lo que falles entra aquí hasta acertarlo 3 veces seguidas.</span>'}</div>
+    <div class="card"><h3>Más fallados</h3>${miss.length?`<ul class="list">${miss.map(([id,v])=>`<li>${glyph(BYID[id].c)}<span class="t" lang="en">${label(BYID[id])}</span><span class="muted small">${v.w}✗</span></li>`).join("")}</ul>`:'<span class="muted">Todavía nada.</span>'}</div>
+    <div class="card"><h3>Últimas rondas</h3>${ss.length?`<ul class="list">${ss.map(s=>`<li>${CUI[s.m]||MODES[s.m]?glyph(s.m):glyph("mix")}<span class="t">${nameOf(s.m)} · ${s.ts?new Date(s.ts).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):s.d}</span><span class="muted small">${s.ok!=null?s.ok:Math.round(s.acc*s.n/100)}/${s.n} · <b style="color:var(--text)">${s.s}</b></span></li>`).join("")}</ul>`:'<span class="muted">Sin rondas.</span>'}</div>
+  </div>`;
+}
+function render(){applyTheme();if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
+
+/* ================= EVENTS ================= */
+function exportData(){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(DB)],{type:"application/json"}));
+  a.download=`mext-forge-respaldo-${today()}.json`;document.body.appendChild(a);a.click();a.remove();
+}
+$("#imp").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d!=="object"||!d.cats)throw 0;DB=d;(function(){const fr=fresh();DB=Object.assign(fr,DB);DB.settings=Object.assign(fresh().settings,DB.settings||{})})();save();render();toast("Respaldo importado")}catch(err){toast("Archivo no válido")}};
+  r.readAsText(f);e.target.value=""});
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button,[data-act]");
+  if(!t)return;
+  const d=t.dataset;
+  if(d.ans!==undefined){if(G&&G.state==="q")answer(+d.ans);return}
+  if(d.focus){DB.settings.focus=d.focus;save();renderHome();return}
+  if(d.focusGo){start(d.focusGo);return}
+  if(d.mode){start(d.mode);return}
+  if(d.speed){DB.settings.speed=d.speed;save();render();return}
+  if(d.mute){DB.settings.mute=d.mute==="1";save();render();return}
+  if(d.theme){DB.settings.theme=d.theme;save();render();return}
+  switch(d.act){
+    case "go":start(DB.settings.focus);break;
+    case "again":start(G.key);break;
+    case "cont":cont();break;
+    case "quit":quit();break;
+    case "home":quit();break;
+    case "stats":view="stats";render();break;
+    case "export":exportData();break;
+    case "import":$("#imp").click();break;
+    case "reset":if(confirm("¿Borrar todo el progreso, buffer y estadísticas? No se puede deshacer.")){const th=DB.settings.theme;DB=fresh();DB.settings.theme=th;save();render()}break;
+  }
+});
+document.addEventListener("keydown",e=>{
+  if(e.target.closest&&e.target.closest("summary"))return;
+  const k=e.key.toLowerCase();
+  if(e.key==="Escape"){quit();return}
+  if(view==="home"){if(e.key==="Enter"){e.preventDefault();start(DB.settings.focus)}else if(k==="s"){view="stats";render()}return}
+  if(view==="stats"){return}
+  if(view==="end"){if(e.key==="Enter"){e.preventDefault();start(G.key)}return}
+  if(view==="drill"&&G){
+    if(G.state==="q"){
+      let i=-1;if(k.length===1&&"1234".includes(k))i=+k-1;else if(k.length===1&&"abcd".includes(k))i="abcd".indexOf(k);
+      const max=G.it.k==="E"?4:G.it.o.length;
+      if(i>=0&&i<max){e.preventDefault();answer(i)}
+    }else if(e.key==="Enter"||e.key===" "){e.preventDefault();cont()}
+  }
+});
+document.addEventListener("visibilitychange",()=>{if(G&&G.state==="q"&&!document.hidden){G.last=performance.now();cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick)}});
+render();
+</script>
+<script>
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>
