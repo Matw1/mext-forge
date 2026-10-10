@@ -227,6 +227,47 @@ details[open].card summary::after{content:"－"}
 .syncbox input{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translate(-50%,10px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:14px;font-weight:700;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);text-align:center;z-index:9;box-shadow:var(--shadow)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
+/* ===== Tareas diarias ===== */
+.tk-card{width:100%;margin-top:14px;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow)}
+.tk-card .glyph{margin:0;font-size:1.1rem}
+.tk-card b{display:block}.tk-card small{color:var(--muted);font-size:.8rem}
+.tk-row{all:unset;box-sizing:border-box;width:100%;display:flex;gap:10px;align-items:center;cursor:pointer}
+.tk .card p{margin:6px 0}.tk .card ul{margin:6px 0;padding-left:20px}
+.tk blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid var(--line);color:var(--text);background:var(--surface2);border-radius:0 10px 10px 0}
+.tk pre{white-space:pre-wrap;background:var(--surface2);border-radius:10px;padding:10px;font-size:.88rem}
+.tk code{background:var(--surface2);border-radius:5px;padding:0 4px}
+.tk-callout{background:var(--surface2);border-radius:12px;padding:10px 12px;margin:8px 0}
+.tk-table{overflow-x:auto}.tk-table table{border-collapse:collapse;font-size:.9rem}.tk-table td,.tk-table th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.tk-ah{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tk-title{text-transform:none;letter-spacing:0;font-size:1.08rem;color:var(--text);margin:8px 0 6px}
+.tk-act.ref{border-left:4px solid var(--inf)}
+.tk-act .tag{--c:var(--inf)}
+.tk-timer{border:1px solid var(--line);background:var(--surface2);border-radius:99px;padding:5px 12px;font-weight:800;font-variant-numeric:tabular-nums;min-height:36px}
+.tk-timer.run{border-color:var(--ok);color:var(--ok)}.tk-timer.over{border-color:var(--bad);color:var(--bad)}
+.tk-item{border-top:1px solid var(--line);padding:12px 0}
+.tk-item:first-of-type{border-top:0}
+.tk-q{font-size:1.02rem;line-height:1.5;margin-bottom:8px}
+.gap{color:var(--inf);font-weight:800}
+.tk-sub{font-size:.95rem;margin:-4px 0 8px}
+.tk-in,.tk-note{width:100%;font:inherit;font-size:16px;line-height:1.45;color:var(--text);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical}
+.tk-in:focus,.tk-note:focus{outline:0;border-color:var(--inf)}
+.tk-in[readonly]{background:var(--surface2)}
+.tk-note{display:none;margin-top:8px;font-size:15px}
+.tk-item.doubt .tk-note{display:block}
+.tk-opts{display:flex;flex-wrap:wrap;gap:8px}
+.tk-opt{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 14px;min-height:44px;font-size:1rem}
+.tk-opt.on{border-color:var(--inf);background:color-mix(in srgb,var(--inf) 14%,transparent);font-weight:700}
+.tk-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.tk-help button{padding:6px 10px;min-height:34px;font-size:.8rem}
+.tk-doubt{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 10px;min-height:34px;font-size:.82rem}
+.tk-doubt.on{border-color:var(--warn);color:var(--warn);background:var(--warnbg);font-weight:700}
+.tk-check{display:flex;gap:10px;align-items:flex-start;font-size:1rem}
+.tk-check input{width:22px;height:22px;flex:none;margin-top:1px}
+.tk-min{display:inline-flex;align-items:center;gap:6px;margin:8px 0 0 32px;font-size:.85rem;color:var(--muted)}
+.tk-min input{width:80px;font:inherit;font-size:16px;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.tk-retro{border-left:4px solid var(--ok)}
+.tk-sent{border-left:4px solid var(--warn)}
+.tk-send{background:var(--inf);color:#fff;border-color:transparent;font-weight:800}
 .foot{margin-top:22px;text-align:center;font-size:.78rem;color:var(--muted);line-height:2}
 
 @media (max-width:420px){.prompt{font-size:1.22rem}.opt{font-size:1.05rem}.ring{width:92px;height:92px}.ring .in b{font-size:1.6rem}.hero{gap:12px;padding:14px}}
@@ -562,7 +603,7 @@ async function syncNow(manual){
     if(changed&&view!=="drill")rebuild();
     save();if(manual)toast(syncState==="ok"?"☁ Sincronizado":"⚠ Clave inválida");
   }catch(err){syncState=navigator.onLine===false?"offline":"error";if(manual)toast("No se pudo sincronizar: "+(err.name==="AbortError"?"sin respuesta":err.message))}
-  finally{syncBusy=false;if(view!=="drill")render();else refreshSync()}
+  finally{syncBusy=false;if(view==="home"||view==="stats"||view==="end")render();else{refreshSync();if(view==="tarea"&&typeof renderTarea==="function"&&!document.activeElement.closest(".tk-item"))renderTarea(true)}}
 }
 function syncLabel(){
   if(!syncConfigured())return["☁︎ Sin nube","muted"];
@@ -748,6 +789,7 @@ function renderHome(){
         <div class="pills"><span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
       </div>
     </section>
+    ${tareasCard()}
     <button class="start" data-act="go"><span class="play">▶</span><span><b>Ronda de ${ROUND}</b><small>${fmode.n}${f!=="mix"&&f!=="buf"?" · "+CATS[f].n:""} · Enter</small></span></button>
     <h3>Elige tu debilidad</h3>
     <div class="modes">${FOCI.map(k=>{
@@ -869,7 +911,280 @@ function renderStats(){
     <div class="card"><h3>Últimas rondas</h3>${ss.length?`<ul class="list">${ss.map(s=>`<li>${CUI[s.m]||MODES[s.m]?glyph(s.m):glyph("mix")}<span class="t">${nameOf(s.m)} · ${s.ts?new Date(s.ts).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):s.d}</span><span class="muted small">${s.ok!=null?s.ok:Math.round(s.acc*s.n/100)}/${s.n} · <b style="color:var(--text)">${s.s}</b></span></li>`).join("")}</ul>`:'<span class="muted">Sin rondas.</span>'}</div>
   </div>`;
 }
-function render(){applyTheme();if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
+function render(){applyTheme();if(view==="tareas")return renderTareas();if(view==="tarea")return renderTarea(true);if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
+
+/* ================= TAREAS DIARIAS (instructor) =================
+   Sección separada del juego: sin puntos, rachas ni corrección automática.
+   El instructor escribe la sesión en Notion (sección «📝 Tareas diarias (app)», un desplegable por fecha);
+   el Worker la entrega a la app; la app la guarda para usarla sin conexión, cronometra y entrega.
+   La entrega viaja como evento 't' por la misma cola que el juego (sin conexión espera y se reenvía). */
+const TK="mextforge.tareas.v1";
+let T={list:[],ses:{},ans:{},tm:{},out:{},edit:{},hb:0,at:0};
+try{const o=JSON.parse(localStorage.getItem(TK));if(o)T=Object.assign(T,o)}catch(e){}
+let tSaveH=0;
+function tSave(now){clearTimeout(tSaveH);const f=()=>{try{localStorage.setItem(TK,JSON.stringify(T))}catch(e){}};if(now)f();else tSaveH=setTimeout(f,300)}
+let tDate=null,tState="idle",tErr="";
+
+// Marcas que reconoce la app al inicio de un título del instructor (### o ##)
+const TMARK=[["📘","ref","Consulta"],["✍","write","Escritura"],["🔁","trans","Traducción"],["🛠","fix","Corrección"],["🧩","cloze","Completar"],
+  ["🔤","vocab","Vocabulario"],["📖","read","Lectura"],["🎧","dict","Dictado"],["🗣","oral","Producción oral"],["🎯","mastery","Prueba de dominio"],
+  ["⏱","mock","Simulacro"],["✅","out","Fuera de la app"],["🧑‍🏫","retro","Retroalimentación"],["📤","entrega","Entrega"]];
+const TLONG=new Set(["write","trans","fix","read","dict","oral"]);
+const nfe=s=>String(s).replace(/️/g,"");
+const rtPlain=r=>(r||[]).map(x=>x.t).join("");
+function rtHtml(r){return (r||[]).map(x=>{let h=esc(x.t);if(x.c)h=`<code>${h}</code>`;if(x.b)h=`<b>${h}</b>`;if(x.i)h=`<i>${h}</i>`;if(x.s)h=`<s>${h}</s>`;if(x.u)h=`<u>${h}</u>`;
+  if(x.h&&/^https?:/i.test(x.h))h=`<a href="${esc(x.h)}" target="_blank" rel="noopener">${h}</a>`;return h}).join("").replace(/___+/g,'<span class="gap">___</span>')}
+function markOf(text){const t=nfe(text).trim();for(const[e,ty,n]of TMARK)if(t.startsWith(nfe(e)))return{ty,n};return null}
+const isList=ty=>ty==="bulleted_list_item"||ty==="numbered_list_item"||ty==="to_do";
+
+// Bloques de Notion → {intro, acts:[{key,ty,n,title,min,blocks}], retro:[]}
+function parseSession(blocks){
+  const res={intro:[],acts:[],retro:[]};let cur=null,zone="intro";
+  for(const b of blocks||[]){
+    if(/^heading_/.test(b.ty)){const m=markOf(rtPlain(b.r));
+      if(m){
+        if(m.ty==="retro"){zone="retro";cur=null;continue}
+        if(m.ty==="entrega"){zone="skip";cur=null;continue}
+        let title=nfe(rtPlain(b.r)).replace(/^\S+\s*/,"").trim();const mm=title.match(/(\d+)\s*min\b/i);
+        if(title.includes(":"))title=title.slice(title.indexOf(":")+1).trim(); // «Consulta: tema» → «tema»
+        cur={key:b.id,ty:m.ty,n:m.n,title:title.replace(/\s*·\s*\d+\s*min\b.*$/i,"")||m.n,min:mm?+mm[1]:null,blocks:[]};
+        res.acts.push(cur);zone="act";continue}
+    }
+    if(zone==="skip")continue;
+    if(zone==="retro")res.retro.push(b);else if(zone==="act")cur.blocks.push(b);else res.intro.push(b);
+  }
+  return res;
+}
+function splitOpts(r){const s=rtPlain(r),m=s.match(/\{([^{}]*\|[^{}]*)\}\s*$/);
+  if(!m)return{r,opts:null};const cut=s.length-m[0].length;let n=0;const r2=[];
+  for(const x of r){if(n>=cut)break;r2.push(Object.assign({},x,{t:x.t.slice(0,cut-n)}));n+=x.t.length}
+  return{r:r2,opts:m[1].split("|").map(o=>o.trim()).filter(Boolean)}}
+// Bloques que solo se leen
+function blockHtml(b){
+  const k=b.k&&b.k.length?b.k.map(blockHtml).join(""):"";
+  switch(b.ty){
+    case "paragraph":return `<p>${rtHtml(b.r)}</p>${k}`;
+    case "heading_1":case "heading_2":case "heading_3":return `<h4>${rtHtml(b.r)}</h4>${k}`;
+    case "quote":return `<blockquote>${rtHtml(b.r)}${k}</blockquote>`;
+    case "callout":return `<div class="tk-callout">${b.ic?b.ic+" ":""}${rtHtml(b.r)}${k}</div>`;
+    case "code":return `<pre>${esc(rtPlain(b.r))}</pre>`;
+    case "divider":return "<hr>";
+    case "bulleted_list_item":case "numbered_list_item":return `<ul><li>${rtHtml(b.r)}${k}</li></ul>`;
+    case "to_do":return `<ul><li>${b.ck?"☑":"☐"} ${rtHtml(b.r)}${k}</li></ul>`;
+    case "toggle":return `<details><summary>${rtHtml(b.r)}</summary>${k}</details>`;
+    case "table":return `<div class="tk-table"><table>${(b.k||[]).map((row,i)=>`<tr>${(row.cells||[]).map(c=>i===0&&b.hr?`<th>${rtHtml(c)}</th>`:`<td>${rtHtml(c)}</td>`).join("")}</tr>`).join("")}</table></div>`;
+    default:return b.r?`<p>${rtHtml(b.r)}</p>${k}`:"";
+  }
+}
+
+/* ---------- estado por fecha ---------- */
+const tAns=(d,id)=>{const a=T.ans[d]||(T.ans[d]={});return a[id]||(a[id]={v:"",ch:null,d:0,nt:"",h:"nada",s:0})};
+const tOut=(d,id)=>{const a=T.out[d]||(T.out[d]={});return a[id]||(a[id]={done:false,min:""})};
+const tTm=(d,k)=>{const a=T.tm[d]||(T.tm[d]={});return a[k]||(a[k]={acc:0,since:null})};
+const tEl=t=>t.acc+(t.since?Date.now()-t.since:0);
+const entregasDe=d=>DB.ev.filter(e=>e.k==="t"&&e.date===d).sort((a,b)=>a.t-b.t);
+const fmtMS=ms=>{const s=Math.max(0,Math.round(ms/1000));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")};
+function pauseAll(d){for(const k in (T.tm[d]||{})){const t=T.tm[d][k];if(t.since){t.acc+=Date.now()-t.since;t.since=null}}}
+function startTimer(d,k){const t=tTm(d,k);if(t.since)return;pauseAll(d);t.since=Date.now();tSave()}
+// Si la app estuvo cerrada, el cronómetro se detiene en el último momento en que estuvo abierta
+(function recoverTimers(){try{T.hb=+localStorage.getItem(TK+".hb")||0}catch(e){}if(!T.hb)return;const gap=Date.now()-T.hb;if(gap<120000)return;let fixed=0;
+  for(const d in T.tm)for(const k in T.tm[d]){const t=T.tm[d][k];if(t.since){t.acc+=Math.max(0,T.hb-t.since);t.since=null;fixed++}}
+  if(fixed)tSave(true)})();
+const tLocked=d=>entregasDe(d).length>0&&!T.edit[d];
+function sesStatus(d){const s=T.ses[d],e=entregasDe(d);if(s&&parseSession(s.blocks).retro.length)return["Con retroalimentación","ok"];if(e.length)return[`Entregada${e.length>1?" ×"+e.length:""}`,"warn"];return s?["Por hacer",""]:["Sin descargar","muted"]}
+
+/* ---------- conexión con el Worker ---------- */
+async function fetchTareas(extra){
+  if(!syncConfigured()){tState="nocloud";return}
+  if(navigator.onLine===false){tState="offline";return}
+  tState="busy";refreshTk();
+  try{
+    const want=new Set([today()]);if(extra)want.add(extra);
+    if(T.list[0])want.add(T.list[0].date);
+    for(const x of T.list){if(want.size>=4)break;const s=T.ses[x.date];if(s&&!parseSession(s.blocks).retro.length)want.add(x.date)}
+    const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),15000);
+    const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/tareas/lista",{method:"POST",signal:ctl.signal,
+      headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},body:JSON.stringify({dates:[...want]})});
+    clearTimeout(to);
+    if(r.status===401){tState="badkey";return}
+    const j=await r.json();
+    if(!j.ok){tState=j.error==="sin-seccion"?"nosection":"error";tErr=j.detail||j.error||"";return}
+    T.list=j.list||[];
+    for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now()}}
+    T.at=Date.now();tSave(true);tState="ok";
+  }catch(e){tState=navigator.onLine===false?"offline":"error";tErr=e.name==="AbortError"?"sin respuesta":e.message}
+  finally{if(view==="tareas")renderTareas();else if(view==="tarea")renderTarea(true);else if(view==="home")refreshTk()}
+}
+function tkLabel(){
+  return {busy:"Actualizando…",offline:"Sin conexión · mostrando lo guardado",badkey:"⚠ Clave inválida (Ajustes)",nosection:"Aún no existe la sección en Notion",
+    error:"⚠ No se pudo actualizar"+(tErr?": "+tErr:""),nocloud:"Configura la nube en Ajustes para recibir sesiones"}[tState]||(T.at?"Actualizado "+new Date(T.at).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"}):"")}
+function refreshTk(){const el=document.getElementById("tkState");if(el)el.textContent=tkLabel();const c=document.getElementById("tkCard");if(c)c.outerHTML=tareasCard()}
+
+/* ---------- inicio: tarjeta de acceso ---------- */
+function tareasCard(){
+  const d=today(),s=T.ses[d],e=entregasDe(d);
+  let sub;
+  if(s){const p=parseSession(s.blocks);sub=e.length?(p.retro.length?"Entregada · el instructor ya dejó retroalimentación":"Entregada · esperando corrección del instructor"):`Sesión de hoy lista · ${p.acts.filter(a=>a.ty!=="ref").length} actividades`}
+  else sub=syncConfigured()?"Aún no hay sesión para hoy":"Configura la nube para recibir sesiones";
+  return `<button class="tk-card" id="tkCard" data-tk="open" data-v="${s?d:""}"><span class="glyph" style="--c:var(--inf)">📝</span><span style="flex:1;min-width:0"><b>Tareas diarias</b><small>${esc(sub)}</small></span><span class="muted">›</span></button>`;
+}
+
+/* ---------- lista de fechas ---------- */
+function renderTareas(){
+  const dates=[...new Set([...T.list.map(x=>x.date),...Object.keys(T.ses),...DB.ev.filter(e=>e.k==="t").map(e=>e.date)])].sort().reverse();
+  $("#app").innerHTML=`<div class="stack">
+    <div class="row"><button class="icon-btn" data-act="home" aria-label="Inicio">←</button><b style="font-size:1.15rem">Tareas diarias</b><span class="sp"></span><button class="btn" data-tk="refresh">↻</button></div>
+    <div class="muted small" id="tkState">${esc(tkLabel())}</div>
+    ${dates.length?`<div class="card"><ul class="list">${dates.map(d=>{const[st,c]=sesStatus(d),s=T.ses[d];
+      return `<li><button class="tk-row" data-tk="date" data-v="${d}"><span class="t"><b>${d===today()?"Hoy · ":""}${d}</b><br><span class="muted small">${esc(s?s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""):"")}</span></span><span class="pill" data-s="${c}">${st}</span></button></li>`}).join("")}</ul></div>`
+      :`<div class="card muted">Todavía no hay sesiones. Cuando el instructor publique la de hoy en Notion, aparecerá aquí.</div>`}
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+/* ---------- sesión de un día ---------- */
+function itemHtml(d,a,b,locked){
+  const id=b.id,A=tAns(d,id);
+  if(a.ty==="out"||b.ty==="to_do"&&a.ty==="out"){const o=tOut(d,id);
+    return `<div class="tk-item" data-item="${id}" data-act-key="${a.key}"><label class="tk-check"><input type="checkbox" data-tk="outdone" data-v="${id}" ${o.done?"checked":""} ${locked?"disabled":""}> <span>${rtHtml(b.r)}</span></label>
+      <label class="tk-min">min <input type="number" inputmode="numeric" min="0" max="600" data-tk="outmin" data-v="${id}" value="${esc(o.min)}" ${locked?"disabled":""}></label></div>`}
+  const{r,opts}=splitOpts(b.r||[]);
+  const input=opts?`<div class="tk-opts">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`
+    :`<textarea class="tk-in" rows="${TLONG.has(a.ty)?3:1}" data-tk="text" data-v="${id}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false" ${locked?"readonly":""} placeholder="Escribe en inglés…">${esc(A.v)}</textarea>`;
+  const kids=b.k&&b.k.length?`<div class="tk-sub">${b.k.map(blockHtml).join("")}</div>`:"";
+  return `<div class="tk-item ${A.d?"doubt":""}" data-item="${id}" data-act-key="${a.key}">
+    <div class="tk-q">${b.ty==="numbered_list_item"?"":"• "}${rtHtml(r)}</div>${kids}${input}
+    <div class="tk-meta"><span class="seg tk-help">${[["nada","Sin ayuda"],["dic","Diccionario"],["trad","Traductor"]].map(([k,n])=>`<button class="${A.h===k?"on":""}" data-tk="help" data-v="${id}" data-h="${k}" ${locked?"disabled":""}>${n}</button>`).join("")}</span>
+      <button class="tk-doubt ${A.d?"on":""}" data-tk="doubt" data-v="${id}" ${locked?"disabled":""}>❓ Tengo duda</button></div>
+    <textarea class="tk-note" rows="2" data-tk="note" data-v="${id}" placeholder="Nota para el instructor (en español)" ${locked?"readonly":""}>${esc(A.nt)}</textarea>
+  </div>`;
+}
+function actHtml(d,a,locked){
+  const isTask=a.ty!=="ref";
+  let body="",ol=0;
+  for(const b of a.blocks){
+    if(isTask&&isList(b.ty)){body+=itemHtml(d,a,b,locked);continue}
+    body+=blockHtml(b);
+  }
+  const t=tTm(d,a.key),lim=a.ty==="mock"&&a.min?a.min*60000:0;
+  const timer=isTask&&a.ty!=="out"?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
+  const sug=a.min?`<span class="muted small">${a.ty==="mock"?"límite":"sugerido"} ${a.min} min</span>`:"";
+  return `<section class="card tk-act ${a.ty==="ref"?"ref":""}" data-akey="${a.key}"><div class="tk-ah"><span class="tag">${esc(a.n)}</span>${sug}<span class="sp"></span>${timer}</div>
+    <h3 class="tk-title">${esc(a.title)}</h3>${a.ty==="mastery"?`<div class="muted small" style="margin-bottom:8px">Resuélvela sin ayuda: es para medir si dominas el tema.</div>`:""}${body}</section>`;
+}
+function totalMin(d,p){let ms=0;for(const a of p.acts)if(a.ty!=="ref"&&a.ty!=="out")ms+=tEl(tTm(d,a.key));
+  let out=0;for(const a of p.acts)if(a.ty==="out")for(const b of a.blocks)if(isList(b.ty)){const o=tOut(d,b.id);if(o.done)out+=+o.min||0}
+  return{app:Math.round(ms/60000),out,total:Math.round(ms/60000)+out}}
+function renderTarea(keepScroll){
+  const d=tDate,s=T.ses[d],y=window.scrollY;
+  if(!s){view="tareas";return renderTareas()}
+  const p=parseSession(s.blocks),locked=tLocked(d),ents=entregasDe(d),m=totalMin(d,p);
+  const dudas=Object.values(T.ans[d]||{}).filter(a=>a.d).length;
+  $("#app").innerHTML=`<div class="stack tk">
+    <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><div style="min-width:0"><b style="font-size:1.05rem">${d===today()?"Hoy · ":""}${d}</b><div class="muted small">${esc(s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""))}</div></div><span class="sp"></span><button class="btn" data-tk="refresh" title="Actualizar">↻</button></div>
+    <div class="muted small" id="tkState">${esc(tkLabel())}</div>
+    ${p.retro.length?`<section class="card tk-retro"><h3>🧑‍🏫 Retroalimentación del instructor</h3>${p.retro.map(blockHtml).join("")}</section>`:""}
+    ${ents.length?`<div class="card tk-sent"><b>📤 ${ents.length>1?ents.length+" entregas":"Entregada"}</b> · ${ents.map(e=>`Entrega ${e.n}: ${new Date(e.t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"})}${DB.outbox.includes(e.i)?" (en cola, se enviará con conexión)":""}`).join(" · ")}
+      ${locked?`<div style="margin-top:8px"><button class="btn" data-tk="unlock">Corregir algo y entregar de nuevo</button></div>`:`<div class="muted small" style="margin-top:6px">Editando para una nueva entrega. La anterior no se borra.</div>`}</div>`:""}
+    ${p.intro.length?`<section class="card">${p.intro.map(blockHtml).join("")}</section>`:""}
+    ${p.acts.map(a=>actHtml(d,a,locked)).join("")||`<div class="card muted">El instructor todavía no agregó actividades a esta sesión.</div>`}
+    ${p.acts.some(a=>a.ty!=="ref")?`<section class="card tk-end"><div class="row" style="flex-wrap:wrap"><span><b id="tkTotal">${m.total} min</b> <span class="muted small">(app ${m.app} + fuera ${m.out}) · ${dudas} ${dudas===1?"duda":"dudas"}</span></span><span class="sp"></span>
+      <button class="btn" data-tk="copy">📋 Copiar respuestas</button>${locked?"":`<button class="btn tk-send" data-tk="send">📤 Entregar</button>`}</div>
+      <div class="muted small" style="margin-top:8px">La app no corrige: el instructor revisa tu entrega en el chat y deja su retroalimentación aquí.</div></section>`:""}
+  </div>`;
+  if(keepScroll)window.scrollTo(0,y);else window.scrollTo(0,0);
+}
+function openTarea(d){tDate=d;view="tarea";renderTarea();fetchTareas(d)}
+
+/* ---------- entrega ---------- */
+function buildEntrega(d){
+  const s=T.ses[d],p=parseSession(s.blocks),m=totalMin(d,p);let dudas=0;
+  const acts=p.acts.filter(a=>a.ty!=="ref").map(a=>{
+    const items=a.blocks.filter(b=>isList(b.ty)).map(b=>{
+      if(a.ty==="out"){const o=tOut(d,b.id);return{p:rtPlain(b.r),done:!!o.done,min:o.min===""?null:+o.min}}
+      const A=tAns(d,b.id),{r,opts}=splitOpts(b.r||[]);if(A.d)dudas++;
+      return{p:rtPlain(r)+(opts?` {${opts.join(" | ")}}`:""),v:A.v,ch:A.ch,s:Math.round(A.s),d:A.d?1:0,nt:A.nt,h:A.h};
+    });
+    const sec=a.ty==="out"?null:Math.round(tEl(tTm(d,a.key))/1000);
+    return{title:a.title&&a.title!==a.n?`${a.n}: ${a.title}`:a.n,ty:a.ty,sec,min:a.ty==="out"?items.reduce((x,i)=>x+(i.done?(i.min||0):0),0):Math.round(sec/60),lim:a.ty==="mock"?a.min:null,out:a.ty==="out"?1:0,items};
+  });
+  const now=new Date(),off=-now.getTimezoneOffset(),pad=x=>String(Math.abs(x)).padStart(2,"0");
+  const iso=today(now)+"T"+pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds())+(off>=0?"+":"-")+pad(Math.trunc(off/60))+":"+pad(off%60);
+  return{t:now.getTime(),k:"t",date:d,tid:s.tid,n:entregasDe(d).length+1,iso,dn:DB.dev.name,min:m.total,dudas,acts};
+}
+const HELPN={nada:"sin ayuda",dic:"diccionario",trad:"traductor"};
+function entregaMd(e){
+  const L=[`## 📤 Entrega ${e.n} — ${e.date} · ${e.min} min · ${e.dudas} ${e.dudas===1?"duda":"dudas"}`];
+  for(const a of e.acts){L.push("",`### ${a.title} · ${a.out?a.min+" min":fmtMS((a.sec||0)*1000)}${a.lim?" / límite "+a.lim+" min":""}`);
+    a.items.forEach((it,i)=>{
+      if(a.out){L.push(`- [${it.done?"x":" "}] ${it.p} — ${it.done?"hecho":"no hecho"}${it.done&&it.min!=null?", "+it.min+" min reales":""}`);return}
+      const ans=it.ch?`[${it.ch}]${it.v?" "+it.v:""}`:(it.v||"(sin respuesta)");
+      L.push(`${i+1}. ${it.p}`,...ans.split("\n").map(x=>"   > "+x),`   _⏱ ${it.s} s · ${HELPN[it.h]||"sin ayuda"}_`);
+      if(it.d)L.push(`   ❓ Duda: ${it.nt||"(sin nota)"}`);
+    })}
+  return L.join("\n");
+}
+async function copyText(s){try{await navigator.clipboard.writeText(s);return true}catch(e){const ta=document.createElement("textarea");ta.value=s;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand("copy")}catch(_){}ta.remove();return ok}}
+function sendEntrega(){
+  const d=tDate,s=T.ses[d];if(!s)return;
+  pauseAll(d);
+  const e=buildEntrega(d),n=e.acts.reduce((x,a)=>x+(a.out?0:a.items.length),0),empty=e.acts.reduce((x,a)=>x+(a.out?0:a.items.filter(i=>!i.v&&!i.ch).length),0);
+  if(!confirm(`¿Entregar la sesión del ${d}?\n\n${n} respuestas${empty?` (${empty} vacías)`:""} · ${e.dudas} ${e.dudas===1?"duda":"dudas"} · ${e.min} min${e.n>1?`\n\nSerá la entrega ${e.n}; las anteriores no se borran.`:""}`)){tSave();return renderTarea(true)}
+  addLocal(e);save();T.edit[d]=false;tSave(true);
+  toast(syncConfigured()?(navigator.onLine===false?"Entrega guardada: se enviará al volver la conexión":"📤 Entregada"):"Entrega guardada. Configura la nube para que llegue a Notion; mientras, usa «Copiar respuestas».");
+  renderTarea();syncNow();
+}
+
+/* ---------- eventos ---------- */
+let itemFocus=null;
+function addItemTime(){if(!itemFocus)return;const A=tAns(tDate,itemFocus.id);A.s+=Math.min(1800,(Date.now()-itemFocus.at)/1000);itemFocus=null;tSave()}
+document.addEventListener("focusin",e=>{
+  if(view!=="tarea")return;const el=e.target.closest("[data-tk=text],[data-tk=note]");if(!el||el.readOnly)return;
+  const box=el.closest("[data-act-key]");if(box)startTimer(tDate,box.dataset.actKey),updTimers();
+  if(el.dataset.tk==="text"){addItemTime();itemFocus={id:el.dataset.v,at:Date.now()}}
+});
+document.addEventListener("focusout",e=>{if(view==="tarea"&&e.target.dataset&&e.target.dataset.tk==="text")addItemTime()});
+document.addEventListener("input",e=>{
+  if(view!=="tarea")return;const el=e.target,k=el.dataset&&el.dataset.tk;if(!k)return;
+  if(k==="text"){tAns(tDate,el.dataset.v).v=el.value;autoGrow(el)}
+  else if(k==="note")tAns(tDate,el.dataset.v).nt=el.value;
+  else if(k==="outmin")tOut(tDate,el.dataset.v).min=el.value;
+  else return;
+  tSave();if(k==="outmin")updTotal();
+});
+document.addEventListener("change",e=>{if(view==="tarea"&&e.target.dataset.tk==="outdone"){tOut(tDate,e.target.dataset.v).done=e.target.checked;tSave();updTotal()}});
+function autoGrow(el){if(el.rows>1)return;el.style.height="auto";el.style.height=el.scrollHeight+"px"}
+let choiceMark={};
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-tk]");if(!b||b.disabled)return;
+  const k=b.dataset.tk,v=b.dataset.v;
+  if(k==="open"){if(v)openTarea(v);else{view="tareas";renderTareas();fetchTareas()}return}
+  if(k==="list"){addItemTime();pauseAll(tDate);tSave(true);view="tareas";renderTareas();return}
+  if(k==="date"){openTarea(v);return}
+  if(k==="refresh"){fetchTareas(tDate);return}
+  if(view!=="tarea")return;
+  const d=tDate;
+  if(k==="choice"){const A=tAns(d,v),box=b.closest("[data-act-key]"),ak=box.dataset.actKey;startTimer(d,ak);
+    const now=Date.now(),from=Math.max(choiceMark[ak]||0,tTm(d,ak).since||now);A.s+=Math.min(1800,(now-from)/1000);choiceMark[ak]=now;
+    A.ch=A.ch===b.dataset.o?null:b.dataset.o;b.parentNode.querySelectorAll(".tk-opt").forEach(x=>x.classList.toggle("on",x.dataset.o===A.ch));tSave();updTimers()}
+  else if(k==="help"){tAns(d,v).h=b.dataset.h;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));tSave()}
+  else if(k==="doubt"){const A=tAns(d,v);A.d=A.d?0:1;b.classList.toggle("on",!!A.d);b.closest(".tk-item").classList.toggle("doubt",!!A.d);tSave();updTotal()}
+  else if(k==="timer"){const t=tTm(d,v);if(t.since){t.acc+=Date.now()-t.since;t.since=null}else startTimer(d,v);tSave();updTimers()}
+  else if(k==="send"){addItemTime();sendEntrega()}
+  else if(k==="unlock"){T.edit[d]=true;tSave(true);renderTarea(true)}
+  else if(k==="copy"){addItemTime();const e2=buildEntrega(d);if(entregasDe(d).length&&tLocked(d))e2.n=entregasDe(d).length;
+    copyText(entregaMd(e2)).then(ok=>toast(ok?"📋 Respuestas copiadas: pégalas en el chat del instructor":"No se pudo copiar"))}
+});
+function updTimers(){
+  if(view!=="tarea")return;
+  document.querySelectorAll("[data-tk=timer]").forEach(b=>{const t=tTm(tDate,b.dataset.v),lim=+b.dataset.lim,el=b.querySelector("[data-clock]");
+    b.classList.toggle("run",!!t.since);
+    if(lim){const left=lim-tEl(t);el.textContent=(left>=0?"⏳ ":"⌛ +")+fmtMS(Math.abs(left));b.classList.toggle("over",left<0)}
+    else el.textContent=(t.since?"⏸ ":"▶ ")+fmtMS(tEl(t))});
+  updTotal();
+}
+function updTotal(){const el=document.getElementById("tkTotal");if(!el||!T.ses[tDate])return;const m=totalMin(tDate,parseSession(T.ses[tDate].blocks));el.textContent=m.total+" min"}
+setInterval(()=>{T.hb=Date.now();try{localStorage.setItem(TK+".hb",String(T.hb))}catch(e){}if(view==="tarea")updTimers()},1000);
 
 /* ================= EVENTS ================= */
 function exportData(){
@@ -912,7 +1227,8 @@ document.addEventListener("click",e=>{
   }
 });
 document.addEventListener("keydown",e=>{
-  if(e.target.closest&&e.target.closest("summary,input"))return;
+  if(e.target.closest&&e.target.closest("summary,input,textarea"))return;
+  if(view==="tareas"||view==="tarea"){if(e.key==="Escape"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true);view="tareas";renderTareas()}else quit()}return}
   const k=e.key.toLowerCase();
   if(e.key==="Escape"){quit();return}
   if(view==="home"){if(e.key==="Enter"){e.preventDefault();start(DB.settings.focus)}else if(k==="s"){view="stats";render()}return}
@@ -928,10 +1244,11 @@ document.addEventListener("keydown",e=>{
 });
 document.addEventListener("visibilitychange",()=>{
   if(G&&G.state==="q"&&!document.hidden){G.last=performance.now();cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick)}
-  if(!document.hidden)syncNow();
+  if(!document.hidden){syncNow();if(view==="home"||view==="tareas")fetchTareas()}
 });
 render();
 syncNow();
+fetchTareas();
 addEventListener("online",()=>syncNow());
 addEventListener("offline",()=>{syncState=syncConfigured()?"offline":"off";refreshSync()});
 setInterval(()=>{if(view==="home"||view==="stats")syncNow()},120000);
