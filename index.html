@@ -220,6 +220,11 @@ details[open].card summary::after{content:"－"}
 .list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dots{letter-spacing:2px;color:var(--warn);font-size:.8rem;white-space:nowrap}
 
+.pill[data-s]{cursor:pointer}
+.pill[data-s="ok"]{color:var(--ok)}.pill[data-s="warn"]{color:var(--warn)}.pill[data-s="bad"]{color:var(--bad)}.pill[data-s="muted"]{color:var(--muted)}
+.syncbox{display:grid;gap:10px;padding:12px;border-radius:14px;background:var(--surface2)}
+.syncbox label{display:grid;gap:4px;font-size:.85rem;color:var(--muted)}
+.syncbox input{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translate(-50%,10px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:14px;font-weight:700;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);text-align:center;z-index:9;box-shadow:var(--shadow)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .foot{margin-top:22px;text-align:center;font-size:.78rem;color:var(--muted);line-height:2}
@@ -235,6 +240,7 @@ details[open].card summary::after{content:"－"}
 <input id="imp" type="file" accept="application/json" class="hide">
 <script>
 "use strict";
+let view="home";
 /* ================= DATA ================= */
 const CATS={
   COP:{n:"Cópula vs verbo",r:"BE + verbo léxico = ✗. O «I'm + adjetivo / -ing» o «I + verbo». Nunca los dos."},
@@ -453,28 +459,122 @@ ITEMS.forEach(it=>{it.fos=it.k==="E"?!!fossilOf(clean(it.t)):it.o.slice(1).some(
 const BYID=Object.fromEntries(ITEMS.map(x=>[x.id,x]));
 const correctText=it=>it.k==="E"?ehFixed(it):fill(it.q,`<ins>${it.o[0]}</ins>`);
 const label=it=>it.k==="E"?ehFixed(it).replace(/<\/?ins>/g,""):fill(it.q,it.o[0]);
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const glyph=k=>`<span class="glyph" style="--c:${cv(k)}">${(CUI[k]||MODES[k]).g}</span>`;
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove("on"),1900)}
 
-/* ================= STORAGE ================= */
+/* ================= STORAGE: registro de eventos =================
+   Igual que MEXT Ráfaga: la fuente de verdad es DB.ev (cada respuesta 'a', cada ronda 's',
+   progreso anterior a la sincronización 'b'). cats/items/buffer/sessions/best… son DERIVADOS:
+   se reconstruyen reproduciendo los eventos en orden (t, i), así dos dispositivos que
+   practicaron sin conexión se fusionan sin conflictos. */
 const KEY="mextforge.v1";
-const fresh=()=>({cats:{},items:{},sessions:[],fossils:0,buffer:{},best:{score:0,combo:0},bestMode:{},streak:{d:null,n:0},
-  settings:{speed:"warm",mute:false,theme:"auto",focus:"mix"}});
-let DB;
-try{DB=JSON.parse(localStorage.getItem(KEY))||fresh()}catch(e){DB=fresh()}
-(function migrate(){
-  const f=fresh();DB=Object.assign(f,DB);DB.settings=Object.assign(fresh().settings,DB.settings||{});
-  if(typeof DB.best.score!=="number"){const old=DB.best||{};DB.bestMode=old;DB.best={score:Math.max(0,...Object.values(old).map(Number).filter(n=>!isNaN(n))),combo:0}}
-  DB.buffer=DB.buffer||{};
-  for(const id in DB.buffer)if(!BYID[id])delete DB.buffer[id];
-})();
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}};
+const rid=()=>Math.random().toString(36).slice(2,10);
+const isPhone=()=>typeof navigator!=="undefined"&&/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+const fresh=()=>({v:2,dev:{id:rid(),name:isPhone()?"Teléfono":"PC"},ev:[],outbox:[],cursor:0,lastSync:0,
+  settings:{speed:"warm",mute:false,theme:"auto",focus:"mix",syncUrl:"",syncKey:""}});
+function derivedReset(d){d.cats={};d.items={};d.buffer={};d.sessions=[];d.fossils=0;d.best={score:0,combo:0};d.bestMode={}}
+let DB=fresh();derivedReset(DB);
 const cs=c=>{const s=DB.cats[c]||(DB.cats[c]={n:0,w:0,to:0,ms:0,f:0});if(!s.r)s.r=[];return s};
+// Aplica un evento al estado derivado. Devuelve {freed} si sacó un ejercicio del buffer.
+function applyEvent(e){
+  if(e.k==="a"){
+    const it=BYID[e.q];if(!it)return{};
+    const s=cs(it.c),ok=!!e.o;
+    s.n++;s.ms+=e.ms||0;s.r.push(ok?1:0);if(s.r.length>15)s.r.shift();
+    const is=DB.items[e.q]||(DB.items[e.q]={w:0,c:0});
+    if(ok){is.c++;const b=DB.buffer[e.q];if(b){b.s++;if(b.s>=3){delete DB.buffer[e.q];return{freed:true}}}}
+    else{s.w++;is.w++;is.c=0;if(e.to)s.to++;if(e.f){s.f++;DB.fossils++}
+      const b=DB.buffer[e.q];DB.buffer[e.q]={s:0,f:(b?b.f:0)+1}}
+    return{};
+  }
+  if(e.k==="s"){
+    DB.sessions.push({d:today(new Date(e.t)),ts:e.t,m:e.m,acc:e.n?Math.round(100*e.ok/e.n):0,s:e.sc,n:e.n,ok:e.ok,dn:e.dn});
+    DB.best.score=Math.max(DB.best.score,e.sc||0);DB.best.combo=Math.max(DB.best.combo,e.cb||0);
+    if(e.n)DB.bestMode[e.m]=Math.max(DB.bestMode[e.m]||0,e.sc||0);
+    return{};
+  }
+  if(e.k==="b"){ // progreso anterior a la sincronización: se SUMA al de los demás dispositivos
+    const p=e.snap||{};
+    for(const[c,v]of Object.entries(p.cats||{})){if(!CATS[c])continue;const st=cs(c);st.n+=v.n||0;st.w+=v.w||0;st.to+=v.to||0;st.ms+=v.ms||0;st.f+=v.f||0;st.r=st.r.concat(v.r||[]).slice(-15)}
+    for(const[k,v]of Object.entries(p.items||{})){if(!BYID[k])continue;const it=DB.items[k];if(!it)DB.items[k]={w:v.w||0,c:v.c||0};else{it.w+=v.w||0;it.c=Math.max(it.c,v.c||0)}}
+    for(const[k,v]of Object.entries(p.buffer||{}))if(BYID[k]&&!DB.buffer[k])DB.buffer[k]={s:v.s||0,f:v.f||1};
+    DB.sessions=DB.sessions.concat(p.sessions||[]);DB.fossils+=p.fossils||0;
+    const bs=p.best||{};DB.best.score=Math.max(DB.best.score,bs.score||0);DB.best.combo=Math.max(DB.best.combo,bs.combo||0);
+    for(const[k,v]of Object.entries(p.bestMode||{}))DB.bestMode[k]=Math.max(DB.bestMode[k]||0,+v||0);
+    return{};
+  }
+  return{};
+}
+const evCmp=(a,b)=>a.t-b.t||(a.i<b.i?-1:a.i>b.i?1:0);
+function rebuild(){derivedReset(DB);DB.ev.sort(evCmp);for(const e of DB.ev)applyEvent(e);DB.sessions.sort((a,b)=>(a.ts||0)-(b.ts||0))}
+function addLocal(e){e.i=DB.dev.id+"-"+e.t.toString(36)+"-"+rid().slice(0,4);e.d=DB.dev.id;DB.ev.push(e);DB.outbox.push(e.i);return applyEvent(e)}
+// Formato anterior (sin eventos) → un único snapshot 'b'
+function legacySnap(o){
+  let best=o.best||{},bestMode=o.bestMode||{};
+  if(typeof best.score!=="number"){bestMode=best;best={score:Math.max(0,...Object.values(best).map(Number).filter(n=>!isNaN(n))),combo:0}}
+  return {cats:o.cats,items:o.items,buffer:o.buffer,sessions:o.sessions,fossils:o.fossils,best,bestMode};
+}
+function load(){
+  let o=null;try{o=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+  const f=fresh();
+  if(o&&o.v===2){o.settings=Object.assign(f.settings,o.settings);DB=Object.assign(f,o)}
+  else{DB=f;if(o&&o.cats){Object.assign(DB.settings,o.settings||{});
+    if(Object.keys(o.cats||{}).length||(o.sessions||[]).length){const e={t:1,k:"b",snap:legacySnap(o)};e.i=DB.dev.id+"-legacy";e.d=DB.dev.id;DB.ev.push(e);DB.outbox.push(e.i)}}}
+  rebuild();save();
+}
+function persisted(){const{cats,items,buffer,sessions,fossils,best,bestMode,...p}=DB;return p}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(persisted()))}catch(e){}}
+try{load()}catch(e){DB=fresh();derivedReset(DB)}
 const errRate=c=>{const s=cs(c);return (s.w+1)/(s.n+2)};
 const catAcc=c=>{const s=cs(c);if(s.r.length)return s.r.reduce((a,b)=>a+b,0)/s.r.length;return s.n?1-s.w/s.n:null};
 const meterCls=p=>p==null?"none":p<.6?"bad":p<.8?"warn":"";
-const todayStats=()=>{const t=DB.sessions.filter(x=>x.d===today());const n=t.reduce((a,x)=>a+x.n,0),ok=t.reduce((a,x)=>a+Math.round(x.acc*x.n/100),0);return {n,ok}};
-function streakNow(){const y=today(new Date(Date.now()-864e5));return DB.streak.d===today()||DB.streak.d===y?DB.streak.n:0}
+const todayStats=()=>{const t=DB.sessions.filter(x=>x.d===today());const n=t.reduce((a,x)=>a+x.n,0),ok=t.reduce((a,x)=>a+(x.ok!=null?x.ok:Math.round(x.acc*x.n/100)),0);return {n,ok}};
+function streakNow(){const days=new Set(DB.sessions.map(x=>x.d));let n=0;const d=new Date();if(!days.has(today(d)))d.setDate(d.getDate()-1);while(days.has(today(d))){n++;d.setDate(d.getDate()-1)}return n}
+
+/* ================= SYNC (Worker → D1 → Notion) =================
+   Sin conexión todo funciona: los eventos esperan en DB.outbox. Nunca se sincroniza durante una ronda. */
+let syncState="off",syncBusy=false;
+function syncConfigured(){return !!(DB.settings.syncUrl&&DB.settings.syncKey)}
+async function syncNow(manual){
+  if(!syncConfigured()){syncState="off";return}
+  if(syncBusy||view==="drill")return;
+  if(typeof navigator!=="undefined"&&navigator.onLine===false){syncState="offline";refreshSync();return}
+  syncBusy=true;syncState="busy";refreshSync();
+  try{
+    let more=true,changed=false,guard=0;
+    while(more&&guard++<20){
+      const ids=new Set(DB.outbox),out=DB.ev.filter(e=>ids.has(e.i)).slice(0,1000);
+      const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),10000);
+      const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/sync",{method:"POST",signal:ctl.signal,
+        headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},
+        body:JSON.stringify({dev:DB.dev.id,since:DB.cursor,events:out})});
+      clearTimeout(to);
+      if(r.status===401){syncState="badkey";break}
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      const res=await r.json(),sent=new Set(out.map(e=>e.i));
+      DB.outbox=DB.outbox.filter(i=>!sent.has(i));
+      const have=new Set(DB.ev.map(e=>e.i));
+      for(const e of res.events||[])if(!have.has(e.i)){DB.ev.push(e);have.add(e.i);changed=true}
+      DB.cursor=res.cursor||DB.cursor;more=!!res.more||DB.outbox.length>0;
+      syncState="ok";DB.lastSync=Date.now();
+    }
+    if(changed&&view!=="drill")rebuild();
+    save();if(manual)toast(syncState==="ok"?"☁ Sincronizado":"⚠ Clave inválida");
+  }catch(err){syncState=navigator.onLine===false?"offline":"error";if(manual)toast("No se pudo sincronizar: "+(err.name==="AbortError"?"sin respuesta":err.message))}
+  finally{syncBusy=false;if(view!=="drill")render();else refreshSync()}
+}
+function syncLabel(){
+  if(!syncConfigured())return["☁︎ Sin nube","muted"];
+  const p=DB.outbox.length;
+  if(syncState==="busy")return["☁ Sincronizando…",""];
+  if(syncState==="offline")return[`○ Sin conexión${p?" · "+p+" pend.":""}`,"warn"];
+  if(syncState==="badkey")return["⚠ Clave inválida","bad"];
+  if(syncState==="error")return[`⚠ Error de sync${p?" · "+p+" pend.":""}`,"bad"];
+  if(p)return[`☁ ${p} pendientes`,"warn"];
+  return["☁ Sincronizado","ok"];
+}
+function refreshSync(){const el=document.getElementById("syncPill");if(el){const[t,c]=syncLabel();el.textContent=t;el.dataset.s=c}}
 
 /* ================= THEME ================= */
 function seigaiha(bg,st){
@@ -503,7 +603,7 @@ const SFX={
 };
 
 /* ================= SESSION ================= */
-let view="home",G=null;
+let G=null;
 function weightOf(it,blind){
   const s=DB.items[it.id]||{w:0,c:0};
   let w=1+s.w*2-Math.min(s.c,4)*.2;
@@ -577,15 +677,9 @@ function answer(choice){
   const ok=!timeout&&(it.k==="E"?choice===it.e:orig===0);
   let fos=null;
   if(!ok){if(it.k==="E")fos=fossilOf(clean(it.t));else if(!timeout)fos=fossilOf(fill(it.q,it.o[orig]))}
-  // estadísticas
-  const s=cs(it.c);s.n++;s.ms+=ms;s.r.push(ok?1:0);if(s.r.length>15)s.r.shift();
-  const is=DB.items[it.id]||(DB.items[it.id]={w:0,c:0});
-  const bc=G.byCat[it.c]||(G.byCat[it.c]={n:0,ok:0});bc.n++;
-  if(ok){is.c++;bc.ok++;
-    const b=DB.buffer[it.id];if(b){b.s++;if(b.s>=3){delete DB.buffer[it.id];G.freed++}}
-  }else{s.w++;is.w++;is.c=0;if(timeout)s.to++;if(fos){s.f++;DB.fossils++}
-    const b=DB.buffer[it.id];DB.buffer[it.id]={s:0,f:(b?b.f:0)+1};
-  }
+  // evento de respuesta (fuente de verdad); el estado derivado se actualiza al aplicarlo
+  const bc=G.byCat[it.c]||(G.byCat[it.c]={n:0,ok:0});bc.n++;if(ok)bc.ok++;
+  if(addLocal({t:Date.now(),k:"a",q:it.id,o:ok?1:0,ms:Math.round(ms),to:timeout?1:0,f:fos?1:0}).freed)G.freed++;
   save();
   if(ok){G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
     const mult=1+Math.min(4,Math.floor(G.combo/3))*.5;
@@ -604,15 +698,17 @@ function cont(){if(!G||G.state!=="fb")return;if(!G.ok&&performance.now()-G.fbAt<
 function quit(){if(G){clearTimeout(G.timer);cancelAnimationFrame(G.raf)}G=null;view="home";render()}
 function finish(){
   const r=G.res,n=r.length,good=r.filter(x=>x.ok).length,acc=n?good/n:0;
-  const t=today(),y=today(new Date(Date.now()-864e5));
-  if(n){if(DB.streak.d!==t){DB.streak.n=DB.streak.d===y?DB.streak.n+1:1;DB.streak.d=t}}
   G.record=n&&G.score>(DB.best.score||0);
-  if(G.record)DB.best.score=G.score;
-  DB.best.combo=Math.max(DB.best.combo||0,G.maxCombo);
-  if(n&&G.score>(DB.bestMode[G.key]||0))DB.bestMode[G.key]=G.score;
-  if(n)DB.sessions.push({d:t,ts:Date.now(),m:G.key,acc:Math.round(acc*100),s:G.score,n,ok:good});
-  DB.sessions=DB.sessions.slice(-80);save();SFX.end();
+  if(n){
+    const now=new Date(),off=-now.getTimezoneOffset(),pad=x=>String(Math.abs(x)).padStart(2,"0");
+    const iso=today(now)+"T"+pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds())+(off>=0?"+":"-")+pad(Math.trunc(off/60))+":"+pad(off%60);
+    const by={};for(const c in G.byCat)by[c]=[G.byCat[c].ok,G.byCat[c].n];
+    addLocal({t:now.getTime(),k:"s",m:G.key,n,ok:good,sc:G.score,cb:G.maxCombo,fr:G.freed,bc:Object.keys(DB.buffer).length,fo:r.filter(x=>x.fos).length,by,iso,dn:DB.dev.name});
+    save();
+  }
+  SFX.end();
   G.acc=acc;G.n=n;G.good=good;view="end";render();
+  syncNow();
 }
 
 /* ================= RENDER ================= */
@@ -649,7 +745,7 @@ function renderHome(){
       <div>
         <div class="eyebrow">Exam · 15 jul 2027</div>
         <div class="h">${ph.n<4?`Checkpoint Fase ${ph.n} (${pct}%) en <span style="color:var(--accent)">${days} días</span>`:`Simulacro final en <span style="color:var(--accent)">${days} días</span>`}</div>
-        <div class="pills"><span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}</div>
+        <div class="pills"><span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
       </div>
     </section>
     <button class="start" data-act="go"><span class="play">▶</span><span><b>Ronda de ${ROUND}</b><small>${fmode.n}${f!=="mix"&&f!=="buf"?" · "+CATS[f].n:""} · Enter</small></span></button>
@@ -672,11 +768,18 @@ function renderHome(){
     <h3>Precisión por debilidad</h3>
     <div class="card">${catRows()}</div>
     <h3>Ajustes</h3>
-    <details class="card"><summary>⚙️ Tiempo, sonido, tema y respaldo</summary><div class="stack" style="margin-top:14px">
+    <details class="card"><summary>⚙️ Tiempo, sonido, tema, nube y respaldo</summary><div class="stack" style="margin-top:14px">
       <div class="set"><span>Tiempo por pregunta</span><span class="seg">${Object.entries(SPEEDS).map(([k,v])=>`<button data-speed="${k}" class="${DB.settings.speed===k?"on":""}">${v.n}</button>`).join("")}</span></div>
       <div class="set"><span>Sonido y alerta</span><span class="seg"><button data-mute="0" class="${!DB.settings.mute?"on":""}">Sí</button><button data-mute="1" class="${DB.settings.mute?"on":""}">No</button></span></div>
       <div class="set"><span>Tema</span><span class="seg">${[["auto","Auto"],["light","和紙"],["dark","夜"]].map(([k,n])=>`<button data-theme="${k}" class="${DB.settings.theme===k?"on":""}">${n}</button>`).join("")}</span></div>
       <p class="muted small" style="margin:0">Empieza en 8 s. Cuando la barra de una categoría pase el 85 %, baja a 5 s (ritmo de examen).</p>
+      <div class="syncbox"><b>☁ Sincronización y Notion</b>
+        <div class="muted small">Comparte el progreso entre teléfono y PC y envía cada ronda a tu página de Notion de inglés. Sin conexión todo sigue funcionando y se envía después.</div>
+        <label>URL del Worker<input id="sUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://mext-forge-sync.TU-CUENTA.workers.dev" value="${esc(DB.settings.syncUrl)}"></label>
+        <label>Clave de la app<input id="sKey" type="password" autocomplete="off" spellcheck="false" placeholder="La misma que guardaste en el Worker" value="${esc(DB.settings.syncKey)}"></label>
+        <div class="set"><span>Este dispositivo</span><span class="seg">${["Teléfono","PC"].map(n=>`<button data-dev="${n}" class="${DB.dev.name===n?"on":""}">${n}</button>`).join("")}</span></div>
+        <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="syncsave">Guardar y sincronizar</button><span class="muted small">${DB.lastSync?"Última: "+new Date(DB.lastSync).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Nunca sincronizado"} · ${DB.outbox.length} pend.</span></div>
+      </div>
       <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="export">Exportar respaldo</button><button class="btn" data-act="import">Importar</button><span class="sp"></span><button class="btn" data-act="reset" style="color:var(--bad)">Borrar todo</button></div>
     </div></details>
     <div class="foot"><span class="kbd">Enter</span> empezar · <span class="kbd">1</span>–<span class="kbd">4</span> / <span class="kbd">A</span>–<span class="kbd">D</span> responder · <span class="kbd">Enter</span> seguir · <span class="kbd">Esc</span> salir · <span class="kbd">S</span> estadísticas</div>`;
@@ -771,11 +874,15 @@ function render(){applyTheme();if(view==="home")renderHome();else if(view==="dri
 /* ================= EVENTS ================= */
 function exportData(){
   const a=document.createElement("a");
-  a.href=URL.createObjectURL(new Blob([JSON.stringify(DB)],{type:"application/json"}));
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(persisted())],{type:"application/json"}));
   a.download=`mext-forge-respaldo-${today()}.json`;document.body.appendChild(a);a.click();a.remove();
 }
 $("#imp").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||typeof d!=="object"||!d.cats)throw 0;DB=d;(function(){const fr=fresh();DB=Object.assign(fr,DB);DB.settings=Object.assign(fresh().settings,DB.settings||{})})();save();render();toast("Respaldo importado")}catch(err){toast("Archivo no válido")}};
+  r.onload=()=>{try{const d=JSON.parse(r.result);
+    if(d&&d.v===2&&Array.isArray(d.ev)){const have=new Set(DB.ev.map(e=>e.i));for(const e of d.ev)if(!have.has(e.i)){DB.ev.push(e);DB.outbox.push(e.i)}}
+    else if(d&&d.cats){const e={t:1,k:"b",snap:legacySnap(d)};e.i=DB.dev.id+"-imp-"+rid();e.d=DB.dev.id;DB.ev.push(e);DB.outbox.push(e.i)}
+    else throw 0;
+    rebuild();save();render();toast("Respaldo importado y fusionado");syncNow()}catch(err){toast("Archivo no válido")}};
   r.readAsText(f);e.target.value=""});
 document.addEventListener("click",e=>{
   const t=e.target.closest("button,[data-act]");
@@ -788,6 +895,7 @@ document.addEventListener("click",e=>{
   if(d.speed){DB.settings.speed=d.speed;save();render();return}
   if(d.mute){DB.settings.mute=d.mute==="1";save();render();return}
   if(d.theme){DB.settings.theme=d.theme;save();render();return}
+  if(d.dev){DB.dev.name=d.dev;save();render();return}
   switch(d.act){
     case "go":start(DB.settings.focus);break;
     case "again":start(G.key);break;
@@ -797,11 +905,14 @@ document.addEventListener("click",e=>{
     case "stats":view="stats";render();break;
     case "export":exportData();break;
     case "import":$("#imp").click();break;
-    case "reset":if(confirm("¿Borrar todo el progreso, buffer y estadísticas? No se puede deshacer.")){const th=DB.settings.theme;DB=fresh();DB.settings.theme=th;save();render()}break;
+    case "reset":if(confirm(syncConfigured()?"¿Borrar el progreso de ESTE dispositivo? Lo que ya está en la nube se volverá a descargar al sincronizar.":"¿Borrar todo el progreso, buffer y estadísticas? Exporta un respaldo antes si lo quieres conservar.")){const keep=DB.settings;DB=fresh();DB.settings=keep;derivedReset(DB);save();render();toast("Progreso borrado");syncNow()}break;
+    case "syncpill":{const det=document.querySelector("details.card");if(!syncConfigured()&&det){det.open=true;det.scrollIntoView({behavior:"smooth"})}else syncNow(true);break}
+    case "syncsave":DB.settings.syncUrl=$("#sUrl").value.trim();DB.settings.syncKey=$("#sKey").value.trim();save();
+      if(!syncConfigured()){toast("Sincronización desactivada");render()}else syncNow(true);break;
   }
 });
 document.addEventListener("keydown",e=>{
-  if(e.target.closest&&e.target.closest("summary"))return;
+  if(e.target.closest&&e.target.closest("summary,input"))return;
   const k=e.key.toLowerCase();
   if(e.key==="Escape"){quit();return}
   if(view==="home"){if(e.key==="Enter"){e.preventDefault();start(DB.settings.focus)}else if(k==="s"){view="stats";render()}return}
@@ -815,8 +926,17 @@ document.addEventListener("keydown",e=>{
     }else if(e.key==="Enter"||e.key===" "){e.preventDefault();cont()}
   }
 });
-document.addEventListener("visibilitychange",()=>{if(G&&G.state==="q"&&!document.hidden){G.last=performance.now();cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick)}});
+document.addEventListener("visibilitychange",()=>{
+  if(G&&G.state==="q"&&!document.hidden){G.last=performance.now();cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick)}
+  if(!document.hidden)syncNow();
+});
 render();
+syncNow();
+addEventListener("online",()=>syncNow());
+addEventListener("offline",()=>{syncState=syncConfigured()?"offline":"off";refreshSync()});
+setInterval(()=>{if(view==="home"||view==="stats")syncNow()},120000);
+// que Android no borre los datos de la app
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 </script>
 <script>
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
