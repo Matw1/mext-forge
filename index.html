@@ -677,7 +677,7 @@ function start(key,custom){
   ac();
   const queue=custom||buildQueue(key);
   if(!queue.length){toast(key==="buf"?"Buffer vacío. Nada pendiente ✨":"No hay ejercicios aquí");return}
-  G={key,queue,pool:key==="death"?ITEMS:null,death:key==="death",idx:0,score:0,combo:0,maxCombo:0,lives:3,res:[],speedMul:1,freed:0,state:"q",raf:0,timer:0,byCat:{}};
+  G={key,sid:DB.dev.id+"-"+Date.now().toString(36),queue,pool:key==="death"?ITEMS:null,death:key==="death",idx:0,score:0,combo:0,maxCombo:0,lives:3,res:[],speedMul:1,freed:0,state:"q",raf:0,timer:0,byCat:{}};
   view="drill";nextQ();
 }
 function limitFor(it){const sp=SPEEDS[DB.settings.speed];return (it.k==="E"?sp.eh:sp.rb)*G.speedMul}
@@ -720,7 +720,10 @@ function answer(choice){
   if(!ok){if(it.k==="E")fos=fossilOf(clean(it.t));else if(!timeout)fos=fossilOf(fill(it.q,it.o[orig]))}
   // evento de respuesta (fuente de verdad); el estado derivado se actualiza al aplicarlo
   const bc=G.byCat[it.c]||(G.byCat[it.c]={n:0,ok:0});bc.n++;if(ok)bc.ok++;
-  if(addLocal({t:Date.now(),k:"a",q:it.id,o:ok?1:0,ms:Math.round(ms),to:timeout?1:0,f:fos?1:0}).freed)G.freed++;
+  // detalle para el instructor: pregunta, lo que respondió y lo correcto (unido a la ronda por sid)
+  const segs=it.k==="E"?it.t.match(/\[([^\]]+)\]/g).map(x=>x.slice(1,-1)):null;
+  const det={c:it.c,sid:G.sid,pr:it.k==="E"?clean(it.t):it.q,ch:timeout?"":it.k==="E"?segs[choice]:it.o[orig],cr:it.k==="E"?segs[it.e]+" → "+it.fx:it.o[0]};
+  if(addLocal(Object.assign({t:Date.now(),k:"a",q:it.id,o:ok?1:0,ms:Math.round(ms),to:timeout?1:0,f:fos?1:0},det)).freed)G.freed++;
   save();
   if(ok){G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
     const mult=1+Math.min(4,Math.floor(G.combo/3))*.5;
@@ -744,7 +747,7 @@ function finish(){
     const now=new Date(),off=-now.getTimezoneOffset(),pad=x=>String(Math.abs(x)).padStart(2,"0");
     const iso=today(now)+"T"+pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds())+(off>=0?"+":"-")+pad(Math.trunc(off/60))+":"+pad(off%60);
     const by={};for(const c in G.byCat)by[c]=[G.byCat[c].ok,G.byCat[c].n];
-    addLocal({t:now.getTime(),k:"s",m:G.key,n,ok:good,sc:G.score,cb:G.maxCombo,fr:G.freed,bc:Object.keys(DB.buffer).length,fo:r.filter(x=>x.fos).length,by,iso,dn:DB.dev.name});
+    addLocal({t:now.getTime(),k:"s",sid:G.sid,m:G.key,n,ok:good,sc:G.score,cb:G.maxCombo,fr:G.freed,bc:Object.keys(DB.buffer).length,fo:r.filter(x=>x.fos).length,by,iso,dn:DB.dev.name});
     save();
   }
   SFX.end();
@@ -911,7 +914,7 @@ function renderStats(){
     <div class="card"><h3>Últimas rondas</h3>${ss.length?`<ul class="list">${ss.map(s=>`<li>${CUI[s.m]||MODES[s.m]?glyph(s.m):glyph("mix")}<span class="t">${nameOf(s.m)} · ${s.ts?new Date(s.ts).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):s.d}</span><span class="muted small">${s.ok!=null?s.ok:Math.round(s.acc*s.n/100)}/${s.n} · <b style="color:var(--text)">${s.s}</b></span></li>`).join("")}</ul>`:'<span class="muted">Sin rondas.</span>'}</div>
   </div>`;
 }
-function render(){applyTheme();if(view==="tareas")return renderTareas();if(view==="tarea")return renderTarea(true);if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
+function render(){applyTheme();if(view==="tareas")return renderTareas();if(view==="ref")return renderRef(true);if(view==="tarea")return renderTarea(true);if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
 
 /* ================= TAREAS DIARIAS (instructor) =================
    Sección separada del juego: sin puntos, rachas ni corrección automática.
@@ -953,6 +956,7 @@ function parseSession(blocks){
     if(zone==="skip")continue;
     if(zone==="retro")res.retro.push(b);else if(zone==="act")cur.blocks.push(b);else res.intro.push(b);
   }
+  res.retro=res.retro.filter(b=>!/retroalimentaci[oó]n pendiente/i.test(rtPlain(b.r)));
   return res;
 }
 function splitOpts(r){const s=rtPlain(r),m=s.match(/\{([^{}]*\|[^{}]*)\}\s*$/);
@@ -1002,6 +1006,7 @@ async function fetchTareas(extra){
     const want=new Set([today()]);if(extra)want.add(extra);
     if(T.list[0])want.add(T.list[0].date);
     for(const x of T.list){if(want.size>=4)break;const s=T.ses[x.date];if(s&&!parseSession(s.blocks).retro.length)want.add(x.date)}
+    for(const x of T.list){if(want.size>=6)break;if(!T.ses[x.date])want.add(x.date)}
     const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),15000);
     const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/tareas/lista",{method:"POST",signal:ctl.signal,
       headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},body:JSON.stringify({dates:[...want]})});
@@ -1013,7 +1018,7 @@ async function fetchTareas(extra){
     for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now()}}
     T.at=Date.now();tSave(true);tState="ok";
   }catch(e){tState=navigator.onLine===false?"offline":"error";tErr=e.name==="AbortError"?"sin respuesta":e.message}
-  finally{if(view==="tareas")renderTareas();else if(view==="tarea")renderTarea(true);else if(view==="home")refreshTk()}
+  finally{if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="home")refreshTk()}
 }
 function tkLabel(){
   return {busy:"Actualizando…",offline:"Sin conexión · mostrando lo guardado",badkey:"⚠ Clave inválida (Ajustes)",nosection:"Aún no existe la sección en Notion",
@@ -1033,7 +1038,7 @@ function tareasCard(){
 function renderTareas(){
   const dates=[...new Set([...T.list.map(x=>x.date),...Object.keys(T.ses),...DB.ev.filter(e=>e.k==="t").map(e=>e.date)])].sort().reverse();
   $("#app").innerHTML=`<div class="stack">
-    <div class="row"><button class="icon-btn" data-act="home" aria-label="Inicio">←</button><b style="font-size:1.15rem">Tareas diarias</b><span class="sp"></span><button class="btn" data-tk="refresh">↻</button></div>
+    <div class="row"><button class="icon-btn" data-act="home" aria-label="Inicio">←</button><b style="font-size:1.15rem">Tareas diarias</b><span class="sp"></span><button class="btn" data-tk="ref">📘 Referencia</button><button class="btn" data-tk="refresh">↻</button></div>
     <div class="muted small" id="tkState">${esc(tkLabel())}</div>
     ${dates.length?`<div class="card"><ul class="list">${dates.map(d=>{const[st,c]=sesStatus(d),s=T.ses[d];
       return `<li><button class="tk-row" data-tk="date" data-v="${d}"><span class="t"><b>${d===today()?"Hoy · ":""}${d}</b><br><span class="muted small">${esc(s?s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""):"")}</span></span><span class="pill" data-s="${c}">${st}</span></button></li>`}).join("")}</ul></div>`
@@ -1041,6 +1046,25 @@ function renderTareas(){
   </div>`;
   window.scrollTo(0,0);
 }
+
+/* ---------- referencia: todo lo 📘 Consulta que ya explicó el instructor ---------- */
+let refQ="";
+function renderRef(keep){
+  const y=window.scrollY,q=refQ.trim().toLowerCase();
+  const all=[];for(const d of Object.keys(T.ses).sort().reverse()){for(const a of parseSession(T.ses[d].blocks).acts)if(a.ty==="ref")all.push({d,a})}
+  const txtOf=x=>(x.a.title+" "+x.a.blocks.map(b=>rtPlain(b.r)+" "+(b.k||[]).map(c=>rtPlain(c.r)+(c.cells||[]).map(rtPlain).join(" ")).join(" ")).join(" ")).toLowerCase();
+  const list=q?all.filter(x=>txtOf(x).includes(q)):all;
+  const pend=T.list.filter(x=>!T.ses[x.date]).length;
+  $("#app").innerHTML=`<div class="stack tk">
+    <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><b style="font-size:1.15rem">📘 Referencia</b><span class="sp"></span><button class="btn" data-tk="refresh">↻</button></div>
+    <input class="tk-in" id="refSearch" type="search" placeholder="Buscar (ej. no longer, uncountable…)" value="${esc(refQ)}" autocomplete="off" spellcheck="false" autocapitalize="off">
+    <div class="muted small" id="tkState">${all.length} ${all.length===1?"explicación guardada":"explicaciones guardadas"}${pend?` · ${pend} sesiones anteriores aún por descargar (se bajan solas al actualizar)`:""}</div>
+    ${list.map(x=>`<section class="card tk-act ref"><div class="tk-ah"><span class="tag">Consulta</span><span class="sp"></span><button class="btn" data-tk="date" data-v="${x.d}" style="min-height:34px;padding:4px 10px">${x.d}</button></div>
+      <h3 class="tk-title">${esc(x.a.title)}</h3>${x.a.blocks.map(blockHtml).join("")}</section>`).join("")||`<div class="card muted">${q?"Nada coincide con la búsqueda.":"Aún no hay explicaciones. Aparecen aquí las secciones 📘 Consulta de cada sesión."}</div>`}
+  </div>`;
+  window.scrollTo(0,keep?y:0);
+}
+document.addEventListener("input",e=>{if(view==="ref"&&e.target.id==="refSearch"){refQ=e.target.value;const pos=e.target.selectionStart;renderRef(true);const el=$("#refSearch");el.focus();el.setSelectionRange(pos,pos)}});
 
 /* ---------- sesión de un día ---------- */
 function itemHtml(d,a,b,locked){
@@ -1075,8 +1099,15 @@ function actHtml(d,a,locked){
 function totalMin(d,p){let ms=0;for(const a of p.acts)if(a.ty!=="ref"&&a.ty!=="out")ms+=tEl(tTm(d,a.key));
   let out=0;for(const a of p.acts)if(a.ty==="out")for(const b of a.blocks)if(isList(b.ty)){const o=tOut(d,b.id);if(o.done)out+=+o.min||0}
   return{app:Math.round(ms/60000),out,total:Math.round(ms/60000)+out}}
+function hydrateFromEntrega(d){
+  const last=entregasDe(d).pop();if(!last||Object.keys(T.ans[d]||{}).length)return;
+  for(const a of last.acts||[])for(const it of a.items||[]){if(!it.id)continue;
+    if(a.out)tOut(d,it.id).done=!!it.done,tOut(d,it.id).min=it.min==null?"":String(it.min);
+    else Object.assign(tAns(d,it.id),{v:it.v||"",ch:it.ch||null,d:it.d?1:0,nt:it.nt||"",h:it.h||"nada",s:it.s||0})}
+  tSave(true);
+}
 function renderTarea(keepScroll){
-  const d=tDate,s=T.ses[d],y=window.scrollY;
+  const d=tDate,s=T.ses[d],y=window.scrollY;hydrateFromEntrega(d);
   if(!s){view="tareas";return renderTareas()}
   const p=parseSession(s.blocks),locked=tLocked(d),ents=entregasDe(d),m=totalMin(d,p);
   const dudas=Object.values(T.ans[d]||{}).filter(a=>a.d).length;
@@ -1101,9 +1132,9 @@ function buildEntrega(d){
   const s=T.ses[d],p=parseSession(s.blocks),m=totalMin(d,p);let dudas=0;
   const acts=p.acts.filter(a=>a.ty!=="ref").map(a=>{
     const items=a.blocks.filter(b=>isList(b.ty)).map(b=>{
-      if(a.ty==="out"){const o=tOut(d,b.id);return{p:rtPlain(b.r),done:!!o.done,min:o.min===""?null:+o.min}}
+      if(a.ty==="out"){const o=tOut(d,b.id);return{id:b.id,p:rtPlain(b.r),done:!!o.done,min:o.min===""?null:+o.min}}
       const A=tAns(d,b.id),{r,opts}=splitOpts(b.r||[]);if(A.d)dudas++;
-      return{p:rtPlain(r)+(opts?` {${opts.join(" | ")}}`:""),v:A.v,ch:A.ch,s:Math.round(A.s),d:A.d?1:0,nt:A.nt,h:A.h};
+      return{id:b.id,p:rtPlain(r)+(opts?` {${opts.join(" | ")}}`:""),v:A.v,ch:A.ch,s:Math.round(A.s),d:A.d?1:0,nt:A.nt,h:A.h};
     });
     const sec=a.ty==="out"?null:Math.round(tEl(tTm(d,a.key))/1000);
     return{title:a.title&&a.title!==a.n?`${a.n}: ${a.title}`:a.n,ty:a.ty,sec,min:a.ty==="out"?items.reduce((x,i)=>x+(i.done?(i.min||0):0),0):Math.round(sec/60),lim:a.ty==="mock"?a.min:null,out:a.ty==="out"?1:0,items};
@@ -1159,9 +1190,10 @@ document.addEventListener("click",e=>{
   const b=e.target.closest("[data-tk]");if(!b||b.disabled)return;
   const k=b.dataset.tk,v=b.dataset.v;
   if(k==="open"){if(v)openTarea(v);else{view="tareas";renderTareas();fetchTareas()}return}
-  if(k==="list"){addItemTime();pauseAll(tDate);tSave(true);view="tareas";renderTareas();return}
+  if(k==="list"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas();return}
   if(k==="date"){openTarea(v);return}
-  if(k==="refresh"){fetchTareas(tDate);return}
+  if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null);return}
+  if(k==="ref"){view="ref";renderRef();fetchTareas();return}
   if(view!=="tarea")return;
   const d=tDate;
   if(k==="choice"){const A=tAns(d,v),box=b.closest("[data-act-key]"),ak=box.dataset.actKey;startTimer(d,ak);
@@ -1228,7 +1260,7 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("keydown",e=>{
   if(e.target.closest&&e.target.closest("summary,input,textarea"))return;
-  if(view==="tareas"||view==="tarea"){if(e.key==="Escape"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true);view="tareas";renderTareas()}else quit()}return}
+  if(view==="tareas"||view==="tarea"||view==="ref"){if(e.key==="Escape"){if(view==="tarea"||view==="ref"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas()}else quit()}return}
   const k=e.key.toLowerCase();
   if(e.key==="Escape"){quit();return}
   if(view==="home"){if(e.key==="Enter"){e.preventDefault();start(DB.settings.focus)}else if(k==="s"){view="stats";render()}return}
