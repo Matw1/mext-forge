@@ -3,8 +3,13 @@
 const fs = require("fs"), path = require("path");
 const src = fs.readFileSync(path.join(__dirname, "..", "mext-forge.html"), "utf8");
 
-const head = `<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-192.png">`;
+// ?v= en los íconos: el navegador guarda el ícono de la pestaña mucho tiempo; con la versión lo vuelve a pedir
+const iv = Math.round(fs.statSync(path.join(__dirname, "icon-192.png")).mtimeMs).toString(36);
+const head = `<link rel="manifest" href="manifest.webmanifest?v=${iv}">
+<link rel="apple-touch-icon" href="icon-192.png?v=${iv}">`;
+const mfPath = path.join(__dirname, "manifest.webmanifest"), mf = JSON.parse(fs.readFileSync(mfPath, "utf8"));
+mf.icons = mf.icons.map(i => ({ ...i, src: i.src.replace(/\?v=.*$/, "") + "?v=" + iv }));
+fs.writeFileSync(mfPath, JSON.stringify(mf, null, 2) + "\n");
 // Registro del service worker + recarga automática cuando hay versión nueva
 // (nunca en medio de una ronda ni mientras se escribe una tarea: espera a volver al inicio).
 const reg = `<script>
@@ -25,7 +30,7 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
 </script>`;
 
 let out = src
-  .replace(/<link rel="icon"[^>]*>/, `<link rel="icon" href="icon-192.png">\n${head}`)
+  .replace(/<link rel="icon"[^>]*>/, `<link rel="icon" type="image/png" href="icon-192.png?v=${iv}">\n${head}`)
   .replace("</body>", `${reg}\n</body>`);
 if (!out.includes("manifest.webmanifest") || !out.includes("serviceWorker")) throw new Error("No se pudo inyectar el manifiesto o el service worker");
 fs.writeFileSync(path.join(__dirname, "index.html"), out);
