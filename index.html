@@ -1069,9 +1069,10 @@ document.addEventListener("input",e=>{if(view==="ref"&&e.target.id==="refSearch"
 /* ---------- sesión de un día ---------- */
 function itemHtml(d,a,b,locked){
   const id=b.id,A=tAns(d,id);
-  if(a.ty==="out"||b.ty==="to_do"&&a.ty==="out"){const o=tOut(d,id);
-    return `<div class="tk-item" data-item="${id}" data-act-key="${a.key}"><label class="tk-check"><input type="checkbox" data-tk="outdone" data-v="${id}" ${o.done?"checked":""} ${locked?"disabled":""}> <span>${rtHtml(b.r)}</span></label>
-      <label class="tk-min">min <input type="number" inputmode="numeric" min="0" max="600" data-tk="outmin" data-v="${id}" value="${esc(o.min)}" ${locked?"disabled":""}></label></div>`}
+  if(a.ty==="out"){const o=tOut(d,id);
+    return `<div class="tk-item ${A.d?"doubt":""}" data-item="${id}" data-act-key="${a.key}"><label class="tk-check"><input type="checkbox" data-tk="outdone" data-v="${id}" ${o.done?"checked":""} ${locked?"disabled":""}> <span>${rtHtml(b.r)}</span></label>
+      <div class="tk-meta" style="margin-left:32px"><button class="tk-doubt ${A.d?"on":""}" data-tk="doubt" data-v="${id}" ${locked?"disabled":""}>❓ Tengo duda</button></div>
+      <textarea class="tk-note" rows="2" data-tk="note" data-v="${id}" placeholder="Nota para el instructor (en español)" ${locked?"readonly":""}>${esc(A.nt)}</textarea></div>`}
   const{r,opts}=splitOpts(b.r||[]);
   const input=opts?`<div class="tk-opts">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`
     :`<textarea class="tk-in" rows="${TLONG.has(a.ty)?3:1}" data-tk="text" data-v="${id}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false" ${locked?"readonly":""} placeholder="Escribe en inglés…">${esc(A.v)}</textarea>`;
@@ -1091,18 +1092,17 @@ function actHtml(d,a,locked){
     body+=blockHtml(b);
   }
   const t=tTm(d,a.key),lim=a.ty==="mock"&&a.min?a.min*60000:0;
-  const timer=isTask&&a.ty!=="out"?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
+  const timer=isTask?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
   const sug=a.min?`<span class="muted small">${a.ty==="mock"?"límite":"sugerido"} ${a.min} min</span>`:"";
   return `<section class="card tk-act ${a.ty==="ref"?"ref":""}" data-akey="${a.key}"><div class="tk-ah"><span class="tag">${esc(a.n)}</span>${sug}<span class="sp"></span>${timer}</div>
     <h3 class="tk-title">${esc(a.title)}</h3>${a.ty==="mastery"?`<div class="muted small" style="margin-bottom:8px">Resuélvela sin ayuda: es para medir si dominas el tema.</div>`:""}${body}</section>`;
 }
-function totalMin(d,p){let ms=0;for(const a of p.acts)if(a.ty!=="ref"&&a.ty!=="out")ms+=tEl(tTm(d,a.key));
-  let out=0;for(const a of p.acts)if(a.ty==="out")for(const b of a.blocks)if(isList(b.ty)){const o=tOut(d,b.id);if(o.done)out+=+o.min||0}
-  return{app:Math.round(ms/60000),out,total:Math.round(ms/60000)+out}}
+function totalMin(d,p){let ms=0,oms=0;for(const a of p.acts){if(a.ty==="ref")continue;const t=tEl(tTm(d,a.key));if(a.ty==="out")oms+=t;else ms+=t}
+  const app=Math.round(ms/60000),out=Math.round(oms/60000);return{app,out,total:Math.round((ms+oms)/60000)}}
 function hydrateFromEntrega(d){
   const last=entregasDe(d).pop();if(!last||Object.keys(T.ans[d]||{}).length)return;
   for(const a of last.acts||[])for(const it of a.items||[]){if(!it.id)continue;
-    if(a.out)tOut(d,it.id).done=!!it.done,tOut(d,it.id).min=it.min==null?"":String(it.min);
+    if(a.out){tOut(d,it.id).done=!!it.done;Object.assign(tAns(d,it.id),{d:it.d?1:0,nt:it.nt||""})}
     else Object.assign(tAns(d,it.id),{v:it.v||"",ch:it.ch||null,d:it.d?1:0,nt:it.nt||"",h:it.h||"nada",s:it.s||0})}
   tSave(true);
 }
@@ -1119,7 +1119,7 @@ function renderTarea(keepScroll){
       ${locked?`<div style="margin-top:8px"><button class="btn" data-tk="unlock">Corregir algo y entregar de nuevo</button></div>`:`<div class="muted small" style="margin-top:6px">Editando para una nueva entrega. La anterior no se borra.</div>`}</div>`:""}
     ${p.intro.length?`<section class="card">${p.intro.map(blockHtml).join("")}</section>`:""}
     ${p.acts.map(a=>actHtml(d,a,locked)).join("")||`<div class="card muted">El instructor todavía no agregó actividades a esta sesión.</div>`}
-    ${p.acts.some(a=>a.ty!=="ref")?`<section class="card tk-end"><div class="row" style="flex-wrap:wrap"><span><b id="tkTotal">${m.total} min</b> <span class="muted small">(app ${m.app} + fuera ${m.out}) · ${dudas} ${dudas===1?"duda":"dudas"}</span></span><span class="sp"></span>
+    ${p.acts.some(a=>a.ty!=="ref")?`<section class="card tk-end"><div class="row" style="flex-wrap:wrap"><span><b id="tkTotal">${m.total} min</b> <span class="muted small" id="tkSub">(app ${m.app} + fuera ${m.out}) · ${dudas} ${dudas===1?"duda":"dudas"}</span></span><span class="sp"></span>
       <button class="btn" data-tk="copy">📋 Copiar respuestas</button>${locked?"":`<button class="btn tk-send" data-tk="send">📤 Entregar</button>`}</div>
       <div class="muted small" style="margin-top:8px">La app no corrige: el instructor revisa tu entrega en el chat y deja su retroalimentación aquí.</div></section>`:""}
   </div>`;
@@ -1132,12 +1132,13 @@ function buildEntrega(d){
   const s=T.ses[d],p=parseSession(s.blocks),m=totalMin(d,p);let dudas=0;
   const acts=p.acts.filter(a=>a.ty!=="ref").map(a=>{
     const items=a.blocks.filter(b=>isList(b.ty)).map(b=>{
-      if(a.ty==="out"){const o=tOut(d,b.id);return{id:b.id,p:rtPlain(b.r),done:!!o.done,min:o.min===""?null:+o.min}}
-      const A=tAns(d,b.id),{r,opts}=splitOpts(b.r||[]);if(A.d)dudas++;
+      const A=tAns(d,b.id);if(A.d)dudas++;
+      if(a.ty==="out"){const o=tOut(d,b.id);return{id:b.id,p:rtPlain(b.r),done:!!o.done,d:A.d?1:0,nt:A.nt}}
+      const{r,opts}=splitOpts(b.r||[]);
       return{id:b.id,p:rtPlain(r)+(opts?` {${opts.join(" | ")}}`:""),v:A.v,ch:A.ch,s:Math.round(A.s),d:A.d?1:0,nt:A.nt,h:A.h};
     });
-    const sec=a.ty==="out"?null:Math.round(tEl(tTm(d,a.key))/1000);
-    return{title:a.title&&a.title!==a.n?`${a.n}: ${a.title}`:a.n,ty:a.ty,sec,min:a.ty==="out"?items.reduce((x,i)=>x+(i.done?(i.min||0):0),0):Math.round(sec/60),lim:a.ty==="mock"?a.min:null,out:a.ty==="out"?1:0,items};
+    const sec=Math.round(tEl(tTm(d,a.key))/1000);
+    return{title:a.title&&a.title!==a.n?`${a.n}: ${a.title}`:a.n,ty:a.ty,sec,min:Math.round(sec/60),lim:a.ty==="mock"?a.min:null,out:a.ty==="out"?1:0,items};
   });
   const now=new Date(),off=-now.getTimezoneOffset(),pad=x=>String(Math.abs(x)).padStart(2,"0");
   const iso=today(now)+"T"+pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds())+(off>=0?"+":"-")+pad(Math.trunc(off/60))+":"+pad(off%60);
@@ -1146,9 +1147,9 @@ function buildEntrega(d){
 const HELPN={nada:"sin ayuda",dic:"diccionario",trad:"traductor"};
 function entregaMd(e){
   const L=[`## 📤 Entrega ${e.n} — ${e.date} · ${e.min} min · ${e.dudas} ${e.dudas===1?"duda":"dudas"}`];
-  for(const a of e.acts){L.push("",`### ${a.title} · ${a.out?a.min+" min":fmtMS((a.sec||0)*1000)}${a.lim?" / límite "+a.lim+" min":""}`);
+  for(const a of e.acts){L.push("",`### ${a.title} · ${a.sec!=null?fmtMS(a.sec*1000):a.min+" min"}${a.lim?" / límite "+a.lim+" min":""}`);
     a.items.forEach((it,i)=>{
-      if(a.out){L.push(`- [${it.done?"x":" "}] ${it.p} — ${it.done?"hecho":"no hecho"}${it.done&&it.min!=null?", "+it.min+" min reales":""}`);return}
+      if(a.out){L.push(`- [${it.done?"x":" "}] ${it.p} — ${it.done?"hecho":"no hecho"}`);if(it.d)L.push(`   ❓ Duda: ${it.nt||"(sin nota)"}`);return}
       const ans=it.ch?`[${it.ch}]${it.v?" "+it.v:""}`:(it.v||"(sin respuesta)");
       L.push(`${i+1}. ${it.p}`,...ans.split("\n").map(x=>"   > "+x),`   _⏱ ${it.s} s · ${HELPN[it.h]||"sin ayuda"}_`);
       if(it.d)L.push(`   ❓ Duda: ${it.nt||"(sin nota)"}`);
@@ -1179,9 +1180,8 @@ document.addEventListener("input",e=>{
   if(view!=="tarea")return;const el=e.target,k=el.dataset&&el.dataset.tk;if(!k)return;
   if(k==="text"){tAns(tDate,el.dataset.v).v=el.value;autoGrow(el)}
   else if(k==="note")tAns(tDate,el.dataset.v).nt=el.value;
-  else if(k==="outmin")tOut(tDate,el.dataset.v).min=el.value;
   else return;
-  tSave();if(k==="outmin")updTotal();
+  tSave();
 });
 document.addEventListener("change",e=>{if(view==="tarea"&&e.target.dataset.tk==="outdone"){tOut(tDate,e.target.dataset.v).done=e.target.checked;tSave();updTotal()}});
 function autoGrow(el){if(el.rows>1)return;el.style.height="auto";el.style.height=el.scrollHeight+"px"}
@@ -1215,7 +1215,8 @@ function updTimers(){
     else el.textContent=(t.since?"⏸ ":"▶ ")+fmtMS(tEl(t))});
   updTotal();
 }
-function updTotal(){const el=document.getElementById("tkTotal");if(!el||!T.ses[tDate])return;const m=totalMin(tDate,parseSession(T.ses[tDate].blocks));el.textContent=m.total+" min"}
+function updTotal(){const el=document.getElementById("tkTotal");if(!el||!T.ses[tDate])return;const m=totalMin(tDate,parseSession(T.ses[tDate].blocks));el.textContent=m.total+" min";
+  const sub=document.getElementById("tkSub"),du=Object.values(T.ans[tDate]||{}).filter(a=>a.d).length;if(sub)sub.textContent=`(app ${m.app} + fuera ${m.out}) · ${du} ${du===1?"duda":"dudas"}`}
 setInterval(()=>{T.hb=Date.now();try{localStorage.setItem(TK+".hb",String(T.hb))}catch(e){}if(view==="tarea")updTimers()},1000);
 
 /* ================= EVENTS ================= */
