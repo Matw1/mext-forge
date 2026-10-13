@@ -31,8 +31,8 @@ function scene(x, y, maskable) {
     return (x - cx) ** 2 + (y - cy) ** 2 <= r * r;
   })();
   if (!inside) return [0, 0, 0, 0];
-  // fondo: degradado azul → índigo (como el botón principal)
-  let col = mix(hex("#3b6cf0"), hex("#3a1f8e"), (x + y) / 2);
+  // fondo: degradado rosado → ciruela (como el botón principal)
+  let col = mix(hex("#f2669a"), hex("#8e1f5a"), (x + y) / 2);
   // olas seigaiha sutiles en la parte baja
   const s = maskable ? 0.8 : 1, ox = (x - 0.5) / s + 0.5, oy = (y - 0.5) / s + 0.5;
   if (oy > 0.78) {
@@ -41,8 +41,8 @@ function scene(x, y, maskable) {
     const d = Math.hypot(ox - cx, oy - cy);
     if ([0.055, 0.035, 0.015].some(rr => Math.abs(d - rr) < 0.0045)) col = mix(col, [255, 255, 255], 0.28);
   }
-  // sol rojo arriba a la derecha
-  if (Math.hypot(ox - 0.74, oy - 0.27) < 0.105) col = hex("#ff5a4e");
+  // sol dorado arriba a la derecha
+  if (Math.hypot(ox - 0.74, oy - 0.27) < 0.105) col = hex("#ffd166");
   // letra «E» blanca (sello)
   const E = [[0.27, 0.24, 0.39, 0.74], [0.27, 0.24, 0.60, 0.35], [0.27, 0.44, 0.55, 0.54], [0.27, 0.63, 0.62, 0.74]];
   if (E.some(([x0, y0, x1, y1]) => ox >= x0 && ox <= x1 && oy >= y0 && oy <= y1)) col = [255, 255, 255];

@@ -13,17 +13,17 @@
 <style>
 /* ===== Tema 和紙 (claro) ===== */
 :root{--bg:#f6f0e4;--surface:#fffdf8;--surface2:#f2eadb;--text:#211b17;--muted:#74695e;--line:#e4d8c4;
-  --accent:#2457d6;--accent2:#b07d12;--accent-t:#fff;--ok:#1d8a50;--okbg:#e2f3e8;--bad:#c9302c;--badbg:#fbe6e2;--warn:#b26b00;--warnbg:#fbefd9;--focus:#d63a2f;
-  --glow:rgba(36,87,214,.16);--shadow:0 1px 2px rgba(60,40,20,.06),0 6px 20px rgba(60,40,20,.07);
+  --accent:#d6336c;--accent2:#b07d12;--accent-t:#fff;--ok:#1d8a50;--okbg:#e2f3e8;--bad:#c9302c;--badbg:#fbe6e2;--warn:#b26b00;--warnbg:#fbefd9;--focus:#d63a2f;
+  --glow:rgba(214,51,108,.16);--shadow:0 1px 2px rgba(60,40,20,.06),0 6px 20px rgba(60,40,20,.07);
   --cop:#d63a2f;--inf:#2457d6;--neg:#7348d1;--unc:#1c9459;--ind:#bb7400;--c1:#0b8aa3;--mix:#211b17;--buf:#b26b00;--fos:#c23c7c}
 /* ===== Tema 夜 (oscuro) ===== */
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
-  --accent:#6e95ff;--accent2:#ffc857;--accent-t:#0a1230;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
-  --glow:rgba(110,149,255,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
+  --accent:#ff7aa8;--accent2:#ffc857;--accent-t:#2a0714;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
+  --glow:rgba(255,122,168,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
   --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6}}
 :root[data-theme="dark"]{--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
-  --accent:#6e95ff;--accent2:#ffc857;--accent-t:#0a1230;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
-  --glow:rgba(110,149,255,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
+  --accent:#ff7aa8;--accent2:#ffc857;--accent-t:#2a0714;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
+  --glow:rgba(255,122,168,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
   --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6}
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -67,7 +67,7 @@ h3{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mu
 
 /* ===== Botón principal ===== */
 .start{position:relative;width:100%;margin-top:16px;border:0;border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:16px;text-align:left;color:#fff;
-  background:linear-gradient(120deg,#3b6cf0,#2447c4 55%,#3a1f8e);box-shadow:0 10px 30px var(--glow),inset 0 1px 0 rgba(255,255,255,.25);overflow:hidden}
+  background:linear-gradient(120deg,#f2669a,#d6336c 55%,#8e1f5a);box-shadow:0 10px 30px var(--glow),inset 0 1px 0 rgba(255,255,255,.25);overflow:hidden}
 .start::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.22) 50%,transparent 70%);transform:translateX(-100%);animation:shine 3.2s ease-in-out infinite}
 @keyframes shine{0%,55%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 .start .play{flex:none;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:1.4rem;animation:pulse 2s ease-in-out infinite}
@@ -227,6 +227,17 @@ details[open].card summary::after{content:"－"}
 .syncbox input{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translate(-50%,10px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:14px;font-weight:700;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);text-align:center;z-index:9;box-shadow:var(--shadow)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
+/* ===== Pestañas Juego / Estudio (como en MEXT Ráfaga) ===== */
+.tabs{display:flex;gap:6px;padding:4px;margin-bottom:14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line)}
+.tabs button{flex:1;border:0;background:transparent;border-radius:10px;padding:10px;min-height:44px;font-weight:700;color:var(--muted)}
+.tabs button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.estat{font-size:.82rem;margin:6px 0 14px;color:var(--muted)}
+.ecard{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;min-height:64px}
+.ecard b{font-size:1.02rem}.ehoy{border-left:4px solid var(--accent)}.eempty{cursor:default}
+.echip{align-self:flex-start;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--surface2);color:var(--muted)}
+.echip[data-st="Por hacer"]{color:var(--accent)}.echip[data-st="Entregada"]{color:var(--warn)}.echip[data-st="Corregida"]{color:var(--ok)}
+.esub{display:flex;margin:0 0 14px}.esub button{flex:1}
+.ehead1{font-size:1.2rem;margin:0}
 /* ===== Tareas diarias ===== */
 .tk-card{width:100%;margin-top:14px;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow)}
 .tk-card .glyph{margin:0;font-size:1.1rem}
@@ -240,23 +251,23 @@ details[open].card summary::after{content:"－"}
 .tk-table{overflow-x:auto}.tk-table table{border-collapse:collapse;font-size:.9rem}.tk-table td,.tk-table th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
 .tk-ah{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .tk-title{text-transform:none;letter-spacing:0;font-size:1.08rem;color:var(--text);margin:8px 0 6px}
-.tk-act.ref{border-left:4px solid var(--inf)}
-.tk-act .tag{--c:var(--inf)}
+.tk-act.ref{border-left:4px solid var(--accent)}
+.tk-act .tag{--c:var(--accent)}
 .tk-timer{border:1px solid var(--line);background:var(--surface2);border-radius:99px;padding:5px 12px;font-weight:800;font-variant-numeric:tabular-nums;min-height:36px}
 .tk-timer.run{border-color:var(--ok);color:var(--ok)}.tk-timer.over{border-color:var(--bad);color:var(--bad)}
 .tk-item{border-top:1px solid var(--line);padding:12px 0}
 .tk-item:first-of-type{border-top:0}
 .tk-q{font-size:1.02rem;line-height:1.5;margin-bottom:8px}
-.gap{color:var(--inf);font-weight:800}
+.gap{color:var(--accent);font-weight:800}
 .tk-sub{font-size:.95rem;margin:-4px 0 8px}
 .tk-in,.tk-note{width:100%;font:inherit;font-size:16px;line-height:1.45;color:var(--text);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical}
-.tk-in:focus,.tk-note:focus{outline:0;border-color:var(--inf)}
+.tk-in:focus,.tk-note:focus{outline:0;border-color:var(--accent)}
 .tk-in[readonly]{background:var(--surface2)}
 .tk-note{display:none;margin-top:8px;font-size:15px}
 .tk-item.doubt .tk-note{display:block}
 .tk-opts{display:flex;flex-wrap:wrap;gap:8px}
 .tk-opt{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 14px;min-height:44px;font-size:1rem}
-.tk-opt.on{border-color:var(--inf);background:color-mix(in srgb,var(--inf) 14%,transparent);font-weight:700}
+.tk-opt.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);font-weight:700}
 .tk-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
 .tk-help button{padding:6px 10px;min-height:34px;font-size:.8rem}
 .tk-doubt{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 10px;min-height:34px;font-size:.82rem}
@@ -267,7 +278,7 @@ details[open].card summary::after{content:"－"}
 .tk-min input{width:80px;font:inherit;font-size:16px;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
 .tk-retro{border-left:4px solid var(--ok)}
 .tk-sent{border-left:4px solid var(--warn)}
-.tk-send{background:var(--inf);color:#fff;border-color:transparent;font-weight:800}
+.tk-send{background:var(--accent);color:#fff;border-color:transparent;font-weight:800}
 .foot{margin-top:22px;text-align:center;font-size:.78rem;color:var(--muted);line-height:2}
 
 @media (max-width:420px){.prompt{font-size:1.22rem}.opt{font-size:1.05rem}.ring{width:92px;height:92px}.ring .in b{font-size:1.6rem}.hero{gap:12px;padding:14px}}
@@ -799,12 +810,12 @@ function renderHome(){
   const {ph,pct,days}=phaseInfo();
   const keys=Object.keys(CATS),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
   const fmode=CUI[f];
-  $("#app").innerHTML=`
+  $("#app").innerHTML=`${tabsHtml("juego")}
     <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
       <button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
     <section class="hero">
       <div class="ring" aria-label="${exam} días para el examen">
-        <svg viewBox="0 0 100 100"><defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#8fb0ff"/><stop offset="1" stop-color="var(--accent)"/></linearGradient></defs>
+        <svg viewBox="0 0 100 100"><defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffb3cd"/><stop offset="1" stop-color="var(--accent)"/></linearGradient></defs>
           <circle cx="50" cy="50" r="44" fill="none" stroke="var(--surface2)" stroke-width="9"/>
           <circle cx="50" cy="50" r="44" fill="none" stroke="url(#g1)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-prog)}"/></svg>
         <div class="in"><div><b>${exam}</b><small>días</small></div></div>
@@ -815,7 +826,6 @@ function renderHome(){
         <div class="pills">${instructorPills()}<span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
       </div>
     </section>
-    ${tareasCard()}
     <button class="start" data-act="go"><span class="play">▶</span><span><b>Ronda de ${ROUND}</b><small>${fmode.n}${f!=="mix"&&f!=="buf"?" · "+CATS[f].n:""} · Enter</small></span></button>
     <h3>Elige tu debilidad</h3>
     <div class="modes">${FOCI.map(k=>{
@@ -1018,7 +1028,7 @@ function startTimer(d,k){const t=tTm(d,k);if(t.since)return;pauseAll(d);t.since=
   for(const d in T.tm)for(const k in T.tm[d]){const t=T.tm[d][k];if(t.since){t.acc+=Math.max(0,T.hb-t.since);t.since=null;fixed++}}
   if(fixed)tSave(true)})();
 const tLocked=d=>entregasDe(d).length>0&&!T.edit[d];
-function sesStatus(d){const s=T.ses[d],e=entregasDe(d);if(s&&parseSession(s.blocks).retro.length)return["Con retroalimentación","ok"];if(e.length)return[`Entregada${e.length>1?" ×"+e.length:""}`,"warn"];return s?["Por hacer",""]:["Sin descargar","muted"]}
+function sesStatus(d){const s=T.ses[d],e=entregasDe(d);if(s&&parseSession(s.blocks).retro.length)return["Corregida","ok"];if(e.length)return[`Entregada${e.length>1?" ×"+e.length:""}`,"warn"];return s?["Por hacer",""]:["Sin descargar","muted"]}
 
 /* ---------- conexión con el Worker ---------- */
 async function fetchTareas(extra){
@@ -1046,7 +1056,7 @@ async function fetchTareas(extra){
 function tkLabel(){
   return {busy:"Actualizando…",offline:"Sin conexión · mostrando lo guardado",badkey:"⚠ Clave inválida (Ajustes)",nosection:"Aún no existe la sección en Notion",
     error:"⚠ No se pudo actualizar"+(tErr?": "+tErr:""),nocloud:"Configura la nube en Ajustes para recibir sesiones"}[tState]||(T.at?"Actualizado "+new Date(T.at).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"}):"")}
-function refreshTk(){const el=document.getElementById("tkState");if(el)el.textContent=tkLabel();const c=document.getElementById("tkCard");if(c)c.outerHTML=tareasCard()}
+function refreshTk(){const el=document.getElementById("tkState");if(el)el.textContent=tkLabel()}
 
 /* ---------- inicio: tarjeta de acceso ---------- */
 function tareasCard(){
@@ -1057,15 +1067,25 @@ function tareasCard(){
   return `<button class="tk-card" id="tkCard" data-tk="open" data-v="${s?d:""}"><span class="glyph" style="--c:var(--inf)">📝</span><span style="flex:1;min-width:0"><b>Tareas diarias</b><small>${esc(sub)}</small></span><span class="muted">›</span></button>`;
 }
 
+/* ---------- pestañas y formato de fechas ---------- */
+const tabsHtml=on=>`<nav class="tabs" role="tablist"><button role="tab" aria-selected="${on==="juego"}" data-tk="tab-juego" class="${on==="juego"?"on":""}">🎮 Juego</button><button role="tab" aria-selected="${on==="estudio"}" data-tk="tab-estudio" class="${on==="estudio"?"on":""}">📝 Estudio</button></nav>`;
+const subTabs=on=>`<div class="seg esub"><button data-tk="sub-ses" class="${on==="ses"?"on":""}">Sesiones</button><button data-tk="ref" class="${on==="ref"?"on":""}">📘 Referencia</button></div>`;
+const fechaLarga=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
+const tituloSes=d=>{const s=T.ses[d],x=T.list.find(y=>y.date===d);return ((s&&s.title)||(x&&x.title)||"Sesión").replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,"")||"Sesión"};
+const chip=d=>{const[st]=sesStatus(d);return `<span class="echip" data-st="${st.replace(/ ×\d+/,"")}">${st}</span>`};
+
 /* ---------- lista de fechas ---------- */
 function renderTareas(){
   const dates=[...new Set([...T.list.map(x=>x.date),...Object.keys(T.ses),...DB.ev.filter(e=>e.k==="t").map(e=>e.date)])].sort().reverse();
-  $("#app").innerHTML=`<div class="stack">
-    <div class="row"><button class="icon-btn" data-act="home" aria-label="Inicio">←</button><b style="font-size:1.15rem">Tareas diarias</b><span class="sp"></span><button class="btn" data-tk="ref">📘 Referencia</button><button class="btn" data-tk="refresh">↻</button></div>
-    <div class="muted small" id="tkState">${esc(tkLabel())}</div>
-    ${dates.length?`<div class="card"><ul class="list">${dates.map(d=>{const[st,c]=sesStatus(d),s=T.ses[d];
-      return `<li><button class="tk-row" data-tk="date" data-v="${d}"><span class="t"><b>${d===today()?"Hoy · ":""}${d}</b><br><span class="muted small">${esc(s?s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""):"")}</span></span><span class="pill" data-s="${c}">${st}</span></button></li>`}).join("")}</ul></div>`
-      :`<div class="card muted">Todavía no hay sesiones. Cuando el instructor publique la de hoy en Notion, aparecerá aquí.</div>`}
+  const hoy=dates.find(d=>d===today())||dates.find(d=>T.ses[d]&&!entregasDe(d).length);
+  const rest=dates.filter(d=>d!==hoy);
+  $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
+    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    <div class="estat" id="tkState">${esc(tkLabel())}</div>
+    ${subTabs("ses")}
+    ${hoy?`<button class="ecard ehoy" data-tk="date" data-v="${hoy}"><span class="muted small">${hoy===today()?"Hoy":"Pendiente"} · ${fechaLarga(hoy)}</span><b>${esc(tituloSes(hoy))}</b>${chip(hoy)}</button>`
+      :`<div class="ecard eempty"><b>Todavía no hay sesión para hoy.</b><span class="muted small">Cuando el instructor la publique en Notion, toca «Actualizar».</span></div>`}
+    ${rest.length?`<h3>Sesiones anteriores</h3>${rest.map(d=>`<button class="ecard" data-tk="date" data-v="${d}"><span class="muted small">${fechaLarga(d)}</span><b>${esc(tituloSes(d))}</b>${chip(d)}</button>`).join("")}`:""}
   </div>`;
   window.scrollTo(0,0);
 }
@@ -1079,7 +1099,9 @@ function renderRef(keep){
   const list=q?all.filter(x=>txtOf(x).includes(q)):all;
   const pend=T.list.filter(x=>!T.ses[x.date]).length;
   $("#app").innerHTML=`<div class="stack tk">
-    <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><b style="font-size:1.15rem">📘 Referencia</b><span class="sp"></span><button class="btn" data-tk="refresh">↻</button></div>
+    ${tabsHtml("estudio")}
+    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    ${subTabs("ref")}
     <input class="tk-in" id="refSearch" type="search" placeholder="Buscar (ej. no longer, uncountable…)" value="${esc(refQ)}" autocomplete="off" spellcheck="false" autocapitalize="off">
     <div class="muted small" id="tkState">${all.length} ${all.length===1?"explicación guardada":"explicaciones guardadas"}${pend?` · ${pend} sesiones anteriores aún por descargar (se bajan solas al actualizar)`:""}</div>
     ${list.map(x=>`<section class="card tk-act ref"><div class="tk-ah"><span class="tag">Consulta</span><span class="sp"></span><button class="btn" data-tk="date" data-v="${x.d}" style="min-height:34px;padding:4px 10px">${x.d}</button></div>
@@ -1217,6 +1239,8 @@ document.addEventListener("click",e=>{
   if(k==="date"){openTarea(v);return}
   if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null);return}
   if(k==="ref"){view="ref";renderRef();fetchTareas();return}
+  if(k==="tab-estudio"||k==="sub-ses"){view="tareas";renderTareas();fetchTareas();return}
+  if(k==="tab-juego"){view="home";render();return}
   if(view!=="tarea")return;
   const d=tDate;
   if(k==="choice"){const A=tAns(d,v),box=b.closest("[data-act-key]"),ak=box.dataset.actKey;startTimer(d,ak);
