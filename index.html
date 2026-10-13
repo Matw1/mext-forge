@@ -770,6 +770,29 @@ function phaseInfo(){
   const done=ph.cats.filter(c=>{const st=cs(c),p=catAcc(c);return st.n>=15&&p!=null&&p>=.9}).length;
   return {ph,pct:Math.round(100*done/ph.cats.length),days:daysTo(ph.d)};
 }
+// «📊 Fase 1: 27%» / «📊 Fase 1 · dominio 27%»  y  «⏱ Horas acumuladas: 15.6 h · meta 464 h»
+// Se toman de la sesión más reciente que los tenga. Los escribe el instructor; la app solo los muestra.
+function blocksText(bs){return (bs||[]).map(b=>rtPlain(b.r)+" "+(b.cells||[]).map(rtPlain).join(" ")+" "+blocksText(b.k)).join("\n")}
+const numOf=x=>parseFloat(String(x).replace(",","."));
+function instructorStats(){
+  let dom=null,hrs=null;
+  for(const d of Object.keys(T.ses).sort().reverse()){
+    const txt=blocksText(T.ses[d].blocks);
+    if(!dom){const m=txt.match(/📊\s*Fase\s*(\d)\s*(?:[:·\-–—]\s*)?(?:dominio\s*)?(\d{1,3}(?:[.,]\d+)?)\s*%/i);if(m)dom={fase:+m[1],pct:Math.round(numOf(m[2])),d}}
+    if(!hrs){const m=txt.match(/horas\s+acumuladas\s*:?\s*(\d+(?:[.,]\d+)?)/i);
+      if(m){const mm=txt.match(/meta(?:\s+(?:de\s+)?horas)?\s*:?\s*(\d+(?:[.,]\d+)?)/i);hrs={acc:numOf(m[1]),meta:mm?numOf(mm[1]):500,d}}}
+    if(dom&&hrs)break;
+  }
+  return{dom,hrs};
+}
+const fechaCorta=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{day:"numeric",month:"short"}).replace(".","");
+function instructorPills(){
+  const{dom,hrs}=instructorStats();let h="";
+  if(dom)h+=`<span class="pill" style="color:var(--accent)" title="Lo estima el instructor; no lo calcula la app">📈 Dominio Fase ${dom.fase}: ${dom.pct}% · instructor, ${fechaCorta(dom.d)}</span>`;
+  if(hrs){const dias=Math.max(1,daysTo(EXAM)),min=Math.max(0,Math.round((hrs.meta-hrs.acc)*60/dias));
+    h+=`<span class="pill" title="(meta ${hrs.meta} h − ${hrs.acc} h acumuladas) ÷ ${dias} días hasta el 15 jul 2027 · datos del instructor, ${fechaCorta(hrs.d)}">⏱ Debes estudiar ${Math.floor(min/60)} h ${min%60} min/día</span>`}
+  return h;
+}
 function renderHome(){
   const ts=todayStats(),bufN=Object.keys(DB.buffer).length,f=DB.settings.focus;
   const exam=daysTo(EXAM),prog=Math.min(1,Math.max(0,(new Date()-JOURNEY_START)/(EXAM-JOURNEY_START))),C=2*Math.PI*44;
@@ -788,8 +811,8 @@ function renderHome(){
       </div>
       <div>
         <div class="eyebrow">Exam · 15 jul 2027</div>
-        <div class="h">${ph.n<4?`Checkpoint Fase ${ph.n} (${pct}%) en <span style="color:var(--accent)">${days} días</span>`:`Simulacro final en <span style="color:var(--accent)">${days} días</span>`}</div>
-        <div class="pills"><span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
+        <div class="h">${ph.n<4?`Checkpoint Fase ${ph.n} en <span style="color:var(--accent)">${days} días</span>`:`Simulacro final en <span style="color:var(--accent)">${days} días</span>`}</div>
+        <div class="pills">${instructorPills()}<span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
       </div>
     </section>
     ${tareasCard()}
@@ -1018,7 +1041,7 @@ async function fetchTareas(extra){
     for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now()}}
     T.at=Date.now();tSave(true);tState="ok";
   }catch(e){tState=navigator.onLine===false?"offline":"error";tErr=e.name==="AbortError"?"sin respuesta":e.message}
-  finally{if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="home")refreshTk()}
+  finally{if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="home"){if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("input,textarea"))refreshTk();else renderHome()}}
 }
 function tkLabel(){
   return {busy:"Actualizando…",offline:"Sin conexión · mostrando lo guardado",badkey:"⚠ Clave inválida (Ajustes)",nosection:"Aún no existe la sección en Notion",
