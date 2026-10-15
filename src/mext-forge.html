@@ -13,16 +13,16 @@
 :root{--bg:#f6f0e4;--surface:#fffdf8;--surface2:#f2eadb;--text:#211b17;--muted:#74695e;--line:#e4d8c4;
   --accent:#d6336c;--accent2:#b07d12;--accent-t:#fff;--ok:#1d8a50;--okbg:#e2f3e8;--bad:#c9302c;--badbg:#fbe6e2;--warn:#b26b00;--warnbg:#fbefd9;--focus:#d63a2f;
   --glow:rgba(214,51,108,.16);--shadow:0 1px 2px rgba(60,40,20,.06),0 6px 20px rgba(60,40,20,.07);
-  --cop:#d63a2f;--inf:#2457d6;--neg:#7348d1;--unc:#1c9459;--ind:#bb7400;--c1:#0b8aa3;--mix:#211b17;--buf:#b26b00;--fos:#c23c7c}
+  --cop:#d63a2f;--inf:#2457d6;--neg:#7348d1;--unc:#1c9459;--ind:#bb7400;--c1:#0b8aa3;--mix:#211b17;--buf:#b26b00;--fos:#c23c7c;--dia:#4f46e5}
 /* ===== Tema 夜 (oscuro) ===== */
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
   --accent:#ff7aa8;--accent2:#ffc857;--accent-t:#2a0714;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
   --glow:rgba(255,122,168,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
-  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6}}
+  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6;--dia:#a5b4fc}}
 :root[data-theme="dark"]{--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
   --accent:#ff7aa8;--accent2:#ffc857;--accent-t:#2a0714;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
   --glow:rgba(255,122,168,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
-  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6}
+  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6;--dia:#a5b4fc}
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;color:var(--text);background-color:var(--bg)}
@@ -236,6 +236,15 @@ details[open].card summary::after{content:"－"}
 .echip[data-st="Por hacer"]{color:var(--accent)}.echip[data-st="Entregada"]{color:var(--warn)}.echip[data-st="Corregida"]{color:var(--ok)}
 .esub{display:flex;margin:0 0 14px}.esub button{flex:1}
 .ehead1{font-size:1.2rem;margin:0}
+/* ===== Lecciones de días estudiados (como en MEXT Ráfaga) ===== */
+.lessons{display:grid;gap:10px}
+.lesson{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;min-height:64px;box-shadow:var(--shadow);overflow:hidden}
+.lesson:hover,.lesson.on{border-color:var(--dia)}.lesson.on{box-shadow:0 0 0 1.5px var(--dia),var(--shadow)}.lesson .glyph{margin:0}
+.lesson .lt{flex:1;min-width:0;display:flex;flex-direction:column}.lesson .lt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lesson .mb{position:absolute;left:0;bottom:0;height:3px}.lnew{color:var(--dia);font-weight:800}
+.lempty{display:flex;flex-direction:column;gap:4px}
+.emat summary{cursor:pointer;list-style:none}.emat summary::-webkit-details-marker{display:none}.emat summary .ek{display:block;font-size:.78rem;color:var(--muted)}
+.emtema{font-size:.8rem;font-weight:700;color:var(--muted);margin:12px 0 2px}
 /* ===== Tareas diarias ===== */
 .tk-card{width:100%;margin-top:14px;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow)}
 .tk-card .glyph{margin:0;font-size:1.1rem}
@@ -301,6 +310,8 @@ const CATS={
   C1:{n:"Colocaciones e inversión C1",r:"Inversión formal: Should/Had/Were + S… | Never/Rarely/Not only + AUX + S."}
 };
 // Error Hunter: 4 segmentos [..]; e = índice del erróneo; fx = corrección
+// Categoría de las lecciones que arma el instructor (preguntas dinámicas, claves «d:<fecha>:<bloque>»)
+CATS.DIA={n:"Lecciones del instructor",r:"Preguntas que el instructor armó con los temas y tus errores de ese día."};
 const EH=[
  // COP
  {c:"COP",t:"When the exam is over, [I'm feel] much [more relaxed] [than] I was [before].",e:0,fx:"I feel"},
@@ -483,7 +494,8 @@ const CUI={
   UNC:{g:"∅s",n:"Incontables",s:"homework, advice…",v:"unc"},
   IND:{g:"any",n:"Some / any / no",s:"Doble negación",v:"ind"},
   C1:{g:"C1",n:"Formal C1",s:"Inversión y colocaciones",v:"c1"},
-  buf:{g:"↻",n:"Errores",s:"Buffer pendiente",v:"buf"}
+  buf:{g:"↻",n:"Errores",s:"Buffer pendiente",v:"buf"},
+  DIA:{g:"Día",n:"Lecciones",s:"Días con el instructor",v:"dia"}
 };
 const FOCI=["mix","COP","INF","NEG","UNC","IND","C1","buf"];
 // modos de juego
@@ -507,8 +519,8 @@ const ehFixed=it=>{let k=0;return it.t.replace(/\[([^\]]+)\]/g,(m,s)=>(k++===it.
 const ITEMS=[...EH.map((x,i)=>({...x,k:"E",id:"E"+i})),...RB.map((x,i)=>({...x,k:"R",id:"R"+i}))];
 ITEMS.forEach(it=>{it.fos=it.k==="E"?!!fossilOf(clean(it.t)):it.o.slice(1).some(o=>fossilOf(fill(it.q,o)))});
 const BYID=Object.fromEntries(ITEMS.map(x=>[x.id,x]));
-const correctText=it=>it.k==="E"?ehFixed(it):fill(it.q,`<ins>${it.o[0]}</ins>`);
-const label=it=>it.k==="E"?ehFixed(it).replace(/<\/?ins>/g,""):fill(it.q,it.o[0]);
+const correctText=it=>it.L?`${it.q} → <ins>${it.o[0]}</ins>`:it.k==="E"?ehFixed(it):fill(it.q,`<ins>${it.o[0]}</ins>`);
+const label=it=>it.L?`${it.q} → ${it.o[0]}`:it.k==="E"?ehFixed(it).replace(/<\/?ins>/g,""):fill(it.q,it.o[0]);
 const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const glyph=k=>`<span class="glyph" style="--c:${cv(k)}">${(CUI[k]||MODES[k]).g}</span>`;
 function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove("on"),1900)}
@@ -529,10 +541,10 @@ const cs=c=>{const s=DB.cats[c]||(DB.cats[c]={n:0,w:0,to:0,ms:0,f:0});if(!s.r)s.
 // Aplica un evento al estado derivado. Devuelve {freed} si sacó un ejercicio del buffer.
 function applyEvent(e){
   if(e.k==="a"){
-    const it=BYID[e.q];if(!it)return{};
-    const s=cs(it.c),ok=!!e.o;
+    const it=BYID[e.q],cat=it?it.c:(String(e.q).startsWith("d:")?"DIA":null);if(!cat)return{};
+    const s=cs(cat),ok=!!e.o;
     s.n++;s.ms+=e.ms||0;s.r.push(ok?1:0);if(s.r.length>15)s.r.shift();
-    const is=DB.items[e.q]||(DB.items[e.q]={w:0,c:0});
+    const is=DB.items[e.q]||(DB.items[e.q]={w:0,c:0});is.n=(is.n||0)+1;if(ok)is.ok=(is.ok||0)+1;
     if(ok){is.c++;const b=DB.buffer[e.q];if(b){b.s++;if(b.s>=3){delete DB.buffer[e.q];return{freed:true}}}}
     else{s.w++;is.w++;is.c=0;if(e.to)s.to++;if(e.f){s.f++;DB.fossils++}
       const b=DB.buffer[e.q];DB.buffer[e.q]={s:0,f:(b?b.f:0)+1}}
@@ -673,12 +685,14 @@ function bufItems(filter){return Object.keys(DB.buffer).map(id=>BYID[id]).filter
 function buildQueue(key){
   let pool,blind=false,lead=[];
   if(key==="buf"){const b=shuffle(bufItems());return b.slice(0,ROUND)}
-  if(key==="mix"){pool=ITEMS;blind=true;lead=shuffle(bufItems()).slice(0,3)}
+  if(key==="days"){const L=shuffle(LESSONS.slice());return L.slice(0,20)}
+  if(String(key).startsWith("day:")){const d=key.slice(4);return shuffle(LESSONS.filter(x=>x.L===d)).slice(0,20)}
+  if(key==="mix"){pool=allItems();blind=true;lead=shuffle(bufItems()).slice(0,3)}
   else if(CATS[key]){pool=ITEMS.filter(x=>x.c===key);lead=shuffle(bufItems(x=>x.c===key)).slice(0,3)}
   else if(key==="hunter")pool=ITEMS.filter(x=>x.k==="E");
   else if(key==="rebuild")pool=ITEMS.filter(x=>x.k==="R");
   else if(key==="fossil")pool=ITEMS.filter(x=>x.fos);
-  else if(key==="death")pool=ITEMS;
+  else if(key==="death")pool=allItems();
   const ex=new Set(lead.map(x=>x.id));
   return shuffle(lead).concat(pick(pool,(key==="death"?20:ROUND)-lead.length,blind,ex));
 }
@@ -694,9 +708,12 @@ function nextQ(){
   clearTimeout(G.timer);
   if(G.death){
     if(G.lives<=0)return finish();
-    if(G.idx>=G.queue.length)G.queue.push(...pick(ITEMS,15,false,new Set(G.queue.slice(-10).map(x=>x.id))));
-  }else if(G.idx>=G.queue.length)return finish();
+    if(G.idx>=G.queue.length)G.queue.push(...pick(allItems(),15,false,new Set(G.queue.slice(-10).map(x=>x.id))));
+  }
+  while(G.idx<G.queue.length&&!BYID[G.queue[G.idx].id])G.idx++; // lecciones que el instructor borró
+  if(G.idx>=G.queue.length)return finish();
   const it=G.it=G.queue[G.idx];
+  if(it.L&&it.all.length>4){const c=it.all.find(o=>o.ok);it.o=[c.t].concat(shuffle(it.all.filter(o=>!o.ok)).slice(0,3).map(o=>o.t))}
   G.state="q";G.chosen=null;G.gain=0;G.fos=null;G.limit=limitFor(it);G.qEl=0;G.last=performance.now();
   if(it.k==="R")G.order=shuffle(it.o.map((_,i)=>i));
   renderDrill();
@@ -756,7 +773,7 @@ function finish(){
     const now=new Date(),off=-now.getTimezoneOffset(),pad=x=>String(Math.abs(x)).padStart(2,"0");
     const iso=today(now)+"T"+pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds())+(off>=0?"+":"-")+pad(Math.trunc(off/60))+":"+pad(off%60);
     const by={};for(const c in G.byCat)by[c]=[G.byCat[c].ok,G.byCat[c].n];
-    addLocal({t:now.getTime(),k:"s",sid:G.sid,m:G.key,n,ok:good,sc:G.score,cb:G.maxCombo,fr:G.freed,bc:Object.keys(DB.buffer).length,fo:r.filter(x=>x.fos).length,by,iso,dn:DB.dev.name});
+    addLocal({t:now.getTime(),k:"s",sid:G.sid,m:G.key,mn:modeLabel(G.key),n,ok:good,sc:G.score,cb:G.maxCombo,fr:G.freed,bc:Object.keys(DB.buffer).length,fo:r.filter(x=>x.fos).length,by,iso,dn:DB.dev.name});
     save();
   }
   SFX.end();
@@ -803,11 +820,11 @@ function instructorPills(){
   return h;
 }
 function renderHome(){
+  if(String(DB.settings.focus).startsWith("day")&&!buildQueue(DB.settings.focus).length)DB.settings.focus="mix"; // la lección ya no existe
   const ts=todayStats(),bufN=Object.keys(DB.buffer).length,f=DB.settings.focus;
   const exam=daysTo(EXAM),prog=Math.min(1,Math.max(0,(new Date()-JOURNEY_START)/(EXAM-JOURNEY_START))),C=2*Math.PI*44;
   const {ph,pct,days}=phaseInfo();
-  const keys=Object.keys(CATS),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
-  const fmode=CUI[f];
+  const keys=Object.keys(CATS).filter(k=>k!=="DIA"),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
   $("#app").innerHTML=`${tabsHtml("juego")}
     <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
       <button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
@@ -824,8 +841,9 @@ function renderHome(){
         <div class="pills">${instructorPills()}<span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
       </div>
     </section>
-    <button class="start" data-act="go"><span class="play">▶</span><span><b>Ronda de ${ROUND}</b><small>${fmode.n}${f!=="mix"&&f!=="buf"?" · "+CATS[f].n:""} · Enter</small></span></button>
-    <h3>Elige tu debilidad</h3>
+    <button class="start" data-act="go"><span class="play">▶</span><span><b>${String(f).startsWith("day")?"Lección":"Ronda de "+ROUND}</b><small>${esc(modeLabel(f).replace(/^Lección · /,""))} · Enter</small></span></button>
+    ${lessonsHtml(f)}
+    <h3>Otros</h3>
     <div class="modes">${FOCI.map(k=>{
       const p=CATS[k]?catAcc(k):null;
       return `<button class="mode ${k===f?"on":""}" data-focus="${k}" style="--c:${cv(k)}">
@@ -865,7 +883,7 @@ function renderDrill(){
   const mult=1+Math.min(4,Math.floor(G.combo/3))*.5;
   const cm=G.combo>=3?`<span class="combo ${G.combo>=9?"hot":""}">🔥 ${G.combo} · ×${mult.toFixed(1)}</span>`:"";
   const inBuf=DB.buffer[it.id]&&!fb?DB.buffer[it.id]:null;
-  const modeTag=MODES[G.key]?`<span class="tag" style="--c:${cv(G.key)}">${MODES[G.key].n}</span>`:"";
+  const modeTag=MODES[G.key]?`<span class="tag" style="--c:${cv(G.key)}">${MODES[G.key].n}</span>`:it.L?`<span class="tag" style="--c:var(--dia)">Lección · ${fechaCorta(it.L)}</span>`:"";
   let prompt,opts="";
   if(it.k==="E"){
     let k=0;
@@ -875,7 +893,8 @@ function renderDrill(){
     prompt=`<div class="head">Toca la parte <b>incorrecta</b></div><div class="prompt ${fb&&!ok?"shake":""}" lang="en">${html}</div>`;
   }else{
     const [a,b]=it.q.split("___");
-    prompt=`<div class="head">Elige la forma correcta</div><div class="prompt rb" lang="en">${a}<span class="blank ${fb?"ok":""}">${fb?it.o[0]:"&nbsp;?&nbsp;"}</span>${b}</div>`;
+    prompt=b===undefined?`<div class="head">Elige la respuesta correcta</div><div class="prompt rb" lang="en">${a}</div>`
+      :`<div class="head">Elige la forma correcta</div><div class="prompt rb" lang="en">${a}<span class="blank ${fb?"ok":""}">${fb?it.o[0]:"&nbsp;?&nbsp;"}</span>${b}</div>`;
     const ci=G.order.indexOf(0);
     opts=`<div class="opts ${fb&&!ok?"shake":""}" lang="en" style="--c:${cv(c)}">${G.order.map((o,i)=>{
       const cls=fb?(i===ci?"ok":i===G.chosen?"bad":"dim"):"";
@@ -934,18 +953,18 @@ function renderStats(){
   const buf=Object.entries(DB.buffer).filter(([id])=>BYID[id]).sort((a,b)=>b[1].f-a[1].f);
   const miss=Object.entries(DB.items).filter(([id,v])=>v.w>0&&BYID[id]).sort((a,b)=>b[1].w-a[1].w).slice(0,8);
   const ss=DB.sessions.slice(-10).reverse(),seen=Object.keys(DB.items).filter(k=>BYID[k]).length;
-  const nameOf=k=>(CUI[k]||MODES[k]||{n:k}).n;
+  const nameOf=k=>modeLabel(k);
   $("#app").innerHTML=`<div class="stack">
     <div class="row"><button class="icon-btn" data-act="home" aria-label="Inicio">←</button><b style="font-size:1.15rem">Estadísticas</b><span class="sp"></span><span class="kbd">Esc</span></div>
-    <div class="kpis"><div class="kpi"><b>${DB.best.score}</b><span>🏆 récord</span></div><div class="kpi"><b>${DB.best.combo}</b><span>🔥 mejor combo</span></div><div class="kpi"><b>${seen}/${ITEMS.length}</b><span>ejercicios vistos</span></div></div>
+    <div class="kpis"><div class="kpi"><b>${DB.best.score}</b><span>🏆 récord</span></div><div class="kpi"><b>${DB.best.combo}</b><span>🔥 mejor combo</span></div><div class="kpi"><b>${seen}/${allItems().length}</b><span>ejercicios vistos</span></div></div>
     <div class="card"><h3>Precisión por debilidad</h3>${catRows()}</div>
     <div class="card"><h3>↻ Buffer de errores (${buf.length})</h3>${buf.length?`<ul class="list">${buf.map(([id,v])=>`<li>${glyph(BYID[id].c)}<span class="t" lang="en">${label(BYID[id])}</span><span class="dots">${"●".repeat(v.s)}${"○".repeat(3-v.s)}</span></li>`).join("")}</ul>
       <button class="btn" data-focus-go="buf" style="margin-top:10px;width:100%">Practicar el buffer</button>`:'<span class="muted">Vacío. Lo que falles entra aquí hasta acertarlo 3 veces seguidas.</span>'}</div>
     <div class="card"><h3>Más fallados</h3>${miss.length?`<ul class="list">${miss.map(([id,v])=>`<li>${glyph(BYID[id].c)}<span class="t" lang="en">${label(BYID[id])}</span><span class="muted small">${v.w}✗</span></li>`).join("")}</ul>`:'<span class="muted">Todavía nada.</span>'}</div>
-    <div class="card"><h3>Últimas rondas</h3>${ss.length?`<ul class="list">${ss.map(s=>`<li>${CUI[s.m]||MODES[s.m]?glyph(s.m):glyph("mix")}<span class="t">${nameOf(s.m)} · ${s.ts?new Date(s.ts).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):s.d}</span><span class="muted small">${s.ok!=null?s.ok:Math.round(s.acc*s.n/100)}/${s.n} · <b style="color:var(--text)">${s.s}</b></span></li>`).join("")}</ul>`:'<span class="muted">Sin rondas.</span>'}</div>
+    <div class="card"><h3>Últimas rondas</h3>${ss.length?`<ul class="list">${ss.map(s=>`<li>${CUI[s.m]||MODES[s.m]?glyph(s.m):String(s.m).startsWith("day")?glyph("DIA"):glyph("mix")}<span class="t">${nameOf(s.m)} · ${s.ts?new Date(s.ts).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):s.d}</span><span class="muted small">${s.ok!=null?s.ok:Math.round(s.acc*s.n/100)}/${s.n} · <b style="color:var(--text)">${s.s}</b></span></li>`).join("")}</ul>`:'<span class="muted">Sin rondas.</span>'}</div>
   </div>`;
 }
-function render(){applyTheme();if(view==="tareas")return renderTareas();if(view==="ref")return renderRef(true);if(view==="tarea")return renderTarea(true);if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
+function render(){applyTheme();if(view==="tareas")return renderTareas();if(view==="ref")return renderRef(true);if(view==="mat")return renderMateria();if(view==="tarea")return renderTarea(true);if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
 
 /* ================= TAREAS DIARIAS (instructor) =================
    Sección separada del juego: sin puntos, rachas ni corrección automática.
@@ -962,7 +981,7 @@ let tDate=null,tState="idle",tErr="";
 // Marcas que reconoce la app al inicio de un título del instructor (### o ##)
 const TMARK=[["📘","ref","Consulta"],["✍","write","Escritura"],["🔁","trans","Traducción"],["🛠","fix","Corrección"],["🧩","cloze","Completar"],
   ["🔤","vocab","Vocabulario"],["📖","read","Lectura"],["🎧","dict","Dictado"],["🗣","oral","Producción oral"],["🎯","mastery","Prueba de dominio"],
-  ["⏱","mock","Simulacro"],["✅","out","Fuera de la app"],["🧑‍🏫","retro","Retroalimentación"],["📤","entrega","Entrega"]];
+  ["⏱","mock","Simulacro"],["✅","out","Fuera de la app"],["🧑‍🏫","retro","Retroalimentación"],["📤","entrega","Entrega"],["🎮","juego","Juego"]];
 const TLONG=new Set(["write","trans","fix","read","dict","oral"]);
 const nfe=s=>String(s).replace(/️/g,"");
 const rtPlain=r=>(r||[]).map(x=>x.t).join("");
@@ -973,18 +992,20 @@ const isList=ty=>ty==="bulleted_list_item"||ty==="numbered_list_item"||ty==="to_
 
 // Bloques de Notion → {intro, acts:[{key,ty,n,title,min,blocks}], retro:[]}
 function parseSession(blocks){
-  const res={intro:[],acts:[],retro:[]};let cur=null,zone="intro";
+  const res={intro:[],acts:[],retro:[],juego:[]};let cur=null,zone="intro";
   for(const b of blocks||[]){
     if(/^heading_/.test(b.ty)){const m=markOf(rtPlain(b.r));
       if(m){
         if(m.ty==="retro"){zone="retro";cur=null;continue}
         if(m.ty==="entrega"){zone="skip";cur=null;continue}
+        if(m.ty==="juego"){zone="juego";cur=null;continue}
         let title=nfe(rtPlain(b.r)).replace(/^\S+\s*/,"").trim();const mm=title.match(/(\d+)\s*min\b/i);
         if(title.includes(":"))title=title.slice(title.indexOf(":")+1).trim(); // «Consulta: tema» → «tema»
         cur={key:b.id,ty:m.ty,n:m.n,title:title.replace(/\s*·\s*\d+\s*min\b.*$/i,"")||m.n,min:mm?+mm[1]:null,blocks:[]};
         res.acts.push(cur);zone="act";continue}
     }
     if(zone==="skip")continue;
+    if(zone==="juego"){res.juego.push(b);continue}
     if(zone==="retro")res.retro.push(b);else if(zone==="act")cur.blocks.push(b);else res.intro.push(b);
   }
   res.retro=res.retro.filter(b=>!/retroalimentaci[oó]n pendiente/i.test(rtPlain(b.r)));
@@ -1047,9 +1068,9 @@ async function fetchTareas(extra){
     if(!j.ok){tState=j.error==="sin-seccion"?"nosection":"error";tErr=j.detail||j.error||"";return}
     T.list=j.list||[];
     for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now()}}
-    T.at=Date.now();tSave(true);tState="ok";
+    T.at=Date.now();tSave(true);tState="ok";registerLessons();
   }catch(e){tState=navigator.onLine===false?"offline":"error";tErr=e.name==="AbortError"?"sin respuesta":e.message}
-  finally{if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="home"){if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("input,textarea"))refreshTk();else renderHome()}}
+  finally{if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="mat")renderMateria();else if(view==="home"){if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("input,textarea"))refreshTk();else renderHome()}}
 }
 function tkLabel(){
   return {busy:"Actualizando…",offline:"Sin conexión · mostrando lo guardado",badkey:"⚠ Clave inválida (Ajustes)",nosection:"Aún no existe la sección en Notion",
@@ -1065,9 +1086,84 @@ function tareasCard(){
   return `<button class="tk-card" id="tkCard" data-tk="open" data-v="${s?d:""}"><span class="glyph" style="--c:var(--inf)">📝</span><span style="flex:1;min-width:0"><b>Tareas diarias</b><small>${esc(sub)}</small></span><span class="muted">›</span></button>`;
 }
 
+/* ---------- Lecciones del juego: «### 🎮 Juego» que el instructor agrega al corregir ----------
+   Formato: cada elemento de lista = pregunta; sub-elementos = opciones (exactamente una empieza con ✓);
+   un sub-elemento con 💡 = explicación. Entre 2 y 4 opciones (si hay más: la correcta + 3 al azar). */
+let LESSONS=[];
+const san=t=>String(t).replace(/</g,"‹").replace(/>/g,"›");
+function lessonItemsOf(d){
+  const s=T.ses[d];if(!s)return[];
+  const out=[];
+  for(const b of parseSession(s.blocks).juego){
+    if(!isList(b.ty))continue;
+    const opts=[];let exp="";
+    for(const k of b.k||[]){
+      const t=nfe(rtPlain(k.r)).trim();if(!t)continue;
+      if(/^💡/u.test(t)){exp=t.replace(/^💡\s*/u,"");continue}
+      const ok=/^(✓|✔|✅)\s*/u.test(t);opts.push({t:san(t.replace(/^(✓|✔|✅)\s*/u,"")),ok});
+    }
+    const q=san(rtPlain(b.r)).trim();
+    if(!q||opts.length<2||opts.filter(o=>o.ok).length!==1)continue; // mal formada: se ignora
+    const right=opts.find(o=>o.ok).t;
+    out.push({id:"d:"+d+":"+b.id,k:"R",c:"DIA",L:d,q,all:opts,o:[right].concat(opts.filter(o=>!o.ok).map(o=>o.t)),
+      r:(exp?san(exp):"Correcta: "+right)+" · Lección del "+fechaCorta(d)});
+  }
+  return out;
+}
+function registerLessons(){
+  for(const id of Object.keys(BYID))if(id.startsWith("d:"))delete BYID[id];
+  LESSONS=[];
+  for(const d of Object.keys(T.ses).sort().reverse())for(const it of lessonItemsOf(d)){LESSONS.push(it);BYID[it.id]=it}
+}
+const allItems=()=>ITEMS.concat(LESSONS);
+const lessonDays=()=>[...new Set(LESSONS.map(x=>x.L))];
+function modeLabel(m){
+  m=String(m);
+  if(m==="days")return "Todas las lecciones";
+  if(m.startsWith("day:"))return "Lección · "+fechaCorta(m.slice(4))+" · "+tituloSes(m.slice(4));
+  const c=CUI[m]||MODES[m];if(!c)return m;
+  return c.n+(CATS[m]&&m!=="DIA"?" · "+CATS[m].n:"");
+}
+function lessonsHtml(f){
+  const days=lessonDays();
+  if(!days.length)return `<h3>📅 Lecciones de días estudiados</h3><div class="card lempty"><b>Aún no hay lecciones.</b><div class="muted small">Cada vez que el instructor corrija un día y agregue la sección «🎮 Juego», aparecerá aquí una lección nueva para jugar.</div></div>`;
+  const acc=ids=>{let n=0,ok=0;for(const id of ids){const it=DB.items[id];if(it&&it.n){n+=it.n;ok+=it.ok||0}}return n?ok/n:null};
+  const card=(mode,title,sub,ids,isNew)=>{const p=acc(ids);return `<button class="lesson ${f===mode?"on":""}" data-focus="${esc(mode)}">
+      <span class="glyph" style="--c:var(--dia)">Día</span><span class="lt"><b>${esc(title)}</b><span class="muted small">${sub}${isNew?' · <span class="lnew">nueva</span>':""}</span></span>
+      <span class="pct">${p==null?"▶":Math.round(p*100)+"%"}</span>${p!=null?`<span class="mb" style="width:${p*100}%;background:var(--dia)"></span>`:""}</button>`};
+  const all=LESSONS.map(x=>x.id);
+  return `<h3>📅 Lecciones de días estudiados</h3><div class="lessons">
+    ${days.length>1?card("days","Todas las lecciones",`${days.length} días · ${all.length} preguntas`,all):""}
+    ${days.map(d=>{const ids=LESSONS.filter(x=>x.L===d).map(x=>x.id);return card("day:"+d,tituloSes(d),`${esc(fechaCorta(d))} · ${ids.length} preguntas`,ids,!ids.some(id=>DB.items[id]))}).join("")}
+  </div>`;
+}
+
+/* ---------- Materia: solo las tablas de cada clase, por día (de 📘 Consulta y de la introducción) ---------- */
+function eTables(list,out){for(const b of list||[]){if(b.ty==="table")out.push(b);else if(b.k)eTables(b.k,out)}return out}
+// Referencia = solo teoría escrita: cada tabla se reemplaza por un aviso (las tablas viven en Materia)
+function sinTablas(list){return (list||[]).map(b=>b.ty==="table"?{ty:"paragraph",r:[{t:"(La tabla está en 📊 Materia)",i:1}]}:b.k?{...b,k:sinTablas(b.k)}:b)}
+function renderMateria(){
+  const dias=[];
+  for(const d of Object.keys(T.ses).sort().reverse()){
+    const p=parseSession(T.ses[d].blocks),tablas=[];
+    eTables(p.intro,[]).forEach(t=>tablas.push({tema:"",t}));
+    for(const a of p.acts)if(a.ty==="ref")eTables(a.blocks,[]).forEach(t=>tablas.push({tema:a.title,t}));
+    if(tablas.length)dias.push({d,tablas});
+  }
+  $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
+    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    <div class="estat" id="tkState">${esc(tkLabel())}</div>
+    ${subTabs("mat")}
+    ${dias.length?dias.map((x,i)=>`<details class="card emat" ${i===0?"open":""}><summary><span class="ek">${esc(fechaLarga(x.d))} · ${x.tablas.length} tabla${x.tablas.length>1?"s":""}</span><b>${esc(tituloSes(x.d))}</b></summary>
+      <div>${x.tablas.map((y,j)=>`${y.tema&&(j===0||x.tablas[j-1].tema!==y.tema)?`<div class="emtema">${esc(y.tema)}</div>`:""}${blockHtml(y.t)}`).join("")}</div></details>`).join("")
+    :`<div class="ecard eempty"><b>Aún no hay tablas.</b><span class="muted small">Aquí aparecerán, por día, las tablas que el instructor ponga en tus clases.</span></div>`}
+  </div>`;
+  window.scrollTo(0,0);
+}
+
 /* ---------- pestañas y formato de fechas ---------- */
 const tabsHtml=on=>`<nav class="tabs" role="tablist"><button role="tab" aria-selected="${on==="juego"}" data-tk="tab-juego" class="${on==="juego"?"on":""}">🎮 Juego</button><button role="tab" aria-selected="${on==="estudio"}" data-tk="tab-estudio" class="${on==="estudio"?"on":""}">📝 Estudio</button></nav>`;
-const subTabs=on=>`<div class="seg esub"><button data-tk="sub-ses" class="${on==="ses"?"on":""}">Sesiones</button><button data-tk="ref" class="${on==="ref"?"on":""}">📘 Referencia</button></div>`;
+const subTabs=on=>`<div class="seg esub"><button data-tk="sub-ses" class="${on==="ses"?"on":""}">Sesiones</button><button data-tk="ref" class="${on==="ref"?"on":""}">📘 Referencia</button><button data-tk="mat" class="${on==="mat"?"on":""}">📊 Materia</button></div>`;
 const fechaLarga=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
 const tituloSes=d=>{const s=T.ses[d],x=T.list.find(y=>y.date===d);return ((s&&s.title)||(x&&x.title)||"Sesión").replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,"")||"Sesión"};
 const chip=d=>{const[st]=sesStatus(d);return `<span class="echip" data-st="${st.replace(/ ×\d+/,"")}">${st}</span>`};
@@ -1103,7 +1199,7 @@ function renderRef(keep){
     <input class="tk-in" id="refSearch" type="search" placeholder="Buscar (ej. no longer, uncountable…)" value="${esc(refQ)}" autocomplete="off" spellcheck="false" autocapitalize="off">
     <div class="muted small" id="tkState">${all.length} ${all.length===1?"explicación guardada":"explicaciones guardadas"}${pend?` · ${pend} sesiones anteriores aún por descargar (se bajan solas al actualizar)`:""}</div>
     ${list.map(x=>`<section class="card tk-act ref"><div class="tk-ah"><span class="tag">Consulta</span><span class="sp"></span><button class="btn" data-tk="date" data-v="${x.d}" style="min-height:34px;padding:4px 10px">${x.d}</button></div>
-      <h3 class="tk-title">${esc(x.a.title)}</h3>${x.a.blocks.map(blockHtml).join("")}</section>`).join("")||`<div class="card muted">${q?"Nada coincide con la búsqueda.":"Aún no hay explicaciones. Aparecen aquí las secciones 📘 Consulta de cada sesión."}</div>`}
+      <h3 class="tk-title">${esc(x.a.title)}</h3>${sinTablas(x.a.blocks).map(blockHtml).join("")}</section>`).join("")||`<div class="card muted">${q?"Nada coincide con la búsqueda.":"Aún no hay explicaciones. Aparecen aquí las secciones 📘 Consulta de cada sesión."}</div>`}
   </div>`;
   window.scrollTo(0,keep?y:0);
 }
@@ -1237,6 +1333,7 @@ document.addEventListener("click",e=>{
   if(k==="date"){openTarea(v);return}
   if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null);return}
   if(k==="ref"){view="ref";renderRef();fetchTareas();return}
+  if(k==="mat"){view="mat";renderMateria();fetchTareas();return}
   if(k==="tab-estudio"||k==="sub-ses"){view="tareas";renderTareas();fetchTareas();return}
   if(k==="tab-juego"){view="home";render();return}
   if(view!=="tarea")return;
@@ -1306,7 +1403,7 @@ document.addEventListener("click",e=>{
 });
 document.addEventListener("keydown",e=>{
   if(e.target.closest&&e.target.closest("summary,input,textarea"))return;
-  if(view==="tareas"||view==="tarea"||view==="ref"){if(e.key==="Escape"){if(view==="tarea"||view==="ref"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas()}else quit()}return}
+  if(view==="tareas"||view==="tarea"||view==="ref"||view==="mat"){if(e.key==="Escape"){if(view==="tarea"||view==="ref"||view==="mat"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas()}else quit()}return}
   const k=e.key.toLowerCase();
   if(e.key==="Escape"){quit();return}
   if(view==="home"){if(e.key==="Enter"){e.preventDefault();start(DB.settings.focus)}else if(k==="s"){view="stats";render()}return}
@@ -1324,6 +1421,7 @@ document.addEventListener("visibilitychange",()=>{
   if(G&&G.state==="q"&&!document.hidden){G.last=performance.now();cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick)}
   if(!document.hidden){syncNow();if(view==="home"||view==="tareas")fetchTareas()}
 });
+registerLessons();
 render();
 syncNow();
 fetchTareas();
