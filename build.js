@@ -1,7 +1,7 @@
-// Genera pwa/index.html a partir de ../mext-forge.html y sube la versión del service worker.
-// Uso (después de editar mext-forge.html):  node build.js
+// Genera pwa/index.html a partir de src/mext-forge.html (código fuente de la app; no lo borres) y sube la versión del service worker.
+// Uso (después de editar src/mext-forge.html):  node build.js
 const fs = require("fs"), path = require("path");
-const src = fs.readFileSync(path.join(__dirname, "..", "mext-forge.html"), "utf8");
+const src = fs.readFileSync(path.join(__dirname, "src", "mext-forge.html"), "utf8");
 
 // ?v= en los íconos: el navegador guarda el ícono de la pestaña mucho tiempo; con la versión lo vuelve a pedir
 const iv = Math.round(fs.statSync(path.join(__dirname, "icon-192.png")).mtimeMs).toString(36);

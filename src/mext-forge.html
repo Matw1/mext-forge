@@ -1,0 +1,1337 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c0e1b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>MEXT Forge</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2714%27 fill=%27%23d6336c%27/%3E%3Ctext x=%2732%27 y=%2744%27 font-size=%2734%27 text-anchor=%27middle%27 fill=%27white%27 font-family=%27sans-serif%27 font-weight=%27900%27%3E%E8%8B%B1%3C/text%3E%3C/svg%3E">
+<style>
+/* ===== Tema 和紙 (claro) ===== */
+:root{--bg:#f6f0e4;--surface:#fffdf8;--surface2:#f2eadb;--text:#211b17;--muted:#74695e;--line:#e4d8c4;
+  --accent:#d6336c;--accent2:#b07d12;--accent-t:#fff;--ok:#1d8a50;--okbg:#e2f3e8;--bad:#c9302c;--badbg:#fbe6e2;--warn:#b26b00;--warnbg:#fbefd9;--focus:#d63a2f;
+  --glow:rgba(214,51,108,.16);--shadow:0 1px 2px rgba(60,40,20,.06),0 6px 20px rgba(60,40,20,.07);
+  --cop:#d63a2f;--inf:#2457d6;--neg:#7348d1;--unc:#1c9459;--ind:#bb7400;--c1:#0b8aa3;--mix:#211b17;--buf:#b26b00;--fos:#c23c7c}
+/* ===== Tema 夜 (oscuro) ===== */
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
+  --accent:#ff7aa8;--accent2:#ffc857;--accent-t:#2a0714;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
+  --glow:rgba(255,122,168,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
+  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6}}
+:root[data-theme="dark"]{--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
+  --accent:#ff7aa8;--accent2:#ffc857;--accent-t:#2a0714;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
+  --glow:rgba(255,122,168,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
+  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;color:var(--text);background-color:var(--bg)}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;min-height:100dvh;
+  background-image:radial-gradient(900px 420px at 50% -120px,var(--glow),transparent 70%),var(--pat,none);background-attachment:fixed}
+#app{max-width:780px;margin:0 auto;padding:14px 16px calc(28px + env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;cursor:pointer}
+.row{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.muted{color:var(--muted)}
+.small{font-size:.82rem}
+.center{text-align:center}
+.hide{display:none!important}
+.stack>*+*{margin-top:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow)}
+h3{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:22px 2px 10px;font-weight:700}
+.card h3{margin:0 0 10px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;min-height:44px}
+.icon-btn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:1.1rem;flex:none}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.kbd{font-family:ui-monospace,monospace;font-size:.75rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:0 5px;color:var(--muted);background:var(--surface)}
+
+/* ===== Marca ===== */
+.brand{display:flex;align-items:center;gap:10px}
+.hanko{width:42px;height:42px;border-radius:10px;background:var(--accent);color:var(--accent-t);display:grid;place-items:center;font-weight:900;font-size:1.25rem;transform:rotate(-4deg);box-shadow:0 4px 14px var(--glow)}
+.brand b{display:block;font-size:1.15rem;letter-spacing:.02em}
+.brand small{color:var(--muted);font-size:.78rem}
+
+/* ===== Hero ===== */
+.hero{display:flex;align-items:center;gap:16px;margin-top:16px;padding:16px;border-radius:22px;background:linear-gradient(135deg,var(--surface),var(--surface2));border:1px solid var(--line);box-shadow:var(--shadow)}
+.ring{position:relative;flex:none;width:104px;height:104px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .in{position:absolute;inset:0;display:grid;place-items:center;text-align:center;line-height:1}
+.ring .in b{font-size:1.9rem;font-weight:900;font-variant-numeric:tabular-nums;display:block}
+.ring .in small{font-size:.7rem;color:var(--muted)}
+.eyebrow{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:800}
+.hero .h{font-size:1.05rem;font-weight:700;margin:4px 0 10px}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+
+/* ===== Botón principal ===== */
+.start{position:relative;width:100%;margin-top:16px;border:0;border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:16px;text-align:left;color:#fff;
+  background:linear-gradient(120deg,#f2669a,#d6336c 55%,#8e1f5a);box-shadow:0 10px 30px var(--glow),inset 0 1px 0 rgba(255,255,255,.25);overflow:hidden}
+.start::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.22) 50%,transparent 70%);transform:translateX(-100%);animation:shine 3.2s ease-in-out infinite}
+@keyframes shine{0%,55%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.start .play{flex:none;width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:1.4rem;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.35)}50%{box-shadow:0 0 0 10px rgba(255,255,255,0)}}
+.start b{display:block;font-size:1.3rem}
+.start small{opacity:.85;font-size:.85rem}
+.start:active{transform:scale(.99)}
+
+/* ===== Mosaicos ===== */
+.modes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media (min-width:640px){.modes{grid-template-columns:repeat(4,1fr)}}
+.mode{position:relative;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px;min-height:104px;display:flex;flex-direction:column;gap:2px;box-shadow:var(--shadow);overflow:hidden;transition:transform .12s,border-color .12s}
+.mode:hover{transform:translateY(-2px);border-color:var(--c)}
+.mode:active{transform:scale(.98)}
+.mode.on{border-color:var(--c);box-shadow:0 0 0 1.5px var(--c),var(--shadow)}
+.glyph{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:900;font-size:.95rem;letter-spacing:-.02em;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);margin-bottom:6px;flex:none}
+.mode .mn{font-weight:800;font-size:.98rem}
+.mode .ms{font-size:.74rem;color:var(--muted);line-height:1.25}
+.mode .acc{position:absolute;top:12px;right:12px;font-size:.78rem;font-weight:800;font-variant-numeric:tabular-nums;color:var(--muted)}
+.mode .mb{position:absolute;left:0;bottom:0;height:3px;background:var(--c);opacity:.9}
+.mode .badge{position:absolute;top:10px;right:10px;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:var(--c);color:var(--bg);font-size:.75rem;font-weight:900;display:grid;place-items:center}
+
+/* ===== Regla del día ===== */
+.rule-day{position:relative;overflow:hidden;display:flex;gap:12px;align-items:flex-start;border-left:4px solid var(--c)}
+.rule-day .glyph{margin:0}
+.rule-day p{margin:2px 0 8px;font-size:.98rem;font-weight:600}
+.rule-day .wm{position:absolute;right:-4px;bottom:-30px;font-size:6.5rem;font-weight:900;color:var(--c);opacity:.07;pointer-events:none;line-height:1}
+
+/* ===== Medidores ===== */
+.meter{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px;background:var(--ok);transition:width .6s}
+.meter i.warn{background:var(--warn)} .meter i.bad{background:var(--bad)} .meter i.none{background:var(--line)}
+.catrow{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.catrow:first-of-type{border-top:0;padding-top:2px}
+.catrow .glyph{margin:0;grid-row:span 2}
+.catrow .meter,.catrow .sub{grid-column:2/-1}
+.catrow .sub{font-size:.75rem;color:var(--muted)}
+.pct{font-variant-numeric:tabular-nums;font-weight:800}
+
+/* ===== Ajustes ===== */
+details.card summary{cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;gap:8px}
+details.card summary::-webkit-details-marker{display:none}
+details.card summary::after{content:"＋";margin-left:auto;color:var(--muted)}
+details[open].card summary::after{content:"－"}
+.set{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface2)}
+.seg button{border:0;background:transparent;padding:8px 12px;min-height:40px;font-size:.9rem}
+.seg button.on{background:var(--text);color:var(--bg);font-weight:700}
+
+/* ===== Drill ===== */
+.hud{display:flex;align-items:center;gap:10px;position:relative}
+.score{line-height:1}
+.score b{font-size:1.6rem;font-weight:900;font-variant-numeric:tabular-nums;display:block}
+.score small{font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.float{position:absolute;left:58px;top:-6px;font-weight:900;color:var(--accent2);font-size:1.1rem;pointer-events:none;animation:floatUp .9s ease-out forwards}
+@keyframes floatUp{0%{opacity:0;transform:translateY(8px) scale(.8)}20%{opacity:1;transform:translateY(0) scale(1.15)}100%{opacity:0;transform:translateY(-26px) scale(1)}}
+.combo{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;font-weight:900;font-variant-numeric:tabular-nums;color:#2a1a00;background:linear-gradient(135deg,#ffe08a,#ffb547);box-shadow:0 4px 16px rgba(255,181,71,.35);animation:bump .3s}
+.combo.hot{color:#fff;background:linear-gradient(135deg,#ff8a3d,#ff3d5a);box-shadow:0 4px 20px rgba(255,61,90,.45)}
+@keyframes bump{0%{transform:scale(.8)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+.lives{font-weight:900;letter-spacing:2px;color:var(--bad)}
+.tring{position:relative;width:48px;height:48px;flex:none}
+.tring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.tring span{position:absolute;inset:0;display:grid;place-items:center;font-weight:800;font-size:.85rem;font-variant-numeric:tabular-nums}
+.tring.low circle.fg{stroke:var(--bad)}
+.tring.low span{color:var(--bad)}
+.qcard{position:relative;margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:14px 16px 0;box-shadow:var(--shadow);overflow:hidden}
+.qcard::before{content:"";position:absolute;inset:0 0 auto 0;height:4px;background:var(--c)}
+.qcard .wm{position:absolute;right:-6px;bottom:-26px;font-size:7.5rem;font-weight:900;color:var(--c);opacity:.07;pointer-events:none;line-height:1}
+.qcard.pop{animation:okpulse .45s}
+@keyframes okpulse{0%{box-shadow:0 0 0 0 var(--ok)}100%{box-shadow:0 0 0 16px transparent}}
+.tags{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.tag{font-size:.74rem;font-weight:700;padding:3px 10px;border-radius:99px;background:color-mix(in srgb,var(--c,var(--muted)) 14%,transparent);color:var(--c,var(--muted))}
+.tag.buf{--c:var(--warn)}
+.tag.fos{--c:var(--fos)}
+.head{font-size:.84rem;color:var(--muted);text-align:center;margin-top:10px}
+.prompt{position:relative;font-size:1.4rem;line-height:2.6;padding:10px 4px 22px;text-align:center;overflow-wrap:anywhere}
+.prompt.rb{line-height:1.8;padding-bottom:18px}
+.blank{display:inline-block;min-width:3em;color:var(--c);font-weight:800;white-space:nowrap;border-bottom:3px solid var(--c);line-height:1.2}
+.blank.ok{color:var(--ok);border-color:var(--ok)}
+.segm{position:relative;border:0;background:color-mix(in srgb,var(--c) 9%,transparent);border-bottom:3px solid var(--c);border-radius:6px 6px 2px 2px;padding:0 5px;line-height:1.5;font-size:inherit;transition:background .12s}
+.segm:hover{background:color-mix(in srgb,var(--c) 22%,transparent)}
+.segm .k{position:absolute;left:50%;transform:translateX(-50%);bottom:-1.45em;font-size:.6rem;font-weight:900;color:var(--muted);line-height:1}
+.segm.ok{background:var(--okbg);border-color:var(--ok);animation:pop .35s}
+.segm.ok .k{color:var(--ok)}
+.segm.bad{background:var(--badbg);border-color:var(--bad);text-decoration:line-through;text-decoration-color:var(--bad)}
+.segm.bad .k{color:var(--bad)}
+.segm.dim{opacity:.45}
+.prompt.shake{animation:shake .38s}
+.qtimer{height:5px;background:var(--surface2);margin:0 -16px}
+.qtimer i{display:block;height:100%;width:100%;background:var(--ok);transition:background .3s}
+.qtimer i.mid{background:var(--warn)} .qtimer i.low{background:var(--bad)}
+.opts{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+@media (min-width:640px){.opts{grid-template-columns:1fr 1fr}}
+.opt{position:relative;display:flex;align-items:center;gap:14px;text-align:left;border:1.5px solid var(--line);background:var(--surface);border-radius:16px;padding:12px 14px;min-height:62px;font-size:1.15rem;line-height:1.4;box-shadow:var(--shadow);transition:transform .08s,border-color .12s,background .12s}
+.opt:hover{border-color:var(--c)}
+.opt:active{transform:scale(.98)}
+.opt .k{flex:none;width:30px;height:30px;border-radius:9px;background:var(--surface2);color:var(--muted);font-size:.85rem;display:grid;place-items:center;font-weight:800;transition:background .12s,color .12s}
+.opt:hover .k{background:var(--c);color:var(--bg)}
+.opt.ok{border-color:var(--ok);background:var(--okbg);animation:pop .35s}
+.opt.ok .k{background:var(--ok);color:var(--bg)}
+.opt.bad{border-color:var(--bad);background:var(--badbg)}
+.opt.bad .k{background:var(--bad);color:var(--bg)}
+.opt.dim{opacity:.4;box-shadow:none}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+.opts.shake{animation:shake .38s}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.fb{display:flex;gap:12px;margin-top:14px;border-radius:18px;padding:14px;background:var(--surface);border:1.5px solid var(--bad);box-shadow:0 8px 26px var(--badbg);animation:rise .25s ease-out;cursor:pointer}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fb .ic{flex:none;width:34px;height:34px;border-radius:50%;background:var(--bad);color:var(--bg);display:grid;place-items:center;font-weight:900}
+.fb .h{font-size:.92rem;color:var(--muted);margin-bottom:6px}
+.fb .h b{color:var(--text)}
+.fb .fix{font-size:1.08rem;font-weight:600;margin:0 0 6px}
+.fix ins{text-decoration:none;color:var(--ok);font-weight:800;border-bottom:2px solid var(--ok)}
+.fb .r2{margin:0;color:var(--muted)}
+.fb .r2 b{color:var(--text)}
+.fosbox{border-radius:12px;padding:8px 10px;margin:0 0 8px;background:color-mix(in srgb,var(--fos) 13%,transparent);border:1px solid color-mix(in srgb,var(--fos) 45%,transparent)}
+.fosbox b{display:block;color:var(--fos);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+.fb .n{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:.78rem;color:var(--muted)}
+.fb .go-on{margin-left:auto;font-weight:800;color:var(--text);background:var(--surface2);border-radius:99px;padding:6px 14px}
+#flash{position:fixed;inset:0;pointer-events:none;opacity:0;background:var(--fos);transition:opacity .35s;z-index:8}
+
+/* ===== Final ===== */
+.endhero{position:relative;text-align:center;padding:26px 16px 20px;border-radius:24px;background:linear-gradient(160deg,var(--surface),var(--surface2));border:1px solid var(--line);box-shadow:var(--shadow);overflow:hidden}
+.stamp{width:108px;height:108px;margin:0 auto 10px;border:5px solid var(--focus);border-radius:50%;display:grid;place-items:center;color:var(--focus);font-size:3.1rem;font-weight:900;transform:rotate(-12deg);animation:stamp .5s cubic-bezier(.2,1.6,.4,1) both;box-shadow:inset 0 0 0 3px var(--surface),inset 0 0 0 5px var(--focus)}
+@keyframes stamp{0%{opacity:0;transform:rotate(-12deg) scale(2.2)}100%{opacity:1;transform:rotate(-12deg) scale(1)}}
+.stamp-l{font-weight:800;color:var(--focus);letter-spacing:.08em;font-size:.82rem}
+.big{font-size:3rem;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:6px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px;text-align:center}
+.kpi b{display:block;font-size:1.3rem;font-variant-numeric:tabular-nums}
+.kpi span{font-size:.72rem;color:var(--muted)}
+.proj{display:flex;gap:12px;align-items:center;border-left:4px solid var(--c)}
+.proj b{font-size:1.5rem;font-variant-numeric:tabular-nums;color:var(--c)}
+.cta{display:flex;gap:10px}
+.cta .start{margin-top:0;flex:2;padding:16px}
+.cta .btn{flex:1;border-radius:20px}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;animation:fall 1.8s ease-in forwards}
+@keyframes fall{to{transform:translateY(420px) rotate(540deg);opacity:0}}
+.miss{padding:10px 0;border-top:1px solid var(--line)}
+.miss:first-of-type{border-top:0;padding-top:0}
+.miss .fix{font-weight:600;margin:0 0 3px}
+.miss .r{font-size:.84rem;color:var(--muted)}
+
+/* ===== Listas ===== */
+.list{margin:0;padding:0;list-style:none}
+.list li{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line);font-size:.95rem}
+.list li:first-child{border-top:0}
+.list li .glyph{margin:0}
+.list .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dots{letter-spacing:2px;color:var(--warn);font-size:.8rem;white-space:nowrap}
+
+.pill[data-s]{cursor:pointer}
+.pill[data-s="ok"]{color:var(--ok)}.pill[data-s="warn"]{color:var(--warn)}.pill[data-s="bad"]{color:var(--bad)}.pill[data-s="muted"]{color:var(--muted)}
+.syncbox{display:grid;gap:10px;padding:12px;border-radius:14px;background:var(--surface2)}
+.syncbox label{display:grid;gap:4px;font-size:.85rem;color:var(--muted)}
+.syncbox input{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));transform:translate(-50%,10px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:14px;font-weight:700;font-size:.92rem;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100% - 32px);text-align:center;z-index:9;box-shadow:var(--shadow)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+/* ===== Pestañas Juego / Estudio (como en MEXT Ráfaga) ===== */
+.tabs{display:flex;gap:6px;padding:4px;margin-bottom:14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line)}
+.tabs button{flex:1;border:0;background:transparent;border-radius:10px;padding:10px;min-height:44px;font-weight:700;color:var(--muted)}
+.tabs button.on{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.estat{font-size:.82rem;margin:6px 0 14px;color:var(--muted)}
+.ecard{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;min-height:64px}
+.ecard b{font-size:1.02rem}.ehoy{border-left:4px solid var(--accent)}.eempty{cursor:default}
+.echip{align-self:flex-start;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--surface2);color:var(--muted)}
+.echip[data-st="Por hacer"]{color:var(--accent)}.echip[data-st="Entregada"]{color:var(--warn)}.echip[data-st="Corregida"]{color:var(--ok)}
+.esub{display:flex;margin:0 0 14px}.esub button{flex:1}
+.ehead1{font-size:1.2rem;margin:0}
+/* ===== Tareas diarias ===== */
+.tk-card{width:100%;margin-top:14px;display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:18px;padding:12px 14px;box-shadow:var(--shadow)}
+.tk-card .glyph{margin:0;font-size:1.1rem}
+.tk-card b{display:block}.tk-card small{color:var(--muted);font-size:.8rem}
+.tk-row{all:unset;box-sizing:border-box;width:100%;display:flex;gap:10px;align-items:center;cursor:pointer}
+.tk .card p{margin:6px 0}.tk .card ul{margin:6px 0;padding-left:20px}
+.tk blockquote{margin:8px 0;padding:6px 12px;border-left:3px solid var(--line);color:var(--text);background:var(--surface2);border-radius:0 10px 10px 0}
+.tk pre{white-space:pre-wrap;background:var(--surface2);border-radius:10px;padding:10px;font-size:.88rem}
+.tk code{background:var(--surface2);border-radius:5px;padding:0 4px}
+.tk-callout{background:var(--surface2);border-radius:12px;padding:10px 12px;margin:8px 0}
+.tk-table{overflow-x:auto}.tk-table table{border-collapse:collapse;font-size:.9rem}.tk-table td,.tk-table th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.tk-ah{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tk-title{text-transform:none;letter-spacing:0;font-size:1.08rem;color:var(--text);margin:8px 0 6px}
+.tk-act.ref{border-left:4px solid var(--accent)}
+.tk-act .tag{--c:var(--accent)}
+.tk-timer{border:1px solid var(--line);background:var(--surface2);border-radius:99px;padding:5px 12px;font-weight:800;font-variant-numeric:tabular-nums;min-height:36px}
+.tk-timer.run{border-color:var(--ok);color:var(--ok)}.tk-timer.over{border-color:var(--bad);color:var(--bad)}
+.tk-item{border-top:1px solid var(--line);padding:12px 0}
+.tk-item:first-of-type{border-top:0}
+.tk-q{font-size:1.02rem;line-height:1.5;margin-bottom:8px}
+.gap{color:var(--accent);font-weight:800}
+.tk-sub{font-size:.95rem;margin:-4px 0 8px}
+.tk-in,.tk-note{width:100%;font:inherit;font-size:16px;line-height:1.45;color:var(--text);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;resize:vertical}
+.tk-in:focus,.tk-note:focus{outline:0;border-color:var(--accent)}
+.tk-in[readonly]{background:var(--surface2)}
+.tk-note{display:none;margin-top:8px;font-size:15px}
+.tk-item.doubt .tk-note{display:block}
+.tk-opts{display:flex;flex-wrap:wrap;gap:8px}
+.tk-opt{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 14px;min-height:44px;font-size:1rem}
+.tk-opt.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);font-weight:700}
+.tk-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.tk-help button{padding:6px 10px;min-height:34px;font-size:.8rem}
+.tk-doubt{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:6px 10px;min-height:34px;font-size:.82rem}
+.tk-doubt.on{border-color:var(--warn);color:var(--warn);background:var(--warnbg);font-weight:700}
+.tk-check{display:flex;gap:10px;align-items:flex-start;font-size:1rem}
+.tk-check input{width:22px;height:22px;flex:none;margin-top:1px}
+.tk-min{display:inline-flex;align-items:center;gap:6px;margin:8px 0 0 32px;font-size:.85rem;color:var(--muted)}
+.tk-min input{width:80px;font:inherit;font-size:16px;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
+.tk-retro{border-left:4px solid var(--ok)}
+.tk-sent{border-left:4px solid var(--warn)}
+.tk-send{background:var(--accent);color:#fff;border-color:transparent;font-weight:800}
+.foot{margin-top:22px;text-align:center;font-size:.78rem;color:var(--muted);line-height:2}
+
+@media (max-width:420px){.prompt{font-size:1.22rem}.opt{font-size:1.05rem}.ring{width:92px;height:92px}.ring .in b{font-size:1.6rem}.hero{gap:12px;padding:14px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="flash"></div>
+<div id="app"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<input id="imp" type="file" accept="application/json" class="hide">
+<script>
+"use strict";
+let view="home";
+/* ================= DATA ================= */
+const CATS={
+  COP:{n:"Cópula vs verbo",r:"BE + verbo léxico = ✗. O «I'm + adjetivo / -ing» o «I + verbo». Nunca los dos."},
+  INF:{n:"Complementación",r:"want / decide / need / hope / plan / refuse + TO + verbo base. enjoy / avoid / finish / mind + -ING."},
+  NEG:{n:"No longer / Any longer",r:"S + NO LONGER + verbo  |  S + not + verbo … ANY LONGER. «not longer» NO existe."},
+  UNC:{n:"Incontables MEXT",r:"homework, classwork, advice, information, equipment, evidence: sin -s, sin a/an, verbo singular, much (no many)."},
+  IND:{n:"Compuestos y doble negación",r:"Una sola negación: not + ANY- | NO- sin not. every-/some-/no-one = SINGULAR (Everyone IS)."},
+  C1:{n:"Colocaciones e inversión C1",r:"Inversión formal: Should/Had/Were + S… | Never/Rarely/Not only + AUX + S."}
+};
+// Error Hunter: 4 segmentos [..]; e = índice del erróneo; fx = corrección
+const EH=[
+ // COP
+ {c:"COP",t:"When the exam is over, [I'm feel] much [more relaxed] [than] I was [before].",e:0,fx:"I feel"},
+ {c:"COP",t:"My sister [is] a nurse, and she [is work] [at] a hospital [near] our house.",e:1,fx:"works"},
+ {c:"COP",t:"[I'm want] to apply [for] the scholarship [because] it [covers] tuition.",e:0,fx:"I want"},
+ {c:"COP",t:"We [are need] to finish [the report] [before] the teacher [arrives].",e:0,fx:"need"},
+ {c:"COP",t:"He [doesn't like] coffee, but he [is like] tea [very much] [in the morning].",e:1,fx:"likes"},
+ {c:"COP",t:"[I'm] interested in physics, [so] [I'm study] it [every day].",e:2,fx:"I study"},
+ {c:"COP",t:"Many students [who] [are live] in Osaka [take] the train [to school].",e:1,fx:"live"},
+ {c:"COP",t:"[I'm agree] with [your opinion] [about] the [new] policy.",e:0,fx:"I agree"},
+ {c:"COP",t:"[I'm think] that the [results] of the survey [are] [reliable].",e:0,fx:"I think"},
+ {c:"COP",t:"[I'm] sure that you [are know] the answer [to] [this question].",e:1,fx:"know"},
+ {c:"COP",t:"The students [are] ready, but the teacher [is not want] [to start] [yet].",e:1,fx:"does not want"},
+ {c:"COP",t:"She [is] tired [because] she [is miss] her family [in] Peru.",e:2,fx:"misses"},
+ // INF
+ {c:"INF",t:"I [want] [work] in Japan [after] I [graduate].",e:1,fx:"to work"},
+ {c:"INF",t:"We [decided] [go] to the library [instead of] [staying] home.",e:1,fx:"to go"},
+ {c:"INF",t:"She [hopes] [studying] engineering [at] a [national] university.",e:1,fx:"to study"},
+ {c:"INF",t:"He [refused] [answering] the question [because] he [didn't know] it.",e:1,fx:"to answer"},
+ {c:"INF",t:"My parents [expect] me [get] good grades [in] [every] subject.",e:1,fx:"to get",r:"expect / want / ask / tell + OBJETO + TO + verbo."},
+ {c:"INF",t:"I [enjoy] [to read] books [about] [Japanese] history.",e:1,fx:"reading",r:"enjoy / finish / avoid / mind + -ING (nunca + to)."},
+ {c:"INF",t:"They [plan] [visiting] Kyoto [during] the [spring] holiday.",e:1,fx:"to visit"},
+ {c:"INF",t:"It is important [for] students [practice] [every day] [to succeed].",e:1,fx:"to practice",r:"It is + adjetivo + for + persona + TO + verbo."},
+ {c:"INF",t:"She [would like] [studying] abroad [next year] [if possible].",e:1,fx:"to study",r:"would like + TO + verbo (≠ like + -ing)."},
+ {c:"INF",t:"He [avoided] [to make] the same mistake [on] [the second] test.",e:1,fx:"making",r:"enjoy / finish / avoid / mind + -ING (nunca + to)."},
+ {c:"INF",t:"I need to [improving] my [reading] [skills] [quickly].",e:0,fx:"improve",r:"TO + verbo BASE: to improve (nunca «to improving» tras need/want)."},
+ {c:"INF",t:"The teacher [told] us [don't use] our phones [during] [the] exam.",e:1,fx:"not to use",r:"tell / ask + objeto + (NOT) TO + verbo."},
+ // NEG
+ {c:"NEG",t:"She [is not longer] [interested] [in] [the project].",e:0,fx:"is no longer"},
+ {c:"NEG",t:"I [don't] live [in Tokyo] [no longer]; I [moved] last year.",e:2,fx:"any longer"},
+ {c:"NEG",t:"We [can] [no longer] [to wait] [for] the bus.",e:2,fx:"wait",r:"Modal + no longer + verbo BASE (sin to): can no longer wait."},
+ {c:"NEG",t:"He [doesn't] [work] [here] [no more].",e:3,fx:"anymore"},
+ {c:"NEG",t:"[I'm not longer] afraid [of] [speaking] [in public].",e:0,fx:"I'm no longer"},
+ {c:"NEG",t:"The shop [no longer] [sell] [any] [newspapers].",e:1,fx:"sells",r:"«no longer» no quita la -s: The shop no longer SELLS."},
+ {c:"NEG",t:"I [am no longer want] [that] job [because] the salary [is] low.",e:0,fx:"no longer want"},
+ {c:"NEG",t:"She [can't] [stand] the noise [no longer], so she [moved].",e:2,fx:"any longer"},
+ {c:"NEG",t:"The professor [is] [no longer] [teach] [at] this university.",e:2,fx:"teaching"},
+ {c:"NEG",t:"[Since] the update, the app [doesn't] work [no longer] [on] my phone.",e:2,fx:"any longer"},
+ // UNC
+ {c:"UNC",t:"The teacher [gave] us [a lot of] [homeworks] [for] the weekend.",e:2,fx:"homework"},
+ {c:"UNC",t:"I [finished] [all] my [classworks] [before] lunch.",e:2,fx:"classwork"},
+ {c:"UNC",t:"Can you [give] me [some] [advices] [about] the interview?",e:2,fx:"advice"},
+ {c:"UNC",t:"We [need] [more] [informations] [about] the deadline.",e:2,fx:"information"},
+ {c:"UNC",t:"The laboratory [bought] [some] new [equipments] [last] year.",e:2,fx:"equipment"},
+ {c:"UNC",t:"There [are] [no] [evidence] [that] the drug works.",e:0,fx:"is",r:"Incontable = verbo SINGULAR: There IS no evidence."},
+ {c:"UNC",t:"The [information] [you gave] me [were] [very useful].",e:2,fx:"was",r:"Incontable = verbo SINGULAR: The information WAS."},
+ {c:"UNC",t:"She [gave] me [an advice] [about] [studying] abroad.",e:1,fx:"some advice"},
+ {c:"UNC",t:"[How many] homework [do] you [have] [tonight]?",e:0,fx:"How much",r:"Incontable → MUCH / a lot of. Contable → many."},
+ {c:"UNC",t:"Researchers [found] [new evidences] [of] water [on] Mars.",e:1,fx:"new evidence"},
+ {c:"UNC",t:"The [furnitures] in our classroom [is] [very] [old].",e:0,fx:"furniture"},
+ {c:"UNC",t:"My [knowledges] [of] Japanese [is] [still] limited.",e:0,fx:"knowledge"},
+ // IND
+ {c:"IND",t:"I [didn't] see [nobody] [at] the station [this morning].",e:1,fx:"anybody"},
+ {c:"IND",t:"She [can't] find her keys [nowhere] [in] [the house].",e:1,fx:"anywhere"},
+ {c:"IND",t:"Nobody [don't want] [to leave] [early] [today].",e:0,fx:"wants"},
+ {c:"IND",t:"[Everybody] [are] [ready] [for] the exam.",e:1,fx:"is"},
+ {c:"IND",t:"I [have] [anything] [to say] [about] that.",e:1,fx:"nothing",r:"Afirmación sin not → NO-thing / SOME-thing, nunca ANY-thing."},
+ {c:"IND",t:"We [looked] [everywhere], but we [didn't find] [nothing].",e:3,fx:"anything"},
+ {c:"IND",t:"[Someone] [have] [left] their bag [in] the classroom.",e:1,fx:"has"},
+ {c:"IND",t:"He [never] [tells] [nothing] [to] his parents.",e:2,fx:"anything",r:"NEVER ya es negativo → never + ANY-thing."},
+ {c:"IND",t:"[Is] there [anyone] [who] [don't understand] the question?",e:3,fx:"doesn't understand"},
+ {c:"IND",t:"[No one] in my class [didn't pass] [the] [test].",e:1,fx:"passed"},
+ {c:"IND",t:"[Everyone] [in the class] [have] [finished] the test.",e:2,fx:"has"},
+ // C1
+ {c:"C1",t:"[Should you] [failed] the exam, you [can] [retake] it in March.",e:1,fx:"fail",r:"Should + S + VERBO BASE = If + S + verbo (Should you fail)."},
+ {c:"C1",t:"[Had I] [knew] about the deadline, I [would have] [submitted] the essay earlier.",e:1,fx:"known",r:"Had + S + PARTICIPIO = If I had known."},
+ {c:"C1",t:"A judge [must remain] [uninterested] [in] the outcome [of] the trial.",e:1,fx:"disinterested",r:"disinterested = IMPARCIAL | uninterested = aburrido, sin interés."},
+ {c:"C1",t:"The spy [managed] [to escape] [from detection] [for] ten years.",e:2,fx:"detection",r:"Colocación fija: ESCAPE DETECTION (sin from)."},
+ {c:"C1",t:"This study [sheds] [light] [at] [the causes] of the disease.",e:2,fx:"on",r:"SHED LIGHT ON something = aclarar algo."},
+ {c:"C1",t:"[Not only] [she speaks] English, [but] she [also] speaks Japanese.",e:1,fx:"does she speak",r:"Not only al inicio → inversión: Not only DOES SHE speak…"},
+ {c:"C1",t:"[Were I] [to win] the scholarship, I [will] [study] in Tokyo.",e:2,fx:"would",r:"Were I to… = hipótesis → WOULD, nunca will."},
+ {c:"C1",t:"The audience [seemed] [uninterested] [about] [the lecture].",e:2,fx:"in",r:"(un)interested IN."},
+ {c:"C1",t:"[Never] [I have] [seen] such [a beautiful] temple.",e:1,fx:"have I",r:"Never / Rarely / Seldom al inicio → AUX + SUJETO: Never have I seen."},
+ {c:"C1",t:"The experiment [made] [a significant] [contribution] [for] science.",e:3,fx:"to",r:"make a contribution TO."},
+ {c:"C1",t:"We must [do] [an] [effort] [to reduce] waste.",e:0,fx:"make",r:"MAKE an effort / MAKE a decision / DO research."},
+ {c:"C1",t:"[Hardly] [had] we arrived [than] [it] started to rain.",e:2,fx:"when",r:"Hardly / Scarcely … WHEN  |  No sooner … THAN."},
+ {c:"C1",t:"The report [pays] [special] attention [on] the [risks].",e:2,fx:"to",r:"pay attention TO."}
+];
+// Rapid Rebuilder: o[0] siempre es la correcta (se baraja al mostrar)
+const RB=[
+ // COP
+ {c:"COP",q:"After the long trip, ___ exhausted.",o:["I feel","I'm feel","I feeling"]},
+ {c:"COP",q:"___ to study medicine in Japan.",o:["I want","I'm want","I wanting"]},
+ {c:"COP",q:"___ with the author's main argument.",o:["I agree","I'm agree","I agreeing"],r:"agree es VERBO: I agree (nunca «I'm agree»)."},
+ {c:"COP",q:"She is a teacher and ___ at a high school.",o:["works","is work","is works"]},
+ {c:"COP",q:"___ that this method is effective.",o:["I believe","I'm believe","I believing"]},
+ {c:"COP",q:"My brother ___ basketball every weekend.",o:["plays","is play","is plays"]},
+ {c:"COP",q:"___ interested in robotics.",o:["I'm","I","I'm feel"],r:"Con ADJETIVO sí va BE: I'm interested."},
+ {c:"COP",q:"Right now, ___ about the exam.",o:["I'm thinking","I'm think","I thinking"],r:"BE + verbo-ING es correcto (progresivo). BE + verbo base, nunca."},
+ {c:"COP",q:"He ___ the answer, but he won't tell us.",o:["knows","is know","is knowing"],r:"know es estativo: sin BE y sin -ing → He knows."},
+ {c:"COP",q:"I ___ my family very much.",o:["miss","am miss","missing"]},
+ {c:"COP",q:"We ___ more time to finish.",o:["need","are need","needing"]},
+ // INF
+ {c:"INF",q:"We decided ___ the museum.",o:["to visit","visit","visiting"]},
+ {c:"INF",q:"I want ___ in a research lab.",o:["to work","work","working"]},
+ {c:"INF",q:"She enjoys ___ novels in English.",o:["reading","to read","read"],r:"enjoy / finish / avoid / mind + -ING."},
+ {c:"INF",q:"He promised ___ late again.",o:["not to be","to not being","don't be"],r:"Infinitivo negativo: NOT + TO + verbo."},
+ {c:"INF",q:"They hope ___ the scholarship.",o:["to win","winning","win"]},
+ {c:"INF",q:"I'm looking forward ___ you.",o:["to meeting","to meet","meeting"],r:"look forward TO + -ING (aquí «to» es preposición)."},
+ {c:"INF",q:"My teacher made me ___ the essay.",o:["rewrite","to rewrite","rewriting"],r:"make / let + objeto + verbo BASE (sin to)."},
+ {c:"INF",q:"Would you mind ___ the window?",o:["opening","to open","open"],r:"mind + -ING."},
+ {c:"INF",q:"She finished ___ her report at midnight.",o:["writing","to write","write"],r:"finish + -ING."},
+ {c:"INF",q:"I need ___ my vocabulary.",o:["to expand","expand","expanding"]},
+ {c:"INF",q:"The committee refused ___ the results.",o:["to publish","publish","publishing"]},
+ // NEG
+ {c:"NEG",q:"She ___ works here; she quit last month.",o:["no longer","not longer","any longer"]},
+ {c:"NEG",q:"I can't wait ___.",o:["any longer","no longer","not longer"]},
+ {c:"NEG",q:"He is ___ a student at this school.",o:["no longer","not longer","any longer"]},
+ {c:"NEG",q:"We ___ live in Lima.",o:["no longer","don't no longer","not longer"]},
+ {c:"NEG",q:"They don't use paper dictionaries ___.",o:["anymore","no more","no longer"]},
+ {c:"NEG",q:"___ afraid of making mistakes.",o:["I'm no longer","I'm not longer","I'm any longer"]},
+ {c:"NEG",q:"The company can ___ ignore climate change.",o:["no longer","not longer","any longer"]},
+ {c:"NEG",q:"I won't tolerate this behavior ___.",o:["any longer","no longer","not longer"]},
+ {c:"NEG",q:"Nobody uses this room ___.",o:["any longer","no longer","not longer"],r:"«Nobody» ya es negativo → ANY longer (una sola negación)."},
+ {c:"NEG",q:"My grandfather ___ drives at night.",o:["no longer","doesn't any longer","not longer"]},
+ // UNC
+ {c:"UNC",q:"The teacher gave us too much ___.",o:["homework","homeworks","a homework"]},
+ {c:"UNC",q:"I need ___ about the application process.",o:["some information","an information","some informations"]},
+ {c:"UNC",q:"Let me give you ___.",o:["a piece of advice","an advice","some advices"]},
+ {c:"UNC",q:"We have ___ classwork today.",o:["a lot of","many","a"]},
+ {c:"UNC",q:"The new laboratory ___ is very expensive.",o:["equipment","equipments","equipment's"]},
+ {c:"UNC",q:"There ___ strong evidence for this theory.",o:["is","are"]},
+ {c:"UNC",q:"How ___ homework do you have tonight?",o:["much","many"]},
+ {c:"UNC",q:"The information on this website ___ outdated.",o:["is","are"]},
+ {c:"UNC",q:"She has made ___ progress this year.",o:["a lot of","many","a"],r:"progress también es incontable: a lot of progress."},
+ {c:"UNC",q:"I finished all my ___ before the bell rang.",o:["classwork","classworks","classwork's"]},
+ {c:"UNC",q:"The police found new ___ at the scene.",o:["evidence","evidences","an evidence"]},
+ // IND
+ {c:"IND",q:"I didn't see ___ at the party.",o:["anybody","nobody"]},
+ {c:"IND",q:"Everyone ___ ready for the test.",o:["is","are"]},
+ {c:"IND",q:"There's ___ in the fridge. It's empty.",o:["nothing","anything"]},
+ {c:"IND",q:"Would you like ___ to drink?",o:["something","nothing"],r:"Ofrecimientos (Would you like…?) → SOME- aunque sea pregunta."},
+ {c:"IND",q:"She can't find her phone ___.",o:["anywhere","nowhere"]},
+ {c:"IND",q:"___ called you while you were out.",o:["Someone","Anyone"],r:"Afirmación → SOME-one. ANY- es para negaciones y preguntas."},
+ {c:"IND",q:"Nobody ___ the answer.",o:["knows","know","doesn't know"]},
+ {c:"IND",q:"Is there ___ who can help me?",o:["anyone","everyone"]},
+ {c:"IND",q:"He never says ___ in class.",o:["anything","nothing"]},
+ {c:"IND",q:"I looked ___ but couldn't find my keys.",o:["everywhere","anywhere","nowhere"]},
+ {c:"IND",q:"We didn't go ___ during the holidays.",o:["anywhere","nowhere"]},
+ // C1
+ {c:"C1",q:"___ you need further information, please contact the office.",o:["Should","Would","Had"],r:"Should + S + verbo base = If + S + verbo (formal)."},
+ {c:"C1",q:"___ I known about the problem, I would have helped.",o:["Had","Have","If"],r:"Had + S + participio = If I had known."},
+ {c:"C1",q:"A judge must be ___ — completely impartial.",o:["disinterested","uninterested"],r:"disinterested = IMPARCIAL | uninterested = sin interés."},
+ {c:"C1",q:"The students looked bored and ___ in the lecture.",o:["uninterested","disinterested"],r:"disinterested = IMPARCIAL | uninterested = sin interés."},
+ {c:"C1",q:"The new data ___ on the origin of the virus.",o:["sheds light","sheds a light","throws lights"],r:"SHED LIGHT ON = aclarar (sin artículo)."},
+ {c:"C1",q:"The prisoner managed to ___ for three months.",o:["escape detection","escape from detection","avoid to be detected"],r:"ESCAPE DETECTION = no ser descubierto (sin from)."},
+ {c:"C1",q:"Not only ___ English, but she also speaks Korean.",o:["does she speak","she speaks","she does speak"],r:"Not only al inicio → AUX + SUJETO."},
+ {c:"C1",q:"___ had we arrived when it began to rain.",o:["Hardly","No sooner","Only"],r:"Hardly … WHEN  |  No sooner … THAN."},
+ {c:"C1",q:"We must ___ an effort to reduce waste.",o:["make","do","take"],r:"MAKE an effort / MAKE a decision / DO research."},
+ {c:"C1",q:"Were I ___ the prize, I would donate it.",o:["to win","win","winning"],r:"Were + S + TO + verbo = If I won (hipótesis formal)."},
+ {c:"C1",q:"Schools should pay more attention ___ rural students.",o:["to","on","at"],r:"pay attention TO."},
+ {c:"C1",q:"Rarely ___ such dedication in a student.",o:["have I seen","I have seen","I saw"],r:"Rarely / Seldom / Never al inicio → AUX + SUJETO."}
+];
+// Detectores de errores fosilizados (lista negra)
+const FOSSILS=[
+ {re:/\bnot longer\b/i,n:"«NOT LONGER»",r:"«not longer» NO EXISTE → S + NO LONGER + verbo  |  S + not + verbo … ANY LONGER."},
+ {re:/(?:\b(?:am|is|are|was|were)|'m|'re)\s+(?:not\s+|no longer\s+)?(?:feel|want|need|agree|think|believe|know|like|live|work|works|study|play|plays|miss|have|teach)\b/i,n:"BE + VERBO («I'm want»)",r:"BE + verbo = ✗. Elige UNO: «I want» / «I feel»  o  «I'm tired» / «I'm working»."},
+ {re:/\b(?:want|wants|wanted|decide|decides|decided|need|needs|needed|hope|hopes|hoped|plan|plans|planned|refuse|refuses|refused|expect|expects|expected|would like|promise|promised)\s+(?:me\s+|us\s+|him\s+|her\s+|them\s+)?(?:(?!(?:no|some|any|every)thing\b)\w+ing\b|(?:go|work|study|visit|get|be|win|expand|improve|practice|learn|apply|answer|make|publish|become|leave)\b)/i,n:"SIN «TO» («want work»)",r:"want / decide / need / hope / plan / refuse (+ objeto) + TO + verbo base. SIEMPRE."},
+ {re:/\b(?:homeworks|classworks|advices|informations|equipments|evidences|furnitures|knowledges)\b|\ban (?:advice|information|equipment|evidence)\b|\ba (?:homework|classwork)\b/i,n:"INCONTABLE CON -S / A",r:"homework · classwork · advice · information · equipment · evidence → JAMÁS -s ni a/an."},
+ {re:/(?:\bnot\b|n't\b|\bnever\b|\bnobody\b|\bno one\b|\bnothing\b)[^.;,?]*\b(?:nobody|nothing|nowhere|no one|no longer|no more)\b|\b(?:nobody|no one|nothing)\b[^.;,?]*n't\b/i,n:"DOBLE NEGACIÓN",r:"UNA sola negación por cláusula: didn't + ANY- (anybody, anything, any longer)  |  o NO- sin not."}
+];
+
+/* ================= CONFIG ================= */
+const EXAM=new Date(2027,6,15,9,0,0);
+const JOURNEY_START=new Date(2026,6,30);          // primer registro en «Ingles Avance»
+const PHASES=[                                      // checkpoints del temario (Ingles Avance.pdf)
+  {n:1,d:new Date(2026,11,6),cats:["COP","INF","NEG","UNC","IND"]},
+  {n:2,d:new Date(2027,1,19),cats:["COP","INF","NEG","UNC","IND"]},
+  {n:3,d:new Date(2027,4,20),cats:["C1"]},
+  {n:4,d:EXAM,cats:["COP","INF","NEG","UNC","IND","C1"]}
+];
+const ROUND=12;
+const SPEEDS={warm:{n:"8 s",eh:8000,rb:7000},mext:{n:"5 s",eh:5000,rb:5000},brutal:{n:"3,5 s",eh:3500,rb:3000}};
+// interfaz por categoría / foco
+const CUI={
+  mix:{g:"Mx",n:"Mezcla",s:"Prioriza tus débiles",v:"mix"},
+  COP:{g:"Be",n:"Cópula",s:"I'm want → I want",v:"cop"},
+  INF:{g:"to",n:"Complemento",s:"want TO · enjoy -ING",v:"inf"},
+  NEG:{g:"no",n:"No longer",s:"no longer · any longer",v:"neg"},
+  UNC:{g:"∅s",n:"Incontables",s:"homework, advice…",v:"unc"},
+  IND:{g:"any",n:"Some / any / no",s:"Doble negación",v:"ind"},
+  C1:{g:"C1",n:"Formal C1",s:"Inversión y colocaciones",v:"c1"},
+  buf:{g:"↻",n:"Errores",s:"Buffer pendiente",v:"buf"}
+};
+const FOCI=["mix","COP","INF","NEG","UNC","IND","C1","buf"];
+// modos de juego
+const MODES={
+  hunter:{g:"A–D",n:"Detectar el error",s:"Toca la parte incorrecta · Sección III",v:"inf"},
+  rebuild:{g:"__",n:"Completar",s:"Elige la estructura correcta",v:"c1"},
+  fossil:{g:"!",n:"Errores persistentes",s:"Tu lista negra: I'm want, classworks…",v:"fos"},
+  death:{g:"♥3",n:"Contrarreloj",s:"3 vidas · el tiempo se acelera",v:"ind"}
+};
+const cv=k=>`var(--${(CUI[k]||MODES[k]).v})`;
+
+/* ================= HELPERS ================= */
+const $=s=>document.querySelector(s);
+const clean=t=>t.replace(/[\[\]]/g,"");
+const fill=(q,o)=>q.replace("___",o);
+const fossilOf=txt=>{for(const f of FOSSILS)if(f.re.test(txt))return f;return null};
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const today=(d=new Date())=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const daysTo=d=>Math.max(0,Math.ceil((d-new Date())/864e5));
+const ehFixed=it=>{let k=0;return it.t.replace(/\[([^\]]+)\]/g,(m,s)=>(k++===it.e?`<ins>${it.fx}</ins>`:s))};
+const ITEMS=[...EH.map((x,i)=>({...x,k:"E",id:"E"+i})),...RB.map((x,i)=>({...x,k:"R",id:"R"+i}))];
+ITEMS.forEach(it=>{it.fos=it.k==="E"?!!fossilOf(clean(it.t)):it.o.slice(1).some(o=>fossilOf(fill(it.q,o)))});
+const BYID=Object.fromEntries(ITEMS.map(x=>[x.id,x]));
+const correctText=it=>it.k==="E"?ehFixed(it):fill(it.q,`<ins>${it.o[0]}</ins>`);
+const label=it=>it.k==="E"?ehFixed(it).replace(/<\/?ins>/g,""):fill(it.q,it.o[0]);
+const esc=x=>String(x).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const glyph=k=>`<span class="glyph" style="--c:${cv(k)}">${(CUI[k]||MODES[k]).g}</span>`;
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove("on"),1900)}
+
+/* ================= STORAGE: registro de eventos =================
+   Igual que MEXT Ráfaga: la fuente de verdad es DB.ev (cada respuesta 'a', cada ronda 's',
+   progreso anterior a la sincronización 'b'). cats/items/buffer/sessions/best… son DERIVADOS:
+   se reconstruyen reproduciendo los eventos en orden (t, i), así dos dispositivos que
+   practicaron sin conexión se fusionan sin conflictos. */
+const KEY="mextforge.v1";
+const rid=()=>Math.random().toString(36).slice(2,10);
+const isPhone=()=>typeof navigator!=="undefined"&&/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+const fresh=()=>({v:2,dev:{id:rid(),name:isPhone()?"Teléfono":"PC"},ev:[],outbox:[],cursor:0,lastSync:0,
+  settings:{speed:"warm",mute:false,theme:"auto",focus:"mix",syncUrl:"",syncKey:""}});
+function derivedReset(d){d.cats={};d.items={};d.buffer={};d.sessions=[];d.fossils=0;d.best={score:0,combo:0};d.bestMode={}}
+let DB=fresh();derivedReset(DB);
+const cs=c=>{const s=DB.cats[c]||(DB.cats[c]={n:0,w:0,to:0,ms:0,f:0});if(!s.r)s.r=[];return s};
+// Aplica un evento al estado derivado. Devuelve {freed} si sacó un ejercicio del buffer.
+function applyEvent(e){
+  if(e.k==="a"){
+    const it=BYID[e.q];if(!it)return{};
+    const s=cs(it.c),ok=!!e.o;
+    s.n++;s.ms+=e.ms||0;s.r.push(ok?1:0);if(s.r.length>15)s.r.shift();
+    const is=DB.items[e.q]||(DB.items[e.q]={w:0,c:0});
+    if(ok){is.c++;const b=DB.buffer[e.q];if(b){b.s++;if(b.s>=3){delete DB.buffer[e.q];return{freed:true}}}}
+    else{s.w++;is.w++;is.c=0;if(e.to)s.to++;if(e.f){s.f++;DB.fossils++}
+      const b=DB.buffer[e.q];DB.buffer[e.q]={s:0,f:(b?b.f:0)+1}}
+    return{};
+  }
+  if(e.k==="s"){
+    DB.sessions.push({d:today(new Date(e.t)),ts:e.t,m:e.m,acc:e.n?Math.round(100*e.ok/e.n):0,s:e.sc,n:e.n,ok:e.ok,dn:e.dn});
+    DB.best.score=Math.max(DB.best.score,e.sc||0);DB.best.combo=Math.max(DB.best.combo,e.cb||0);
+    if(e.n)DB.bestMode[e.m]=Math.max(DB.bestMode[e.m]||0,e.sc||0);
+    return{};
+  }
+  if(e.k==="b"){ // progreso anterior a la sincronización: se SUMA al de los demás dispositivos
+    const p=e.snap||{};
+    for(const[c,v]of Object.entries(p.cats||{})){if(!CATS[c])continue;const st=cs(c);st.n+=v.n||0;st.w+=v.w||0;st.to+=v.to||0;st.ms+=v.ms||0;st.f+=v.f||0;st.r=st.r.concat(v.r||[]).slice(-15)}
+    for(const[k,v]of Object.entries(p.items||{})){if(!BYID[k])continue;const it=DB.items[k];if(!it)DB.items[k]={w:v.w||0,c:v.c||0};else{it.w+=v.w||0;it.c=Math.max(it.c,v.c||0)}}
+    for(const[k,v]of Object.entries(p.buffer||{}))if(BYID[k]&&!DB.buffer[k])DB.buffer[k]={s:v.s||0,f:v.f||1};
+    DB.sessions=DB.sessions.concat(p.sessions||[]);DB.fossils+=p.fossils||0;
+    const bs=p.best||{};DB.best.score=Math.max(DB.best.score,bs.score||0);DB.best.combo=Math.max(DB.best.combo,bs.combo||0);
+    for(const[k,v]of Object.entries(p.bestMode||{}))DB.bestMode[k]=Math.max(DB.bestMode[k]||0,+v||0);
+    return{};
+  }
+  return{};
+}
+const evCmp=(a,b)=>a.t-b.t||(a.i<b.i?-1:a.i>b.i?1:0);
+function rebuild(){derivedReset(DB);DB.ev.sort(evCmp);for(const e of DB.ev)applyEvent(e);DB.sessions.sort((a,b)=>(a.ts||0)-(b.ts||0))}
+function addLocal(e){e.i=DB.dev.id+"-"+e.t.toString(36)+"-"+rid().slice(0,4);e.d=DB.dev.id;DB.ev.push(e);DB.outbox.push(e.i);return applyEvent(e)}
+// Formato anterior (sin eventos) → un único snapshot 'b'
+function legacySnap(o){
+  let best=o.best||{},bestMode=o.bestMode||{};
+  if(typeof best.score!=="number"){bestMode=best;best={score:Math.max(0,...Object.values(best).map(Number).filter(n=>!isNaN(n))),combo:0}}
+  return {cats:o.cats,items:o.items,buffer:o.buffer,sessions:o.sessions,fossils:o.fossils,best,bestMode};
+}
+function load(){
+  let o=null;try{o=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+  const f=fresh();
+  if(o&&o.v===2){o.settings=Object.assign(f.settings,o.settings);DB=Object.assign(f,o)}
+  else{DB=f;if(o&&o.cats){Object.assign(DB.settings,o.settings||{});
+    if(Object.keys(o.cats||{}).length||(o.sessions||[]).length){const e={t:1,k:"b",snap:legacySnap(o)};e.i=DB.dev.id+"-legacy";e.d=DB.dev.id;DB.ev.push(e);DB.outbox.push(e.i)}}}
+  rebuild();save();
+}
+function persisted(){const{cats,items,buffer,sessions,fossils,best,bestMode,...p}=DB;return p}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(persisted()))}catch(e){}}
+try{load()}catch(e){DB=fresh();derivedReset(DB)}
+const errRate=c=>{const s=cs(c);return (s.w+1)/(s.n+2)};
+const catAcc=c=>{const s=cs(c);if(s.r.length)return s.r.reduce((a,b)=>a+b,0)/s.r.length;return s.n?1-s.w/s.n:null};
+const meterCls=p=>p==null?"none":p<.6?"bad":p<.8?"warn":"";
+const todayStats=()=>{const t=DB.sessions.filter(x=>x.d===today());const n=t.reduce((a,x)=>a+x.n,0),ok=t.reduce((a,x)=>a+(x.ok!=null?x.ok:Math.round(x.acc*x.n/100)),0);return {n,ok}};
+function streakNow(){const days=new Set(DB.sessions.map(x=>x.d));let n=0;const d=new Date();if(!days.has(today(d)))d.setDate(d.getDate()-1);while(days.has(today(d))){n++;d.setDate(d.getDate()-1)}return n}
+
+/* ================= SYNC (Worker → D1 → Notion) =================
+   Sin conexión todo funciona: los eventos esperan en DB.outbox. Nunca se sincroniza durante una ronda. */
+let syncState="off",syncBusy=false;
+function syncConfigured(){return !!(DB.settings.syncUrl&&DB.settings.syncKey)}
+async function syncNow(manual){
+  if(!syncConfigured()){syncState="off";return}
+  if(syncBusy||view==="drill")return;
+  if(typeof navigator!=="undefined"&&navigator.onLine===false){syncState="offline";refreshSync();return}
+  syncBusy=true;syncState="busy";refreshSync();
+  try{
+    let more=true,changed=false,guard=0;
+    while(more&&guard++<20){
+      const ids=new Set(DB.outbox),out=DB.ev.filter(e=>ids.has(e.i)).slice(0,1000);
+      const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),10000);
+      const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/sync",{method:"POST",signal:ctl.signal,
+        headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},
+        body:JSON.stringify({dev:DB.dev.id,since:DB.cursor,events:out})});
+      clearTimeout(to);
+      if(r.status===401){syncState="badkey";break}
+      if(!r.ok)throw new Error("HTTP "+r.status);
+      const res=await r.json(),sent=new Set(out.map(e=>e.i));
+      DB.outbox=DB.outbox.filter(i=>!sent.has(i));
+      const have=new Set(DB.ev.map(e=>e.i));
+      for(const e of res.events||[])if(!have.has(e.i)){DB.ev.push(e);have.add(e.i);changed=true}
+      DB.cursor=res.cursor||DB.cursor;more=!!res.more||DB.outbox.length>0;
+      syncState="ok";DB.lastSync=Date.now();
+    }
+    if(changed&&view!=="drill")rebuild();
+    save();if(manual)toast(syncState==="ok"?"☁ Sincronizado":"⚠ Clave inválida");
+  }catch(err){syncState=navigator.onLine===false?"offline":"error";if(manual)toast("No se pudo sincronizar: "+(err.name==="AbortError"?"sin respuesta":err.message))}
+  finally{syncBusy=false;if(view==="home"||view==="stats"||view==="end")render();else{refreshSync();if(view==="tarea"&&typeof renderTarea==="function"&&!document.activeElement.closest(".tk-item"))renderTarea(true)}}
+}
+function syncLabel(){
+  if(!syncConfigured())return["☁︎ Sin nube","muted"];
+  const p=DB.outbox.length;
+  if(syncState==="busy")return["☁ Sincronizando…",""];
+  if(syncState==="offline")return[`○ Sin conexión${p?" · "+p+" pend.":""}`,"warn"];
+  if(syncState==="badkey")return["⚠ Clave inválida","bad"];
+  if(syncState==="error")return[`⚠ Error de sync${p?" · "+p+" pend.":""}`,"bad"];
+  if(p)return[`☁ ${p} pendientes`,"warn"];
+  return["☁ Sincronizado","ok"];
+}
+function refreshSync(){const el=document.getElementById("syncPill");if(el){const[t,c]=syncLabel();el.textContent=t;el.dataset.s=c}}
+
+/* ================= THEME ================= */
+function seigaiha(bg,st){
+  const c=(x,y)=>[19,14,9,4].map(r=>`<circle cx='${x}' cy='${y}' r='${r}'/>`).join("");
+  return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='20'><g fill='${bg}' stroke='${st}' stroke-width='1'>${c(20,0)}${c(0,10)}${c(40,10)}${c(20,20)}</g></svg>`)}")`;
+}
+function applyTheme(){
+  const r=document.documentElement;
+  if(DB.settings.theme==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",DB.settings.theme);
+  if(!applyTheme.done){applyTheme.done=1;const L=seigaiha("#f6f0e4","#ece1cd"),D=seigaiha("#0c0e1b","#151a31"),st=document.createElement("style");
+    st.textContent=`:root{--pat:${L}}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pat:${D}}}:root[data-theme="dark"]{--pat:${D}}`;document.head.appendChild(st)}
+}
+
+/* ================= AUDIO ================= */
+let AC=null;
+function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==="suspended")AC.resume();return AC}
+function tone(f,d,type,vol,when,f2){const a=ac();if(!a||DB.settings.mute)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+(when||0);
+  o.type=type||"sine";o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+  g.gain.setValueAtTime(vol||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d+.03)}
+const SFX={
+  ok(){tone(660,.08,"sine",.12);tone(990,.12,"sine",.12,.07)},
+  combo(){tone(880,.07,"triangle",.12);tone(1175,.07,"triangle",.12,.06);tone(1568,.14,"triangle",.12,.12)},
+  bad(){tone(190,.28,"square",.07,0,110)},
+  fossil(){for(let i=0;i<4;i++){tone(1040,.13,"sawtooth",.12,i*.26);tone(520,.13,"sawtooth",.12,i*.26+.13)}try{navigator.vibrate&&navigator.vibrate([120,60,120,60,260])}catch(e){}},
+  end(){[523,659,784,1047].forEach((f,i)=>tone(f,.15,"triangle",.11,i*.09))}
+};
+
+/* ================= SESSION ================= */
+let G=null;
+function weightOf(it,blind){
+  const s=DB.items[it.id]||{w:0,c:0};
+  let w=1+s.w*2-Math.min(s.c,4)*.2;
+  if(blind)w*=1+errRate(it.c)*8;
+  return Math.max(.15,w);
+}
+function pick(pool,n,blind,exclude){
+  const out=[],cand=pool.filter(x=>!(exclude&&exclude.has(x.id)));
+  while(out.length<n&&cand.length){
+    const ws=cand.map(x=>weightOf(x,blind));let r=Math.random()*ws.reduce((a,b)=>a+b,0),i=0;
+    while(i<ws.length-1&&r>ws[i]){r-=ws[i];i++}
+    out.push(cand.splice(i,1)[0]);
+  }
+  return out;
+}
+function bufItems(filter){return Object.keys(DB.buffer).map(id=>BYID[id]).filter(x=>x&&(!filter||filter(x)))}
+function buildQueue(key){
+  let pool,blind=false,lead=[];
+  if(key==="buf"){const b=shuffle(bufItems());return b.slice(0,ROUND)}
+  if(key==="mix"){pool=ITEMS;blind=true;lead=shuffle(bufItems()).slice(0,3)}
+  else if(CATS[key]){pool=ITEMS.filter(x=>x.c===key);lead=shuffle(bufItems(x=>x.c===key)).slice(0,3)}
+  else if(key==="hunter")pool=ITEMS.filter(x=>x.k==="E");
+  else if(key==="rebuild")pool=ITEMS.filter(x=>x.k==="R");
+  else if(key==="fossil")pool=ITEMS.filter(x=>x.fos);
+  else if(key==="death")pool=ITEMS;
+  const ex=new Set(lead.map(x=>x.id));
+  return shuffle(lead).concat(pick(pool,(key==="death"?20:ROUND)-lead.length,blind,ex));
+}
+function start(key,custom){
+  ac();
+  const queue=custom||buildQueue(key);
+  if(!queue.length){toast(key==="buf"?"Buffer vacío. Nada pendiente ✨":"No hay ejercicios aquí");return}
+  G={key,sid:DB.dev.id+"-"+Date.now().toString(36),queue,pool:key==="death"?ITEMS:null,death:key==="death",idx:0,score:0,combo:0,maxCombo:0,lives:3,res:[],speedMul:1,freed:0,state:"q",raf:0,timer:0,byCat:{}};
+  view="drill";nextQ();
+}
+function limitFor(it){const sp=SPEEDS[DB.settings.speed];return (it.k==="E"?sp.eh:sp.rb)*G.speedMul}
+function nextQ(){
+  clearTimeout(G.timer);
+  if(G.death){
+    if(G.lives<=0)return finish();
+    if(G.idx>=G.queue.length)G.queue.push(...pick(ITEMS,15,false,new Set(G.queue.slice(-10).map(x=>x.id))));
+  }else if(G.idx>=G.queue.length)return finish();
+  const it=G.it=G.queue[G.idx];
+  G.state="q";G.chosen=null;G.gain=0;G.fos=null;G.limit=limitFor(it);G.qEl=0;G.last=performance.now();
+  if(it.k==="R")G.order=shuffle(it.o.map((_,i)=>i));
+  renderDrill();
+  cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick);
+}
+const RC=2*Math.PI*20;
+function tick(t){
+  if(view!=="drill"||!G||G.state!=="q")return;
+  const dt=t-G.last;G.last=t;
+  if(!document.hidden)G.qEl+=dt;
+  if(G.qEl>=G.limit)return answer(-1);
+  updateClock();
+  G.raf=requestAnimationFrame(tick);
+}
+function updateClock(){
+  const fg=$("#tfg"),tx=$("#ttx"),tr=$("#tring"),qt=$("#qt");
+  const p=G.state==="q"?Math.max(0,1-G.qEl/G.limit):0;
+  if(fg)fg.style.strokeDashoffset=RC*(1-p);
+  if(tx)tx.textContent=G.state==="q"?Math.ceil((G.limit-G.qEl)/1000):"";
+  if(tr)tr.classList.toggle("low",p<.3);
+  if(qt){qt.style.width=(100*p)+"%";qt.className=p<.25?"low":p<.5?"mid":""}
+}
+function answer(choice){
+  if(!G||G.state!=="q")return;
+  cancelAnimationFrame(G.raf);
+  const it=G.it,ms=Math.min(G.qEl,G.limit),timeout=choice<0;
+  const orig=it.k==="R"&&!timeout?G.order[choice]:choice;
+  const ok=!timeout&&(it.k==="E"?choice===it.e:orig===0);
+  let fos=null;
+  if(!ok){if(it.k==="E")fos=fossilOf(clean(it.t));else if(!timeout)fos=fossilOf(fill(it.q,it.o[orig]))}
+  // evento de respuesta (fuente de verdad); el estado derivado se actualiza al aplicarlo
+  const bc=G.byCat[it.c]||(G.byCat[it.c]={n:0,ok:0});bc.n++;if(ok)bc.ok++;
+  // detalle para el instructor: pregunta, lo que respondió y lo correcto (unido a la ronda por sid)
+  const segs=it.k==="E"?it.t.match(/\[([^\]]+)\]/g).map(x=>x.slice(1,-1)):null;
+  const det={c:it.c,sid:G.sid,pr:it.k==="E"?clean(it.t):it.q,ch:timeout?"":it.k==="E"?segs[choice]:it.o[orig],cr:it.k==="E"?segs[it.e]+" → "+it.fx:it.o[0]};
+  if(addLocal(Object.assign({t:Date.now(),k:"a",q:it.id,o:ok?1:0,ms:Math.round(ms),to:timeout?1:0,f:fos?1:0},det)).freed)G.freed++;
+  save();
+  if(ok){G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
+    const mult=1+Math.min(4,Math.floor(G.combo/3))*.5;
+    G.gain=Math.round((100+100*(1-ms/G.limit))*mult);G.score+=G.gain;
+    if(G.death)G.speedMul=Math.max(.55,G.speedMul*.95);
+    (G.combo%3===0?SFX.combo:SFX.ok)();
+  }else{G.combo=0;if(G.death)G.lives--;
+    if(fos){SFX.fossil();const f=$("#flash");f.style.opacity=".18";setTimeout(()=>f.style.opacity="0",180)}else SFX.bad();
+  }
+  G.res.push({it,ok,ms,timeout,fos});
+  G.state="fb";G.chosen=choice;G.ok=ok;G.fos=fos;G.timeout=timeout;G.fbAt=performance.now();
+  renderDrill();
+  if(ok)G.timer=setTimeout(cont,650);
+}
+function cont(){if(!G||G.state!=="fb")return;if(!G.ok&&performance.now()-G.fbAt<350)return;clearTimeout(G.timer);G.idx++;nextQ()}
+function quit(){if(G){clearTimeout(G.timer);cancelAnimationFrame(G.raf)}G=null;view="home";render()}
+function finish(){
+  const r=G.res,n=r.length,good=r.filter(x=>x.ok).length,acc=n?good/n:0;
+  G.record=n&&G.score>(DB.best.score||0);
+  if(n){
+    const now=new Date(),off=-now.getTimezoneOffset(),pad=x=>String(Math.abs(x)).padStart(2,"0");
+    const iso=today(now)+"T"+pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds())+(off>=0?"+":"-")+pad(Math.trunc(off/60))+":"+pad(off%60);
+    const by={};for(const c in G.byCat)by[c]=[G.byCat[c].ok,G.byCat[c].n];
+    addLocal({t:now.getTime(),k:"s",sid:G.sid,m:G.key,n,ok:good,sc:G.score,cb:G.maxCombo,fr:G.freed,bc:Object.keys(DB.buffer).length,fo:r.filter(x=>x.fos).length,by,iso,dn:DB.dev.name});
+    save();
+  }
+  SFX.end();
+  G.acc=acc;G.n=n;G.good=good;view="end";render();
+  syncNow();
+}
+
+/* ================= RENDER ================= */
+function catRows(){
+  return Object.keys(CATS).map(c=>{
+    const st=cs(c),p=catAcc(c);
+    return `<div class="catrow">${glyph(c)}<div><b>${CUI[c].n}</b> <span class="muted small">${CATS[c].n}</span></div>
+      <div class="pct">${p==null?'<span class="muted small">—</span>':Math.round(p*100)+"%"}</div>
+      <div class="meter"><i class="${meterCls(p)}" style="width:${p==null?100:Math.max(3,p*100)}%"></i></div>
+      <div class="sub">${st.n?`${st.n} resp. · total ${Math.round(100*(1-st.w/st.n))}% · ${(st.ms/st.n/1000).toFixed(1)} s/resp.${st.f?` · <span style="color:var(--fos)">${st.f} persistentes</span>`:""} · barra = últimas ${st.r.length}`:"Sin datos todavía"}</div>
+    </div>`}).join("");
+}
+function phaseInfo(){
+  const ph=PHASES.find(p=>p.d>new Date())||PHASES[PHASES.length-1];
+  const done=ph.cats.filter(c=>{const st=cs(c),p=catAcc(c);return st.n>=15&&p!=null&&p>=.9}).length;
+  return {ph,pct:Math.round(100*done/ph.cats.length),days:daysTo(ph.d)};
+}
+// «📊 Fase 1: 27%» / «📊 Fase 1 · dominio 27%»  y  «⏱ Horas acumuladas: 15.6 h · meta 464 h»
+// Se toman de la sesión más reciente que los tenga. Los escribe el instructor; la app solo los muestra.
+function blocksText(bs){return (bs||[]).map(b=>rtPlain(b.r)+" "+(b.cells||[]).map(rtPlain).join(" ")+" "+blocksText(b.k)).join("\n")}
+const numOf=x=>parseFloat(String(x).replace(",","."));
+function instructorStats(){
+  let dom=null,hrs=null;
+  for(const d of Object.keys(T.ses).sort().reverse()){
+    const txt=blocksText(T.ses[d].blocks);
+    if(!dom){const m=txt.match(/📊\s*Fase\s*(\d)\s*(?:[:·\-–—]\s*)?(?:dominio\s*)?(\d{1,3}(?:[.,]\d+)?)\s*%/i);if(m)dom={fase:+m[1],pct:Math.round(numOf(m[2])),d}}
+    if(!hrs){const m=txt.match(/horas\s+acumuladas\s*:?\s*(\d+(?:[.,]\d+)?)/i);
+      if(m){const mm=txt.match(/meta(?:\s+(?:de\s+)?horas)?\s*:?\s*(\d+(?:[.,]\d+)?)/i);hrs={acc:numOf(m[1]),meta:mm?numOf(mm[1]):500,d}}}
+    if(dom&&hrs)break;
+  }
+  return{dom,hrs};
+}
+const fechaCorta=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{day:"numeric",month:"short"}).replace(".","");
+function instructorPills(){
+  const{dom,hrs}=instructorStats();let h="";
+  if(dom)h+=`<span class="pill" style="color:var(--accent)" title="Lo estima el instructor; no lo calcula la app">📈 Dominio Fase ${dom.fase}: ${dom.pct}% · instructor, ${fechaCorta(dom.d)}</span>`;
+  if(hrs){const dias=Math.max(1,daysTo(EXAM)),min=Math.max(0,Math.round((hrs.meta-hrs.acc)*60/dias));
+    h+=`<span class="pill" title="(meta ${hrs.meta} h − ${hrs.acc} h acumuladas) ÷ ${dias} días hasta el 15 jul 2027 · datos del instructor, ${fechaCorta(hrs.d)}">⏱ Debes estudiar ${Math.floor(min/60)} h ${min%60} min/día</span>`}
+  return h;
+}
+function renderHome(){
+  const ts=todayStats(),bufN=Object.keys(DB.buffer).length,f=DB.settings.focus;
+  const exam=daysTo(EXAM),prog=Math.min(1,Math.max(0,(new Date()-JOURNEY_START)/(EXAM-JOURNEY_START))),C=2*Math.PI*44;
+  const {ph,pct,days}=phaseInfo();
+  const keys=Object.keys(CATS),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
+  const fmode=CUI[f];
+  $("#app").innerHTML=`${tabsHtml("juego")}
+    <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
+      <button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
+    <section class="hero">
+      <div class="ring" aria-label="${exam} días para el examen">
+        <svg viewBox="0 0 100 100"><defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffb3cd"/><stop offset="1" stop-color="var(--accent)"/></linearGradient></defs>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="var(--surface2)" stroke-width="9"/>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#g1)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-prog)}"/></svg>
+        <div class="in"><div><b>${exam}</b><small>días</small></div></div>
+      </div>
+      <div>
+        <div class="eyebrow">Exam · 15 jul 2027</div>
+        <div class="h">${ph.n<4?`Checkpoint Fase ${ph.n} en <span style="color:var(--accent)">${days} días</span>`:`Simulacro final en <span style="color:var(--accent)">${days} días</span>`}</div>
+        <div class="pills">${instructorPills()}<span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
+      </div>
+    </section>
+    <button class="start" data-act="go"><span class="play">▶</span><span><b>Ronda de ${ROUND}</b><small>${fmode.n}${f!=="mix"&&f!=="buf"?" · "+CATS[f].n:""} · Enter</small></span></button>
+    <h3>Elige tu debilidad</h3>
+    <div class="modes">${FOCI.map(k=>{
+      const p=CATS[k]?catAcc(k):null;
+      return `<button class="mode ${k===f?"on":""}" data-focus="${k}" style="--c:${cv(k)}">
+        <span class="glyph">${CUI[k].g}</span><span class="mn">${CUI[k].n}</span><span class="ms">${k==="buf"?(bufN?bufN+" por liberar":"Vacío ✨"):CUI[k].s}</span>
+        ${k==="buf"&&bufN?`<span class="badge">${bufN}</span>`:p!=null?`<span class="acc">${Math.round(p*100)}%</span>`:""}
+        ${p!=null?`<span class="mb" style="width:${p*100}%"></span>`:""}</button>`}).join("")}</div>
+    <h3>Regla del día</h3>
+    <div class="card rule-day" style="--c:${cv(tipCat)}"><span class="wm" aria-hidden="true">${CUI[tipCat].g}</span>${glyph(tipCat)}
+      <div><p>${CATS[tipCat].r}</p><span class="tag">${CATS[tipCat].n}</span></div></div>
+    <h3>Modos de juego</h3>
+    <div class="modes">${Object.entries(MODES).map(([k,m])=>{
+      const fosN=k==="fossil"?ITEMS.filter(x=>x.fos).length:0;
+      return `<button class="mode" data-mode="${k}" style="--c:${cv(k)}">
+        <span class="glyph">${m.g}</span><span class="mn">${m.n}</span><span class="ms">${m.s}</span>
+        ${DB.bestMode[k]?`<span class="acc">🏆 ${DB.bestMode[k]}</span>`:k==="fossil"?`<span class="badge">${fosN}</span>`:""}</button>`}).join("")}</div>
+    <h3>Precisión por debilidad</h3>
+    <div class="card">${catRows()}</div>
+    <h3>Ajustes</h3>
+    <details class="card"><summary>⚙️ Tiempo, sonido, tema, nube y respaldo</summary><div class="stack" style="margin-top:14px">
+      <div class="set"><span>Tiempo por pregunta</span><span class="seg">${Object.entries(SPEEDS).map(([k,v])=>`<button data-speed="${k}" class="${DB.settings.speed===k?"on":""}">${v.n}</button>`).join("")}</span></div>
+      <div class="set"><span>Sonido y alerta</span><span class="seg"><button data-mute="0" class="${!DB.settings.mute?"on":""}">Sí</button><button data-mute="1" class="${DB.settings.mute?"on":""}">No</button></span></div>
+      <div class="set"><span>Tema</span><span class="seg">${[["auto","Auto"],["light","和紙"],["dark","夜"]].map(([k,n])=>`<button data-theme="${k}" class="${DB.settings.theme===k?"on":""}">${n}</button>`).join("")}</span></div>
+      <p class="muted small" style="margin:0">Empieza en 8 s. Cuando la barra de una categoría pase el 85 %, baja a 5 s (ritmo de examen).</p>
+      <div class="syncbox"><b>☁ Sincronización y Notion</b>
+        <div class="muted small">Comparte el progreso entre teléfono y PC y envía cada ronda a tu página de Notion de inglés. Sin conexión todo sigue funcionando y se envía después.</div>
+        <label>URL del Worker<input id="sUrl" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://mext-forge-sync.TU-CUENTA.workers.dev" value="${esc(DB.settings.syncUrl)}"></label>
+        <label>Clave de la app<input id="sKey" type="password" autocomplete="off" spellcheck="false" placeholder="La misma que guardaste en el Worker" value="${esc(DB.settings.syncKey)}"></label>
+        <div class="set"><span>Este dispositivo</span><span class="seg">${["Teléfono","PC"].map(n=>`<button data-dev="${n}" class="${DB.dev.name===n?"on":""}">${n}</button>`).join("")}</span></div>
+        <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="syncsave">Guardar y sincronizar</button><span class="muted small">${DB.lastSync?"Última: "+new Date(DB.lastSync).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Nunca sincronizado"} · ${DB.outbox.length} pend.</span></div>
+      </div>
+      <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="export">Exportar respaldo</button><button class="btn" data-act="import">Importar</button><span class="sp"></span><button class="btn" data-act="reset" style="color:var(--bad)">Borrar todo</button></div>
+    </div></details>
+    <div class="foot"><span class="kbd">Enter</span> empezar · <span class="kbd">1</span>–<span class="kbd">4</span> / <span class="kbd">A</span>–<span class="kbd">D</span> responder · <span class="kbd">Enter</span> seguir · <span class="kbd">Esc</span> salir · <span class="kbd">S</span> estadísticas</div>`;
+}
+function renderDrill(){
+  const it=G.it,fb=G.state==="fb",ok=fb&&G.ok,c=it.c;
+  const mult=1+Math.min(4,Math.floor(G.combo/3))*.5;
+  const cm=G.combo>=3?`<span class="combo ${G.combo>=9?"hot":""}">🔥 ${G.combo} · ×${mult.toFixed(1)}</span>`:"";
+  const inBuf=DB.buffer[it.id]&&!fb?DB.buffer[it.id]:null;
+  const modeTag=MODES[G.key]?`<span class="tag" style="--c:${cv(G.key)}">${MODES[G.key].n}</span>`:"";
+  let prompt,opts="";
+  if(it.k==="E"){
+    let k=0;
+    const html=it.t.replace(/\[([^\]]+)\]/g,(m,s)=>{const i=k++;
+      const cls=fb?(i===it.e?"ok":i===G.chosen?"bad":"dim"):"";
+      return `<button class="segm ${cls}" data-ans="${i}" ${fb?'tabindex="-1"':""}>${s}<span class="k">${"ABCD"[i]}</span></button>`});
+    prompt=`<div class="head">Toca la parte <b>incorrecta</b></div><div class="prompt ${fb&&!ok?"shake":""}" lang="en">${html}</div>`;
+  }else{
+    const [a,b]=it.q.split("___");
+    prompt=`<div class="head">Elige la forma correcta</div><div class="prompt rb" lang="en">${a}<span class="blank ${fb?"ok":""}">${fb?it.o[0]:"&nbsp;?&nbsp;"}</span>${b}</div>`;
+    const ci=G.order.indexOf(0);
+    opts=`<div class="opts ${fb&&!ok?"shake":""}" lang="en" style="--c:${cv(c)}">${G.order.map((o,i)=>{
+      const cls=fb?(i===ci?"ok":i===G.chosen?"bad":"dim"):"";
+      return `<button class="opt ${cls}" data-ans="${i}" ${fb?'tabindex="-1"':""}><span class="k">${i+1}</span><span>${it.o[o]}</span></button>`}).join("")}</div>`;
+  }
+  let fbHtml="";
+  if(fb&&!ok){
+    const chosenTxt=G.timeout?null:it.k==="E"?it.t.match(/\[([^\]]+)\]/g)[G.chosen].slice(1,-1):it.o[G.order[G.chosen]];
+    const rightTxt=it.k==="E"?`${it.t.match(/\[([^\]]+)\]/g)[it.e].slice(1,-1)} → ${it.fx}`:it.o[0];
+    fbHtml=`<div class="fb" role="alert" data-act="cont"><span class="ic">${G.timeout?"⏱":"✗"}</span><div style="flex:1;min-width:0">
+      <div class="h">${G.timeout?`Se acabó el tiempo → correcta <b style="color:var(--ok)">${rightTxt}</b>`:`Elegiste <b>${chosenTxt}</b> → correcta <b style="color:var(--ok)">${rightTxt}</b>`}</div>
+      ${G.fos?`<div class="fosbox"><b>! Error persistente · ${G.fos.n}</b>${G.fos.r}</div>`:""}
+      <p class="fix" lang="en">${correctText(it)}</p>
+      <p class="r2"><b>Regla:</b> ${it.r||CATS[c].r}</p>
+      <div class="n"><span class="tag buf">↻ al buffer · 0/3</span><span class="go-on">${G.death&&G.lives<=0?"Ver resultado":"Seguir"} ⏎</span></div></div></div>`;
+  }
+  const prog=G.death?`#${G.idx+1}`:`${G.idx+1}/${G.queue.length}`;
+  $("#app").innerHTML=`
+    <div class="hud"><button class="icon-btn" data-act="quit" aria-label="Salir">✕</button>
+      <div class="score"><b>${G.score}</b><small>puntos</small></div>${fb&&ok&&G.gain?`<span class="float">+${G.gain}</span>`:""}
+      <span class="sp"></span>${G.death?`<span class="lives">${"♥".repeat(G.lives)}<span style="opacity:.25">${"♥".repeat(3-G.lives)}</span></span>`:""}${cm}
+      <div class="tring" id="tring" aria-label="Tiempo restante"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="var(--surface2)" stroke-width="5"/>
+        <circle id="tfg" class="fg" cx="24" cy="24" r="20" fill="none" stroke="var(--text)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${RC}" stroke-dashoffset="0"/></svg><span id="ttx"></span></div>
+    </div>
+    <div class="qcard ${ok?"pop":""}" style="--c:${cv(c)}"><span class="wm" aria-hidden="true">${CUI[c].g}</span>
+      <div class="tags"><span class="tag">${CUI[c].g} ${CATS[c].n}</span>${modeTag}${inBuf?`<span class="tag buf">↻ repaso ${inBuf.s}/3</span>`:""}<span class="sp"></span><span class="muted small">${prog}</span></div>
+      ${prompt}
+      <div class="qtimer"><i id="qt"></i></div>
+    </div>
+    ${opts}${fbHtml}`;
+  updateClock();
+}
+function grade(a){return a>=.9?["優","EXCELENTE"]:a>=.75?["良","BIEN"]:a>=.6?["可","PASA"]:["再","OTRA VEZ"]}
+function renderEnd(){
+  const a=G.acc,[g,gl]=grade(a),bufN=Object.keys(DB.buffer).length,fails40=Math.round((1-a)*40);
+  const misses=G.res.filter(x=>!x.ok),seen=new Set();
+  const uniq=misses.filter(x=>!seen.has(x.it.id)&&seen.add(x.it.id));
+  const conf=(G.record||a>=.9)&&G.n?`<div class="confetti">${Array.from({length:26},(_,i)=>`<i style="left:${Math.random()*100}%;background:${["#ff5a4e","#ffc857","#3cc8e6","#ad90ff","#4fe090"][i%5]};animation-delay:${Math.random()*.5}s"></i>`).join("")}</div>`:"";
+  const pc=fails40<=4?"var(--ok)":fails40<=10?"var(--warn)":"var(--bad)";
+  $("#app").innerHTML=`<div class="stack">
+    <div class="endhero">${conf}
+      <div class="stamp" lang="ja">${g}</div><div class="stamp-l">${gl}${G.record?" · 🏆 NUEVO RÉCORD":""}</div>
+      <div class="big" id="endScore">0</div><div class="muted small">puntos</div>
+      <div class="kpis"><div class="kpi"><b>${Math.round(a*100)}%</b><span>${G.good}/${G.n} correctas</span></div><div class="kpi"><b>🔥 ${G.maxCombo}</b><span>mejor combo</span></div><div class="kpi"><b>${G.freed}</b><span>liberados</span></div></div>
+    </div>
+    <div class="card proj" style="--c:${pc}"><b>~${fails40}</b><div><div style="font-weight:700">fallos proyectados de 40 en el MEXT</div><div class="muted small">${fails40<=4?"Dentro de la meta (máx. 4). Prueba un tiempo más corto.":`Meta: máx. 4. Te sobran ${fails40-4}: el buffer los trabajará.`}</div></div></div>
+    <div class="card"><h3>Esta ronda</h3>${Object.keys(G.byCat).map(c=>{const b=G.byCat[c],p=b.ok/b.n;return `<div class="catrow">${glyph(c)}<div><b>${CUI[c].n}</b></div><div class="pct">${b.ok}/${b.n}</div><div class="meter"><i class="${meterCls(p)}" style="width:${Math.max(3,p*100)}%"></i></div></div>`}).join("")||'<span class="muted">Sin respuestas</span>'}</div>
+    ${uniq.length?`<div class="card"><h3>Lo que fallaste</h3>${uniq.map(x=>`<div class="miss">${x.fos?`<span class="tag fos" style="margin-bottom:6px;display:inline-block">! ${x.fos.n}</span>`:""}<p class="fix" lang="en">${correctText(x.it)}</p><div class="r">${x.fos?x.fos.r:(x.it.r||CATS[x.it.c].r)}</div></div>`).join("")}</div>`:""}
+    <div class="muted small center">${bufN?`↻ ${bufN} ejercicio(s) en el buffer: abrirán tus próximas rondas hasta acertarlos 3 veces seguidas.`:"Buffer vacío. ✨"}</div>
+    <div class="cta"><button class="start" data-act="again"><span class="play">↻</span><span><b>Otra ronda</b><small>Enter</small></span></button><button class="btn" data-act="home">Inicio</button></div>
+  </div>`;
+  const el=$("#endScore"),to=G.score,t0=performance.now();
+  (function up(t){const p=Math.min(1,(t-t0)/700);el.textContent=Math.round(to*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(up)})(t0);
+}
+function renderStats(){
+  const buf=Object.entries(DB.buffer).filter(([id])=>BYID[id]).sort((a,b)=>b[1].f-a[1].f);
+  const miss=Object.entries(DB.items).filter(([id,v])=>v.w>0&&BYID[id]).sort((a,b)=>b[1].w-a[1].w).slice(0,8);
+  const ss=DB.sessions.slice(-10).reverse(),seen=Object.keys(DB.items).filter(k=>BYID[k]).length;
+  const nameOf=k=>(CUI[k]||MODES[k]||{n:k}).n;
+  $("#app").innerHTML=`<div class="stack">
+    <div class="row"><button class="icon-btn" data-act="home" aria-label="Inicio">←</button><b style="font-size:1.15rem">Estadísticas</b><span class="sp"></span><span class="kbd">Esc</span></div>
+    <div class="kpis"><div class="kpi"><b>${DB.best.score}</b><span>🏆 récord</span></div><div class="kpi"><b>${DB.best.combo}</b><span>🔥 mejor combo</span></div><div class="kpi"><b>${seen}/${ITEMS.length}</b><span>ejercicios vistos</span></div></div>
+    <div class="card"><h3>Precisión por debilidad</h3>${catRows()}</div>
+    <div class="card"><h3>↻ Buffer de errores (${buf.length})</h3>${buf.length?`<ul class="list">${buf.map(([id,v])=>`<li>${glyph(BYID[id].c)}<span class="t" lang="en">${label(BYID[id])}</span><span class="dots">${"●".repeat(v.s)}${"○".repeat(3-v.s)}</span></li>`).join("")}</ul>
+      <button class="btn" data-focus-go="buf" style="margin-top:10px;width:100%">Practicar el buffer</button>`:'<span class="muted">Vacío. Lo que falles entra aquí hasta acertarlo 3 veces seguidas.</span>'}</div>
+    <div class="card"><h3>Más fallados</h3>${miss.length?`<ul class="list">${miss.map(([id,v])=>`<li>${glyph(BYID[id].c)}<span class="t" lang="en">${label(BYID[id])}</span><span class="muted small">${v.w}✗</span></li>`).join("")}</ul>`:'<span class="muted">Todavía nada.</span>'}</div>
+    <div class="card"><h3>Últimas rondas</h3>${ss.length?`<ul class="list">${ss.map(s=>`<li>${CUI[s.m]||MODES[s.m]?glyph(s.m):glyph("mix")}<span class="t">${nameOf(s.m)} · ${s.ts?new Date(s.ts).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):s.d}</span><span class="muted small">${s.ok!=null?s.ok:Math.round(s.acc*s.n/100)}/${s.n} · <b style="color:var(--text)">${s.s}</b></span></li>`).join("")}</ul>`:'<span class="muted">Sin rondas.</span>'}</div>
+  </div>`;
+}
+function render(){applyTheme();if(view==="tareas")return renderTareas();if(view==="ref")return renderRef(true);if(view==="tarea")return renderTarea(true);if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
+
+/* ================= TAREAS DIARIAS (instructor) =================
+   Sección separada del juego: sin puntos, rachas ni corrección automática.
+   El instructor escribe la sesión en Notion (sección «📝 Tareas diarias (app)», un desplegable por fecha);
+   el Worker la entrega a la app; la app la guarda para usarla sin conexión, cronometra y entrega.
+   La entrega viaja como evento 't' por la misma cola que el juego (sin conexión espera y se reenvía). */
+const TK="mextforge.tareas.v1";
+let T={list:[],ses:{},ans:{},tm:{},out:{},edit:{},hb:0,at:0};
+try{const o=JSON.parse(localStorage.getItem(TK));if(o)T=Object.assign(T,o)}catch(e){}
+let tSaveH=0;
+function tSave(now){clearTimeout(tSaveH);const f=()=>{try{localStorage.setItem(TK,JSON.stringify(T))}catch(e){}};if(now)f();else tSaveH=setTimeout(f,300)}
+let tDate=null,tState="idle",tErr="";
+
+// Marcas que reconoce la app al inicio de un título del instructor (### o ##)
+const TMARK=[["📘","ref","Consulta"],["✍","write","Escritura"],["🔁","trans","Traducción"],["🛠","fix","Corrección"],["🧩","cloze","Completar"],
+  ["🔤","vocab","Vocabulario"],["📖","read","Lectura"],["🎧","dict","Dictado"],["🗣","oral","Producción oral"],["🎯","mastery","Prueba de dominio"],
+  ["⏱","mock","Simulacro"],["✅","out","Fuera de la app"],["🧑‍🏫","retro","Retroalimentación"],["📤","entrega","Entrega"]];
+const TLONG=new Set(["write","trans","fix","read","dict","oral"]);
+const nfe=s=>String(s).replace(/️/g,"");
+const rtPlain=r=>(r||[]).map(x=>x.t).join("");
+function rtHtml(r){return (r||[]).map(x=>{let h=esc(x.t);if(x.c)h=`<code>${h}</code>`;if(x.b)h=`<b>${h}</b>`;if(x.i)h=`<i>${h}</i>`;if(x.s)h=`<s>${h}</s>`;if(x.u)h=`<u>${h}</u>`;
+  if(x.h&&/^https?:/i.test(x.h))h=`<a href="${esc(x.h)}" target="_blank" rel="noopener">${h}</a>`;return h}).join("").replace(/___+/g,'<span class="gap">___</span>')}
+function markOf(text){const t=nfe(text).trim();for(const[e,ty,n]of TMARK)if(t.startsWith(nfe(e)))return{ty,n};return null}
+const isList=ty=>ty==="bulleted_list_item"||ty==="numbered_list_item"||ty==="to_do";
+
+// Bloques de Notion → {intro, acts:[{key,ty,n,title,min,blocks}], retro:[]}
+function parseSession(blocks){
+  const res={intro:[],acts:[],retro:[]};let cur=null,zone="intro";
+  for(const b of blocks||[]){
+    if(/^heading_/.test(b.ty)){const m=markOf(rtPlain(b.r));
+      if(m){
+        if(m.ty==="retro"){zone="retro";cur=null;continue}
+        if(m.ty==="entrega"){zone="skip";cur=null;continue}
+        let title=nfe(rtPlain(b.r)).replace(/^\S+\s*/,"").trim();const mm=title.match(/(\d+)\s*min\b/i);
+        if(title.includes(":"))title=title.slice(title.indexOf(":")+1).trim(); // «Consulta: tema» → «tema»
+        cur={key:b.id,ty:m.ty,n:m.n,title:title.replace(/\s*·\s*\d+\s*min\b.*$/i,"")||m.n,min:mm?+mm[1]:null,blocks:[]};
+        res.acts.push(cur);zone="act";continue}
+    }
+    if(zone==="skip")continue;
+    if(zone==="retro")res.retro.push(b);else if(zone==="act")cur.blocks.push(b);else res.intro.push(b);
+  }
+  res.retro=res.retro.filter(b=>!/retroalimentaci[oó]n pendiente/i.test(rtPlain(b.r)));
+  return res;
+}
+function splitOpts(r){const s=rtPlain(r),m=s.match(/\{([^{}]*\|[^{}]*)\}\s*$/);
+  if(!m)return{r,opts:null};const cut=s.length-m[0].length;let n=0;const r2=[];
+  for(const x of r){if(n>=cut)break;r2.push(Object.assign({},x,{t:x.t.slice(0,cut-n)}));n+=x.t.length}
+  return{r:r2,opts:m[1].split("|").map(o=>o.trim()).filter(Boolean)}}
+// Bloques que solo se leen
+function blockHtml(b){
+  const k=b.k&&b.k.length?b.k.map(blockHtml).join(""):"";
+  switch(b.ty){
+    case "paragraph":return `<p>${rtHtml(b.r)}</p>${k}`;
+    case "heading_1":case "heading_2":case "heading_3":return `<h4>${rtHtml(b.r)}</h4>${k}`;
+    case "quote":return `<blockquote>${rtHtml(b.r)}${k}</blockquote>`;
+    case "callout":return `<div class="tk-callout">${b.ic?b.ic+" ":""}${rtHtml(b.r)}${k}</div>`;
+    case "code":return `<pre>${esc(rtPlain(b.r))}</pre>`;
+    case "divider":return "<hr>";
+    case "bulleted_list_item":case "numbered_list_item":return `<ul><li>${rtHtml(b.r)}${k}</li></ul>`;
+    case "to_do":return `<ul><li>${b.ck?"☑":"☐"} ${rtHtml(b.r)}${k}</li></ul>`;
+    case "toggle":return `<details><summary>${rtHtml(b.r)}</summary>${k}</details>`;
+    case "table":return `<div class="tk-table"><table>${(b.k||[]).map((row,i)=>`<tr>${(row.cells||[]).map(c=>i===0&&b.hr?`<th>${rtHtml(c)}</th>`:`<td>${rtHtml(c)}</td>`).join("")}</tr>`).join("")}</table></div>`;
+    default:return b.r?`<p>${rtHtml(b.r)}</p>${k}`:"";
+  }
+}
+
+/* ---------- estado por fecha ---------- */
+const tAns=(d,id)=>{const a=T.ans[d]||(T.ans[d]={});return a[id]||(a[id]={v:"",ch:null,d:0,nt:"",h:"nada",s:0})};
+const tOut=(d,id)=>{const a=T.out[d]||(T.out[d]={});return a[id]||(a[id]={done:false,min:""})};
+const tTm=(d,k)=>{const a=T.tm[d]||(T.tm[d]={});return a[k]||(a[k]={acc:0,since:null})};
+const tEl=t=>t.acc+(t.since?Date.now()-t.since:0);
+const entregasDe=d=>DB.ev.filter(e=>e.k==="t"&&e.date===d).sort((a,b)=>a.t-b.t);
+const fmtMS=ms=>{const s=Math.max(0,Math.round(ms/1000));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")};
+function pauseAll(d){for(const k in (T.tm[d]||{})){const t=T.tm[d][k];if(t.since){t.acc+=Date.now()-t.since;t.since=null}}}
+function startTimer(d,k){const t=tTm(d,k);if(t.since)return;pauseAll(d);t.since=Date.now();tSave()}
+// Si la app estuvo cerrada, el cronómetro se detiene en el último momento en que estuvo abierta
+(function recoverTimers(){try{T.hb=+localStorage.getItem(TK+".hb")||0}catch(e){}if(!T.hb)return;const gap=Date.now()-T.hb;if(gap<120000)return;let fixed=0;
+  for(const d in T.tm)for(const k in T.tm[d]){const t=T.tm[d][k];if(t.since){t.acc+=Math.max(0,T.hb-t.since);t.since=null;fixed++}}
+  if(fixed)tSave(true)})();
+const tLocked=d=>entregasDe(d).length>0&&!T.edit[d];
+function sesStatus(d){const s=T.ses[d],e=entregasDe(d);if(s&&parseSession(s.blocks).retro.length)return["Corregida","ok"];if(e.length)return[`Entregada${e.length>1?" ×"+e.length:""}`,"warn"];return s?["Por hacer",""]:["Sin descargar","muted"]}
+
+/* ---------- conexión con el Worker ---------- */
+async function fetchTareas(extra){
+  if(!syncConfigured()){tState="nocloud";return}
+  if(navigator.onLine===false){tState="offline";return}
+  tState="busy";refreshTk();
+  try{
+    const want=new Set([today()]);if(extra)want.add(extra);
+    if(T.list[0])want.add(T.list[0].date);
+    for(const x of T.list){if(want.size>=4)break;const s=T.ses[x.date];if(s&&!parseSession(s.blocks).retro.length)want.add(x.date)}
+    for(const x of T.list){if(want.size>=6)break;if(!T.ses[x.date])want.add(x.date)}
+    const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),15000);
+    const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/tareas/lista",{method:"POST",signal:ctl.signal,
+      headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},body:JSON.stringify({dates:[...want]})});
+    clearTimeout(to);
+    if(r.status===401){tState="badkey";return}
+    const j=await r.json();
+    if(!j.ok){tState=j.error==="sin-seccion"?"nosection":"error";tErr=j.detail||j.error||"";return}
+    T.list=j.list||[];
+    for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now()}}
+    T.at=Date.now();tSave(true);tState="ok";
+  }catch(e){tState=navigator.onLine===false?"offline":"error";tErr=e.name==="AbortError"?"sin respuesta":e.message}
+  finally{if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="home"){if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("input,textarea"))refreshTk();else renderHome()}}
+}
+function tkLabel(){
+  return {busy:"Actualizando…",offline:"Sin conexión · mostrando lo guardado",badkey:"⚠ Clave inválida (Ajustes)",nosection:"Aún no existe la sección en Notion",
+    error:"⚠ No se pudo actualizar"+(tErr?": "+tErr:""),nocloud:"Configura la nube en Ajustes para recibir sesiones"}[tState]||(T.at?"Actualizado "+new Date(T.at).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"}):"")}
+function refreshTk(){const el=document.getElementById("tkState");if(el)el.textContent=tkLabel()}
+
+/* ---------- inicio: tarjeta de acceso ---------- */
+function tareasCard(){
+  const d=today(),s=T.ses[d],e=entregasDe(d);
+  let sub;
+  if(s){const p=parseSession(s.blocks);sub=e.length?(p.retro.length?"Entregada · el instructor ya dejó retroalimentación":"Entregada · esperando corrección del instructor"):`Sesión de hoy lista · ${p.acts.filter(a=>a.ty!=="ref").length} actividades`}
+  else sub=syncConfigured()?"Aún no hay sesión para hoy":"Configura la nube para recibir sesiones";
+  return `<button class="tk-card" id="tkCard" data-tk="open" data-v="${s?d:""}"><span class="glyph" style="--c:var(--inf)">📝</span><span style="flex:1;min-width:0"><b>Tareas diarias</b><small>${esc(sub)}</small></span><span class="muted">›</span></button>`;
+}
+
+/* ---------- pestañas y formato de fechas ---------- */
+const tabsHtml=on=>`<nav class="tabs" role="tablist"><button role="tab" aria-selected="${on==="juego"}" data-tk="tab-juego" class="${on==="juego"?"on":""}">🎮 Juego</button><button role="tab" aria-selected="${on==="estudio"}" data-tk="tab-estudio" class="${on==="estudio"?"on":""}">📝 Estudio</button></nav>`;
+const subTabs=on=>`<div class="seg esub"><button data-tk="sub-ses" class="${on==="ses"?"on":""}">Sesiones</button><button data-tk="ref" class="${on==="ref"?"on":""}">📘 Referencia</button></div>`;
+const fechaLarga=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
+const tituloSes=d=>{const s=T.ses[d],x=T.list.find(y=>y.date===d);return ((s&&s.title)||(x&&x.title)||"Sesión").replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,"")||"Sesión"};
+const chip=d=>{const[st]=sesStatus(d);return `<span class="echip" data-st="${st.replace(/ ×\d+/,"")}">${st}</span>`};
+
+/* ---------- lista de fechas ---------- */
+function renderTareas(){
+  const dates=[...new Set([...T.list.map(x=>x.date),...Object.keys(T.ses),...DB.ev.filter(e=>e.k==="t").map(e=>e.date)])].sort().reverse();
+  const hoy=dates.find(d=>d===today())||dates.find(d=>T.ses[d]&&!entregasDe(d).length);
+  const rest=dates.filter(d=>d!==hoy);
+  $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
+    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    <div class="estat" id="tkState">${esc(tkLabel())}</div>
+    ${subTabs("ses")}
+    ${hoy?`<button class="ecard ehoy" data-tk="date" data-v="${hoy}"><span class="muted small">${hoy===today()?"Hoy":"Pendiente"} · ${fechaLarga(hoy)}</span><b>${esc(tituloSes(hoy))}</b>${chip(hoy)}</button>`
+      :`<div class="ecard eempty"><b>Todavía no hay sesión para hoy.</b><span class="muted small">Cuando el instructor la publique en Notion, toca «Actualizar».</span></div>`}
+    ${rest.length?`<h3>Sesiones anteriores</h3>${rest.map(d=>`<button class="ecard" data-tk="date" data-v="${d}"><span class="muted small">${fechaLarga(d)}</span><b>${esc(tituloSes(d))}</b>${chip(d)}</button>`).join("")}`:""}
+  </div>`;
+  window.scrollTo(0,0);
+}
+
+/* ---------- referencia: todo lo 📘 Consulta que ya explicó el instructor ---------- */
+let refQ="";
+function renderRef(keep){
+  const y=window.scrollY,q=refQ.trim().toLowerCase();
+  const all=[];for(const d of Object.keys(T.ses).sort().reverse()){for(const a of parseSession(T.ses[d].blocks).acts)if(a.ty==="ref")all.push({d,a})}
+  const txtOf=x=>(x.a.title+" "+x.a.blocks.map(b=>rtPlain(b.r)+" "+(b.k||[]).map(c=>rtPlain(c.r)+(c.cells||[]).map(rtPlain).join(" ")).join(" ")).join(" ")).toLowerCase();
+  const list=q?all.filter(x=>txtOf(x).includes(q)):all;
+  const pend=T.list.filter(x=>!T.ses[x.date]).length;
+  $("#app").innerHTML=`<div class="stack tk">
+    ${tabsHtml("estudio")}
+    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    ${subTabs("ref")}
+    <input class="tk-in" id="refSearch" type="search" placeholder="Buscar (ej. no longer, uncountable…)" value="${esc(refQ)}" autocomplete="off" spellcheck="false" autocapitalize="off">
+    <div class="muted small" id="tkState">${all.length} ${all.length===1?"explicación guardada":"explicaciones guardadas"}${pend?` · ${pend} sesiones anteriores aún por descargar (se bajan solas al actualizar)`:""}</div>
+    ${list.map(x=>`<section class="card tk-act ref"><div class="tk-ah"><span class="tag">Consulta</span><span class="sp"></span><button class="btn" data-tk="date" data-v="${x.d}" style="min-height:34px;padding:4px 10px">${x.d}</button></div>
+      <h3 class="tk-title">${esc(x.a.title)}</h3>${x.a.blocks.map(blockHtml).join("")}</section>`).join("")||`<div class="card muted">${q?"Nada coincide con la búsqueda.":"Aún no hay explicaciones. Aparecen aquí las secciones 📘 Consulta de cada sesión."}</div>`}
+  </div>`;
+  window.scrollTo(0,keep?y:0);
+}
+document.addEventListener("input",e=>{if(view==="ref"&&e.target.id==="refSearch"){refQ=e.target.value;const pos=e.target.selectionStart;renderRef(true);const el=$("#refSearch");el.focus();el.setSelectionRange(pos,pos)}});
+
+/* ---------- sesión de un día ---------- */
+function itemHtml(d,a,b,locked){
+  const id=b.id,A=tAns(d,id);
+  if(a.ty==="out"){const o=tOut(d,id);
+    return `<div class="tk-item ${A.d?"doubt":""}" data-item="${id}" data-act-key="${a.key}"><label class="tk-check"><input type="checkbox" data-tk="outdone" data-v="${id}" ${o.done?"checked":""} ${locked?"disabled":""}> <span>${rtHtml(b.r)}</span></label>
+      <div class="tk-meta" style="margin-left:32px"><button class="tk-doubt ${A.d?"on":""}" data-tk="doubt" data-v="${id}" ${locked?"disabled":""}>❓ Tengo duda</button></div>
+      <textarea class="tk-note" rows="2" data-tk="note" data-v="${id}" placeholder="Nota para el instructor (en español)" ${locked?"readonly":""}>${esc(A.nt)}</textarea></div>`}
+  const{r,opts}=splitOpts(b.r||[]);
+  const input=opts?`<div class="tk-opts">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`
+    :`<textarea class="tk-in" rows="${TLONG.has(a.ty)?3:1}" data-tk="text" data-v="${id}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false" ${locked?"readonly":""} placeholder="Escribe en inglés…">${esc(A.v)}</textarea>`;
+  const kids=b.k&&b.k.length?`<div class="tk-sub">${b.k.map(blockHtml).join("")}</div>`:"";
+  return `<div class="tk-item ${A.d?"doubt":""}" data-item="${id}" data-act-key="${a.key}">
+    <div class="tk-q">${b.ty==="numbered_list_item"?"":"• "}${rtHtml(r)}</div>${kids}${input}
+    <div class="tk-meta"><span class="seg tk-help">${[["nada","Sin ayuda"],["dic","Diccionario"],["trad","Traductor"]].map(([k,n])=>`<button class="${A.h===k?"on":""}" data-tk="help" data-v="${id}" data-h="${k}" ${locked?"disabled":""}>${n}</button>`).join("")}</span>
+      <button class="tk-doubt ${A.d?"on":""}" data-tk="doubt" data-v="${id}" ${locked?"disabled":""}>❓ Tengo duda</button></div>
+    <textarea class="tk-note" rows="2" data-tk="note" data-v="${id}" placeholder="Nota para el instructor (en español)" ${locked?"readonly":""}>${esc(A.nt)}</textarea>
+  </div>`;
+}
+function actHtml(d,a,locked){
+  const isTask=a.ty!=="ref";
+  let body="",ol=0;
+  for(const b of a.blocks){
+    if(isTask&&isList(b.ty)){body+=itemHtml(d,a,b,locked);continue}
+    body+=blockHtml(b);
+  }
+  const t=tTm(d,a.key),lim=a.ty==="mock"&&a.min?a.min*60000:0;
+  const timer=isTask?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
+  const sug=a.min?`<span class="muted small">${a.ty==="mock"?"límite":"sugerido"} ${a.min} min</span>`:"";
+  return `<section class="card tk-act ${a.ty==="ref"?"ref":""}" data-akey="${a.key}"><div class="tk-ah"><span class="tag">${esc(a.n)}</span>${sug}<span class="sp"></span>${timer}</div>
+    <h3 class="tk-title">${esc(a.title)}</h3>${a.ty==="mastery"?`<div class="muted small" style="margin-bottom:8px">Resuélvela sin ayuda: es para medir si dominas el tema.</div>`:""}${body}</section>`;
+}
+function totalMin(d,p){let ms=0,oms=0;for(const a of p.acts){if(a.ty==="ref")continue;const t=tEl(tTm(d,a.key));if(a.ty==="out")oms+=t;else ms+=t}
+  const app=Math.round(ms/60000),out=Math.round(oms/60000);return{app,out,total:Math.round((ms+oms)/60000)}}
+function hydrateFromEntrega(d){
+  const last=entregasDe(d).pop();if(!last||Object.keys(T.ans[d]||{}).length)return;
+  for(const a of last.acts||[])for(const it of a.items||[]){if(!it.id)continue;
+    if(a.out){tOut(d,it.id).done=!!it.done;Object.assign(tAns(d,it.id),{d:it.d?1:0,nt:it.nt||""})}
+    else Object.assign(tAns(d,it.id),{v:it.v||"",ch:it.ch||null,d:it.d?1:0,nt:it.nt||"",h:it.h||"nada",s:it.s||0})}
+  tSave(true);
+}
+function renderTarea(keepScroll){
+  const d=tDate,s=T.ses[d],y=window.scrollY;hydrateFromEntrega(d);
+  if(!s){view="tareas";return renderTareas()}
+  const p=parseSession(s.blocks),locked=tLocked(d),ents=entregasDe(d),m=totalMin(d,p);
+  const dudas=Object.values(T.ans[d]||{}).filter(a=>a.d).length;
+  $("#app").innerHTML=`<div class="stack tk">
+    <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><div style="min-width:0"><b style="font-size:1.05rem">${d===today()?"Hoy · ":""}${d}</b><div class="muted small">${esc(s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""))}</div></div><span class="sp"></span><button class="btn" data-tk="refresh" title="Actualizar">↻</button></div>
+    <div class="muted small" id="tkState">${esc(tkLabel())}</div>
+    ${p.retro.length?`<section class="card tk-retro"><h3>🧑‍🏫 Retroalimentación del instructor</h3>${p.retro.map(blockHtml).join("")}</section>`:""}
+    ${ents.length?`<div class="card tk-sent"><b>📤 ${ents.length>1?ents.length+" entregas":"Entregada"}</b> · ${ents.map(e=>`Entrega ${e.n}: ${new Date(e.t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"})}${DB.outbox.includes(e.i)?" (en cola, se enviará con conexión)":""}`).join(" · ")}
+      ${locked?`<div style="margin-top:8px"><button class="btn" data-tk="unlock">Corregir algo y entregar de nuevo</button></div>`:`<div class="muted small" style="margin-top:6px">Editando para una nueva entrega. La anterior no se borra.</div>`}</div>`:""}
+    ${p.intro.length?`<section class="card">${p.intro.map(blockHtml).join("")}</section>`:""}
+    ${p.acts.map(a=>actHtml(d,a,locked)).join("")||`<div class="card muted">El instructor todavía no agregó actividades a esta sesión.</div>`}
+    ${p.acts.some(a=>a.ty!=="ref")?`<section class="card tk-end"><div class="row" style="flex-wrap:wrap"><span><b id="tkTotal">${m.total} min</b> <span class="muted small" id="tkSub">(app ${m.app} + fuera ${m.out}) · ${dudas} ${dudas===1?"duda":"dudas"}</span></span><span class="sp"></span>
+      <button class="btn" data-tk="copy">📋 Copiar respuestas</button>${locked?"":`<button class="btn tk-send" data-tk="send">📤 Entregar</button>`}</div>
+      <div class="muted small" style="margin-top:8px">La app no corrige: el instructor revisa tu entrega en el chat y deja su retroalimentación aquí.</div></section>`:""}
+  </div>`;
+  if(keepScroll)window.scrollTo(0,y);else window.scrollTo(0,0);
+}
+function openTarea(d){tDate=d;view="tarea";renderTarea();fetchTareas(d)}
+
+/* ---------- entrega ---------- */
+function buildEntrega(d){
+  const s=T.ses[d],p=parseSession(s.blocks),m=totalMin(d,p);let dudas=0;
+  const acts=p.acts.filter(a=>a.ty!=="ref").map(a=>{
+    const items=a.blocks.filter(b=>isList(b.ty)).map(b=>{
+      const A=tAns(d,b.id);if(A.d)dudas++;
+      if(a.ty==="out"){const o=tOut(d,b.id);return{id:b.id,p:rtPlain(b.r),done:!!o.done,d:A.d?1:0,nt:A.nt}}
+      const{r,opts}=splitOpts(b.r||[]);
+      return{id:b.id,p:rtPlain(r)+(opts?` {${opts.join(" | ")}}`:""),v:A.v,ch:A.ch,s:Math.round(A.s),d:A.d?1:0,nt:A.nt,h:A.h};
+    });
+    const sec=Math.round(tEl(tTm(d,a.key))/1000);
+    return{title:a.title&&a.title!==a.n?`${a.n}: ${a.title}`:a.n,ty:a.ty,sec,min:Math.round(sec/60),lim:a.ty==="mock"?a.min:null,out:a.ty==="out"?1:0,items};
+  });
+  const now=new Date(),off=-now.getTimezoneOffset(),pad=x=>String(Math.abs(x)).padStart(2,"0");
+  const iso=today(now)+"T"+pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds())+(off>=0?"+":"-")+pad(Math.trunc(off/60))+":"+pad(off%60);
+  return{t:now.getTime(),k:"t",date:d,tid:s.tid,n:entregasDe(d).length+1,iso,dn:DB.dev.name,min:m.total,dudas,acts};
+}
+const HELPN={nada:"sin ayuda",dic:"diccionario",trad:"traductor"};
+function entregaMd(e){
+  const L=[`## 📤 Entrega ${e.n} — ${e.date} · ${e.min} min · ${e.dudas} ${e.dudas===1?"duda":"dudas"}`];
+  for(const a of e.acts){L.push("",`### ${a.title} · ${a.sec!=null?fmtMS(a.sec*1000):a.min+" min"}${a.lim?" / límite "+a.lim+" min":""}`);
+    a.items.forEach((it,i)=>{
+      if(a.out){L.push(`- [${it.done?"x":" "}] ${it.p} — ${it.done?"hecho":"no hecho"}`);if(it.d)L.push(`   ❓ Duda: ${it.nt||"(sin nota)"}`);return}
+      const ans=it.ch?`[${it.ch}]${it.v?" "+it.v:""}`:(it.v||"(sin respuesta)");
+      L.push(`${i+1}. ${it.p}`,...ans.split("\n").map(x=>"   > "+x),`   _⏱ ${it.s} s · ${HELPN[it.h]||"sin ayuda"}_`);
+      if(it.d)L.push(`   ❓ Duda: ${it.nt||"(sin nota)"}`);
+    })}
+  return L.join("\n");
+}
+async function copyText(s){try{await navigator.clipboard.writeText(s);return true}catch(e){const ta=document.createElement("textarea");ta.value=s;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand("copy")}catch(_){}ta.remove();return ok}}
+function sendEntrega(){
+  const d=tDate,s=T.ses[d];if(!s)return;
+  pauseAll(d);
+  const e=buildEntrega(d),n=e.acts.reduce((x,a)=>x+(a.out?0:a.items.length),0),empty=e.acts.reduce((x,a)=>x+(a.out?0:a.items.filter(i=>!i.v&&!i.ch).length),0);
+  if(!confirm(`¿Entregar la sesión del ${d}?\n\n${n} respuestas${empty?` (${empty} vacías)`:""} · ${e.dudas} ${e.dudas===1?"duda":"dudas"} · ${e.min} min${e.n>1?`\n\nSerá la entrega ${e.n}; las anteriores no se borran.`:""}`)){tSave();return renderTarea(true)}
+  addLocal(e);save();T.edit[d]=false;tSave(true);
+  toast(syncConfigured()?(navigator.onLine===false?"Entrega guardada: se enviará al volver la conexión":"📤 Entregada"):"Entrega guardada. Configura la nube para que llegue a Notion; mientras, usa «Copiar respuestas».");
+  renderTarea();syncNow();
+}
+
+/* ---------- eventos ---------- */
+let itemFocus=null;
+function addItemTime(){if(!itemFocus)return;const A=tAns(tDate,itemFocus.id);A.s+=Math.min(1800,(Date.now()-itemFocus.at)/1000);itemFocus=null;tSave()}
+document.addEventListener("focusin",e=>{
+  if(view!=="tarea")return;const el=e.target.closest("[data-tk=text],[data-tk=note]");if(!el||el.readOnly)return;
+  const box=el.closest("[data-act-key]");if(box)startTimer(tDate,box.dataset.actKey),updTimers();
+  if(el.dataset.tk==="text"){addItemTime();itemFocus={id:el.dataset.v,at:Date.now()}}
+});
+document.addEventListener("focusout",e=>{if(view==="tarea"&&e.target.dataset&&e.target.dataset.tk==="text")addItemTime()});
+document.addEventListener("input",e=>{
+  if(view!=="tarea")return;const el=e.target,k=el.dataset&&el.dataset.tk;if(!k)return;
+  if(k==="text"){tAns(tDate,el.dataset.v).v=el.value;autoGrow(el)}
+  else if(k==="note")tAns(tDate,el.dataset.v).nt=el.value;
+  else return;
+  tSave();
+});
+document.addEventListener("change",e=>{if(view==="tarea"&&e.target.dataset.tk==="outdone"){tOut(tDate,e.target.dataset.v).done=e.target.checked;tSave();updTotal()}});
+function autoGrow(el){if(el.rows>1)return;el.style.height="auto";el.style.height=el.scrollHeight+"px"}
+let choiceMark={};
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-tk]");if(!b||b.disabled)return;
+  const k=b.dataset.tk,v=b.dataset.v;
+  if(k==="open"){if(v)openTarea(v);else{view="tareas";renderTareas();fetchTareas()}return}
+  if(k==="list"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas();return}
+  if(k==="date"){openTarea(v);return}
+  if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null);return}
+  if(k==="ref"){view="ref";renderRef();fetchTareas();return}
+  if(k==="tab-estudio"||k==="sub-ses"){view="tareas";renderTareas();fetchTareas();return}
+  if(k==="tab-juego"){view="home";render();return}
+  if(view!=="tarea")return;
+  const d=tDate;
+  if(k==="choice"){const A=tAns(d,v),box=b.closest("[data-act-key]"),ak=box.dataset.actKey;startTimer(d,ak);
+    const now=Date.now(),from=Math.max(choiceMark[ak]||0,tTm(d,ak).since||now);A.s+=Math.min(1800,(now-from)/1000);choiceMark[ak]=now;
+    A.ch=A.ch===b.dataset.o?null:b.dataset.o;b.parentNode.querySelectorAll(".tk-opt").forEach(x=>x.classList.toggle("on",x.dataset.o===A.ch));tSave();updTimers()}
+  else if(k==="help"){tAns(d,v).h=b.dataset.h;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));tSave()}
+  else if(k==="doubt"){const A=tAns(d,v);A.d=A.d?0:1;b.classList.toggle("on",!!A.d);b.closest(".tk-item").classList.toggle("doubt",!!A.d);tSave();updTotal()}
+  else if(k==="timer"){const t=tTm(d,v);if(t.since){t.acc+=Date.now()-t.since;t.since=null}else startTimer(d,v);tSave();updTimers()}
+  else if(k==="send"){addItemTime();sendEntrega()}
+  else if(k==="unlock"){T.edit[d]=true;tSave(true);renderTarea(true)}
+  else if(k==="copy"){addItemTime();const e2=buildEntrega(d);if(entregasDe(d).length&&tLocked(d))e2.n=entregasDe(d).length;
+    copyText(entregaMd(e2)).then(ok=>toast(ok?"📋 Respuestas copiadas: pégalas en el chat del instructor":"No se pudo copiar"))}
+});
+function updTimers(){
+  if(view!=="tarea")return;
+  document.querySelectorAll("[data-tk=timer]").forEach(b=>{const t=tTm(tDate,b.dataset.v),lim=+b.dataset.lim,el=b.querySelector("[data-clock]");
+    b.classList.toggle("run",!!t.since);
+    if(lim){const left=lim-tEl(t);el.textContent=(left>=0?"⏳ ":"⌛ +")+fmtMS(Math.abs(left));b.classList.toggle("over",left<0)}
+    else el.textContent=(t.since?"⏸ ":"▶ ")+fmtMS(tEl(t))});
+  updTotal();
+}
+function updTotal(){const el=document.getElementById("tkTotal");if(!el||!T.ses[tDate])return;const m=totalMin(tDate,parseSession(T.ses[tDate].blocks));el.textContent=m.total+" min";
+  const sub=document.getElementById("tkSub"),du=Object.values(T.ans[tDate]||{}).filter(a=>a.d).length;if(sub)sub.textContent=`(app ${m.app} + fuera ${m.out}) · ${du} ${du===1?"duda":"dudas"}`}
+setInterval(()=>{T.hb=Date.now();try{localStorage.setItem(TK+".hb",String(T.hb))}catch(e){}if(view==="tarea")updTimers()},1000);
+
+/* ================= EVENTS ================= */
+function exportData(){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(persisted())],{type:"application/json"}));
+  a.download=`mext-forge-respaldo-${today()}.json`;document.body.appendChild(a);a.click();a.remove();
+}
+$("#imp").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);
+    if(d&&d.v===2&&Array.isArray(d.ev)){const have=new Set(DB.ev.map(e=>e.i));for(const e of d.ev)if(!have.has(e.i)){DB.ev.push(e);DB.outbox.push(e.i)}}
+    else if(d&&d.cats){const e={t:1,k:"b",snap:legacySnap(d)};e.i=DB.dev.id+"-imp-"+rid();e.d=DB.dev.id;DB.ev.push(e);DB.outbox.push(e.i)}
+    else throw 0;
+    rebuild();save();render();toast("Respaldo importado y fusionado");syncNow()}catch(err){toast("Archivo no válido")}};
+  r.readAsText(f);e.target.value=""});
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button,[data-act]");
+  if(!t)return;
+  const d=t.dataset;
+  if(d.ans!==undefined){if(G&&G.state==="q")answer(+d.ans);return}
+  if(d.focus){DB.settings.focus=d.focus;save();renderHome();return}
+  if(d.focusGo){start(d.focusGo);return}
+  if(d.mode){start(d.mode);return}
+  if(d.speed){DB.settings.speed=d.speed;save();render();return}
+  if(d.mute){DB.settings.mute=d.mute==="1";save();render();return}
+  if(d.theme){DB.settings.theme=d.theme;save();render();return}
+  if(d.dev){DB.dev.name=d.dev;save();render();return}
+  switch(d.act){
+    case "go":start(DB.settings.focus);break;
+    case "again":start(G.key);break;
+    case "cont":cont();break;
+    case "quit":quit();break;
+    case "home":quit();break;
+    case "stats":view="stats";render();break;
+    case "export":exportData();break;
+    case "import":$("#imp").click();break;
+    case "reset":if(confirm(syncConfigured()?"¿Borrar el progreso de ESTE dispositivo? Lo que ya está en la nube se volverá a descargar al sincronizar.":"¿Borrar todo el progreso, buffer y estadísticas? Exporta un respaldo antes si lo quieres conservar.")){const keep=DB.settings;DB=fresh();DB.settings=keep;derivedReset(DB);save();render();toast("Progreso borrado");syncNow()}break;
+    case "syncpill":{const det=document.querySelector("details.card");if(!syncConfigured()&&det){det.open=true;det.scrollIntoView({behavior:"smooth"})}else syncNow(true);break}
+    case "syncsave":DB.settings.syncUrl=$("#sUrl").value.trim();DB.settings.syncKey=$("#sKey").value.trim();save();
+      if(!syncConfigured()){toast("Sincronización desactivada");render()}else syncNow(true);break;
+  }
+});
+document.addEventListener("keydown",e=>{
+  if(e.target.closest&&e.target.closest("summary,input,textarea"))return;
+  if(view==="tareas"||view==="tarea"||view==="ref"){if(e.key==="Escape"){if(view==="tarea"||view==="ref"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas()}else quit()}return}
+  const k=e.key.toLowerCase();
+  if(e.key==="Escape"){quit();return}
+  if(view==="home"){if(e.key==="Enter"){e.preventDefault();start(DB.settings.focus)}else if(k==="s"){view="stats";render()}return}
+  if(view==="stats"){return}
+  if(view==="end"){if(e.key==="Enter"){e.preventDefault();start(G.key)}return}
+  if(view==="drill"&&G){
+    if(G.state==="q"){
+      let i=-1;if(k.length===1&&"1234".includes(k))i=+k-1;else if(k.length===1&&"abcd".includes(k))i="abcd".indexOf(k);
+      const max=G.it.k==="E"?4:G.it.o.length;
+      if(i>=0&&i<max){e.preventDefault();answer(i)}
+    }else if(e.key==="Enter"||e.key===" "){e.preventDefault();cont()}
+  }
+});
+document.addEventListener("visibilitychange",()=>{
+  if(G&&G.state==="q"&&!document.hidden){G.last=performance.now();cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick)}
+  if(!document.hidden){syncNow();if(view==="home"||view==="tareas")fetchTareas()}
+});
+render();
+syncNow();
+fetchTareas();
+addEventListener("online",()=>syncNow());
+addEventListener("offline",()=>{syncState=syncConfigured()?"offline":"off";refreshSync()});
+setInterval(()=>{if(view==="home"||view==="stats")syncNow()},120000);
+// que Android no borre los datos de la app
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+</script>
+</body>
+</html>
