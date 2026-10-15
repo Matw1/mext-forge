@@ -1050,27 +1050,37 @@ const tLocked=d=>entregasDe(d).length>0&&!T.edit[d];
 function sesStatus(d){const s=T.ses[d],e=entregasDe(d);if(s&&parseSession(s.blocks).retro.length)return["Corregida","ok"];if(e.length)return[`Entregada${e.length>1?" ×"+e.length:""}`,"warn"];return s?["Por hacer",""]:["Sin descargar","muted"]}
 
 /* ---------- conexión con el Worker ---------- */
+let tBusy=false;
 async function fetchTareas(extra){
   if(!syncConfigured()){tState="nocloud";return}
   if(navigator.onLine===false){tState="offline";return}
+  if(tBusy)return;tBusy=true;
   tState="busy";refreshTk();
   try{
     const want=new Set([today()]);if(extra)want.add(extra);
     if(T.list[0])want.add(T.list[0].date);
     for(const x of T.list){if(want.size>=4)break;const s=T.ses[x.date];if(s&&!parseSession(s.blocks).retro.length)want.add(x.date)}
     for(const x of T.list){if(want.size>=6)break;if(!T.ses[x.date])want.add(x.date)}
-    const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),15000);
-    const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/tareas/lista",{method:"POST",signal:ctl.signal,
-      headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},body:JSON.stringify({dates:[...want]})});
-    clearTimeout(to);
-    if(r.status===401){tState="badkey";return}
-    const j=await r.json();
-    if(!j.ok){tState=j.error==="sin-seccion"?"nosection":"error";tErr=j.detail||j.error||"";return}
-    T.list=j.list||[];
-    for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now()}}
-    T.at=Date.now();tSave(true);tState="ok";registerLessons();
+    // El servidor tiene un presupuesto de llamadas a Notion por pedido: lo que no alcanza vuelve en «pending»
+    // y se pide en otra vuelta (las sesiones pendientes conservan lo ya guardado mientras tanto).
+    let dates=[...want];
+    for(let vuelta=0;vuelta<30&&dates.length;vuelta++){
+      const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),45000);
+      const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/tareas/lista",{method:"POST",signal:ctl.signal,
+        headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},body:JSON.stringify({dates})});
+      clearTimeout(to);
+      if(r.status===401){tState="badkey";return}
+      const j=await r.json();
+      if(!j.ok){tState=j.error==="sin-seccion"?"nosection":"error";tErr=j.detail||j.error||"";return}
+      T.list=j.list||[];
+      for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now()}}
+      T.at=Date.now();tSave(true);registerLessons();
+      dates=j.more&&Array.isArray(j.pending)?j.pending.filter(d=>!Object.prototype.hasOwnProperty.call(j.sessions||{},d)):[];
+      if(dates.length){tState="busy";refreshTk()}
+    }
+    tState="ok";
   }catch(e){tState=navigator.onLine===false?"offline":"error";tErr=e.name==="AbortError"?"sin respuesta":e.message}
-  finally{if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="mat")renderMateria();else if(view==="home"){if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("input,textarea"))refreshTk();else renderHome()}}
+  finally{tBusy=false;if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="mat")renderMateria();else if(view==="home"){if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("input,textarea"))refreshTk();else renderHome()}}
 }
 function tkLabel(){
   return {busy:"Actualizando…",offline:"Sin conexión · mostrando lo guardado",badkey:"⚠ Clave inválida (Ajustes)",nosection:"Aún no existe la sección en Notion",
