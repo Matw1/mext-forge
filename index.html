@@ -805,9 +805,17 @@ function phaseInfo(){
 // Se toman de la sesión más reciente que los tenga. Los escribe el instructor; la app solo los muestra.
 function blocksText(bs){return (bs||[]).map(b=>rtPlain(b.r)+" "+(b.cells||[]).map(rtPlain).join(" ")+" "+blocksText(b.k)).join("\n")}
 const numOf=x=>parseFloat(String(x).replace(",","."));
+// Campos de la sesión en la base de Notion (desde el 17-oct): ganan sobre las líneas de texto de los días viejos.
+const sesProps=d=>{const x=T.list.find(y=>y.date===d);return (x&&x.props)||(T.ses[d]&&T.ses[d].props)||null};
 function instructorStats(){
   let dom=null,hrs=null;
-  for(const d of Object.keys(T.ses).sort().reverse()){
+  const dias=[...new Set([...Object.keys(T.ses),...T.list.map(x=>x.date)])].sort().reverse();
+  for(const d of dias){
+    const p=sesProps(d);
+    if(!dom&&p&&p.dom!=null)dom={fase:p.fase||"1",pct:Math.round(p.dom),d};
+    if(!hrs&&p&&p.horas!=null)hrs={acc:p.horas,meta:p.meta!=null?p.meta:500,d};
+    if(dom&&hrs)break;
+    if(!T.ses[d])continue;
     const txt=blocksText(T.ses[d].blocks);
     if(!dom){const m=txt.match(/📊\s*Fase\s*(\d)\s*(?:[:·\-–—]\s*)?(?:dominio\s*)?(\d{1,3}(?:[.,]\d+)?)\s*%/i);if(m)dom={fase:+m[1],pct:Math.round(numOf(m[2])),d}}
     if(!hrs){const m=txt.match(/horas\s+acumuladas\s*:?\s*(\d+(?:[.,]\d+)?)/i);
@@ -1052,7 +1060,7 @@ function startTimer(d,k){const t=tTm(d,k);if(t.since)return;pauseAll(d);t.since=
   for(const d in T.tm)for(const k in T.tm[d]){const t=T.tm[d][k];if(t.since){t.acc+=Math.max(0,T.hb-t.since);t.since=null;fixed++}}
   if(fixed)tSave(true)})();
 const tLocked=d=>entregasDe(d).length>0&&!T.edit[d];
-function sesStatus(d){const s=T.ses[d],e=entregasDe(d);if(s&&parseSession(s.blocks).retro.length)return["Corregida","ok"];if(e.length)return[`Entregada${e.length>1?" ×"+e.length:""}`,"warn"];return s?["Por hacer",""]:["Sin descargar","muted"]}
+function sesStatus(d){const s=T.ses[d],e=entregasDe(d),p=sesProps(d);if(p&&p.estado==="Corregida"||s&&parseSession(s.blocks).retro.length)return["Corregida","ok"];if(e.length)return[`Entregada${e.length>1?" ×"+e.length:""}`,"warn"];return s?["Por hacer",""]:["Sin descargar","muted"]}
 
 /* ---------- conexión con el Worker ---------- */
 let tBusy=false;
@@ -1078,12 +1086,14 @@ async function fetchTareas(extra){
       const j=await r.json();
       if(!j.ok){tState=j.error==="sin-seccion"?"nosection":"error";tErr=j.detail||j.error||"";return}
       T.list=j.list||[];
-      for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now()}}
+      for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now(),src:it&&it.src,edited:it&&it.edited,props:it&&it.props}}
+      for(const x of T.list)if(T.ses[x.date]&&x.src==="db"){T.ses[x.date].props=x.props;T.ses[x.date].title=x.title}
       for(const d of Object.keys(j.sessions||{}))recibidas.add(d);
       T.at=Date.now();tSave(true);registerLessons();
       dates=j.more&&Array.isArray(j.pending)?j.pending.filter(d=>!recibidas.has(d)):[];
       // Si la página de Notion cambió desde la última descarga completa, se vuelven a pedir TODAS las sesiones:
       // el instructor puede haber agregado 🎮 Juego, tablas o retroalimentación a días ya guardados.
+      for(const x of T.list)if(x.src==="db"&&!recibidas.has(x.date)&&!dates.includes(x.date)&&(!T.ses[x.date]||T.ses[x.date].edited!==x.edited||T.ses[x.date].tid!==x.tid))dates.push(x.date);
       if(j.ver&&!ver){ver=j.ver;if(ver!==T.ver){todo=true;for(const x of T.list)if(!recibidas.has(x.date)&&!dates.includes(x.date))dates.push(x.date)}}
       if(dates.length){tState="busy";refreshTk()}
     }
@@ -1188,6 +1198,7 @@ const fechaLarga=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{weekday:"lo
 const tituloSes=d=>{const s=T.ses[d],x=T.list.find(y=>y.date===d);return ((s&&s.title)||(x&&x.title)||"Sesión").replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,"")||"Sesión"};
 // Calificación 1–10 que el instructor escribe en su retroalimentación («Calificación: 6/10»). Solo se muestra; no afecta nada.
 function notaDe(d){
+  const p=sesProps(d);if(p&&p.nota!=null&&p.nota>=0&&p.nota<=10)return p.nota; // campo «Calificación» de la base
   const s=T.ses[d];if(!s)return null;
   const m=blocksText(parseSession(s.blocks).retro).match(/calificaci[oó]n\s*:?\s*(\d{1,2}(?:[.,]\d)?)\s*\/\s*10\b/i);
   if(!m)return null;const n=parseFloat(m[1].replace(",","."));return n>=0&&n<=10?n:null;
@@ -1308,7 +1319,7 @@ function buildEntrega(d){
   });
   const now=new Date(),off=-now.getTimezoneOffset(),pad=x=>String(Math.abs(x)).padStart(2,"0");
   const iso=today(now)+"T"+pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds())+(off>=0?"+":"-")+pad(Math.trunc(off/60))+":"+pad(off%60);
-  return{t:now.getTime(),k:"t",date:d,tid:s.tid,n:entregasDe(d).length+1,iso,dn:DB.dev.name,min:m.total,dudas,acts};
+  return{t:now.getTime(),k:"t",date:d,tid:s.tid,src:s.src||"toggle",estado:(sesProps(d)||{}).estado||"",n:entregasDe(d).length+1,iso,dn:DB.dev.name,min:m.total,dudas,acts};
 }
 const HELPN={nada:"sin ayuda",dic:"diccionario",trad:"traductor"};
 function entregaMd(e){
