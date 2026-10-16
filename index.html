@@ -235,6 +235,9 @@ details[open].card summary::after{content:"－"}
 .ecard{display:flex;flex-direction:column;gap:4px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;min-height:64px}
 .ecard b{font-size:1.02rem}.ehoy{border-left:4px solid var(--accent)}.eempty{cursor:default}
 .echip{align-self:flex-start;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--surface2);color:var(--muted)}
+.enota{align-self:flex-start;font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:99px;font-variant-numeric:tabular-nums}
+.enota[data-n="alta"]{color:var(--ok);background:var(--okbg)}.enota[data-n="media"]{color:var(--warn);background:var(--warnbg)}.enota[data-n="baja"]{color:var(--bad);background:var(--badbg)}
+.echips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .echip[data-st="Por hacer"]{color:var(--accent)}.echip[data-st="Entregada"]{color:var(--warn)}.echip[data-st="Corregida"]{color:var(--ok)}
 .esub{display:flex;margin:0 0 14px}.esub button{flex:1}
 .ehead1{font-size:1.2rem;margin:0}
@@ -1178,7 +1181,14 @@ const tabsHtml=on=>`<nav class="tabs" role="tablist"><button role="tab" aria-sel
 const subTabs=on=>`<div class="seg esub"><button data-tk="sub-ses" class="${on==="ses"?"on":""}">Sesiones</button><button data-tk="ref" class="${on==="ref"?"on":""}">📘 Referencia</button><button data-tk="mat" class="${on==="mat"?"on":""}">📊 Materia</button></div>`;
 const fechaLarga=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
 const tituloSes=d=>{const s=T.ses[d],x=T.list.find(y=>y.date===d);return ((s&&s.title)||(x&&x.title)||"Sesión").replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,"")||"Sesión"};
-const chip=d=>{const[st]=sesStatus(d);return `<span class="echip" data-st="${st.replace(/ ×\d+/,"")}">${st}</span>`};
+// Calificación 1–10 que el instructor escribe en su retroalimentación («Calificación: 6/10»). Solo se muestra; no afecta nada.
+function notaDe(d){
+  const s=T.ses[d];if(!s)return null;
+  const m=blocksText(parseSession(s.blocks).retro).match(/calificaci[oó]n\s*:?\s*(\d{1,2}(?:[.,]\d)?)\s*\/\s*10\b/i);
+  if(!m)return null;const n=parseFloat(m[1].replace(",","."));return n>=0&&n<=10?n:null;
+}
+const notaPill=d=>{const n=notaDe(d);return n==null?"":`<span class="enota" data-n="${n>=8?"alta":n>=6?"media":"baja"}" title="Calificación del instructor (solo referencia)">${String(n).replace(".",",")}/10</span>`};
+const chip=d=>{const[st]=sesStatus(d);return `<span class="echips"><span class="echip" data-st="${st.replace(/ ×\d+/,"")}">${st}</span>${notaPill(d)}</span>`};
 
 /* ---------- lista de fechas ---------- */
 function renderTareas(){
@@ -1265,7 +1275,7 @@ function renderTarea(keepScroll){
   $("#app").innerHTML=`<div class="stack tk">
     <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><div style="min-width:0"><b style="font-size:1.05rem">${d===today()?"Hoy · ":""}${d}</b><div class="muted small">${esc(s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""))}</div></div><span class="sp"></span><button class="btn" data-tk="refresh" title="Actualizar">↻</button></div>
     <div class="muted small" id="tkState">${esc(tkLabel())}</div>
-    ${p.retro.length?`<section class="card tk-retro"><h3>🧑‍🏫 Retroalimentación del instructor</h3>${p.retro.map(blockHtml).join("")}</section>`:""}
+    ${p.retro.length?`<section class="card tk-retro"><div class="row" style="justify-content:space-between"><h3 style="margin:0">🧑‍🏫 Retroalimentación del instructor</h3>${notaPill(d)}</div>${p.retro.map(blockHtml).join("")}</section>`:""}
     ${ents.length?`<div class="card tk-sent"><b>📤 ${ents.length>1?ents.length+" entregas":"Entregada"}</b> · ${ents.map(e=>`Entrega ${e.n}: ${new Date(e.t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"})}${DB.outbox.includes(e.i)?" (en cola, se enviará con conexión)":""}`).join(" · ")}
       ${locked?`<div style="margin-top:8px"><button class="btn" data-tk="unlock">Corregir algo y entregar de nuevo</button></div>`:`<div class="muted small" style="margin-top:6px">Editando para una nueva entrega. La anterior no se borra.</div>`}</div>`:""}
     ${p.intro.length?`<section class="card">${p.intro.map(blockHtml).join("")}</section>`:""}
