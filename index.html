@@ -1068,7 +1068,7 @@ async function fetchTareas(extra){
     for(const x of T.list){if(want.size>=6)break;if(!T.ses[x.date])want.add(x.date)}
     // El servidor tiene un presupuesto de llamadas a Notion por pedido: lo que no alcanza vuelve en «pending»
     // y se pide en otra vuelta (las sesiones pendientes conservan lo ya guardado mientras tanto).
-    let dates=[...want];
+    let dates=[...want],ver=null,todo=false;const recibidas=new Set();
     for(let vuelta=0;vuelta<30&&dates.length;vuelta++){
       const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),45000);
       const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/tareas/lista",{method:"POST",signal:ctl.signal,
@@ -1079,10 +1079,15 @@ async function fetchTareas(extra){
       if(!j.ok){tState=j.error==="sin-seccion"?"nosection":"error";tErr=j.detail||j.error||"";return}
       T.list=j.list||[];
       for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now()}}
+      for(const d of Object.keys(j.sessions||{}))recibidas.add(d);
       T.at=Date.now();tSave(true);registerLessons();
-      dates=j.more&&Array.isArray(j.pending)?j.pending.filter(d=>!Object.prototype.hasOwnProperty.call(j.sessions||{},d)):[];
+      dates=j.more&&Array.isArray(j.pending)?j.pending.filter(d=>!recibidas.has(d)):[];
+      // Si la página de Notion cambió desde la última descarga completa, se vuelven a pedir TODAS las sesiones:
+      // el instructor puede haber agregado 🎮 Juego, tablas o retroalimentación a días ya guardados.
+      if(j.ver&&!ver){ver=j.ver;if(ver!==T.ver){todo=true;for(const x of T.list)if(!recibidas.has(x.date)&&!dates.includes(x.date))dates.push(x.date)}}
       if(dates.length){tState="busy";refreshTk()}
     }
+    if(ver&&!dates.length){T.ver=ver;tSave(true)} // solo se marca como al día si se descargó todo
     tState="ok";
   }catch(e){tState=navigator.onLine===false?"offline":"error";tErr=e.name==="AbortError"?"sin respuesta":e.message}
   finally{tBusy=false;if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="mat")renderMateria();else if(view==="home"){if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("input,textarea"))refreshTk();else renderHome()}}
