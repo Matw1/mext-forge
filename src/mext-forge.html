@@ -1462,8 +1462,10 @@ document.addEventListener("keydown",e=>{
 });
 document.addEventListener("visibilitychange",()=>{
   if(G&&G.state==="q"&&!document.hidden){G.last=performance.now();cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick)}
-  if(!document.hidden){syncNow();if(view==="home"||view==="tareas")fetchTareas()}
+  if(!document.hidden){syncNow();if(view!=="drill")fetchTareas()}
 });
+// Las sesiones del instructor se revisan solas cada 3 min mientras la app está a la vista (nunca en medio de una ronda).
+setInterval(()=>{if(!document.hidden&&view!=="drill")fetchTareas()},180000);
 registerLessons();
 render();
 syncNow();

@@ -1464,8 +1464,10 @@ document.addEventListener("keydown",e=>{
 });
 document.addEventListener("visibilitychange",()=>{
   if(G&&G.state==="q"&&!document.hidden){G.last=performance.now();cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick)}
-  if(!document.hidden){syncNow();if(view==="home"||view==="tareas")fetchTareas()}
+  if(!document.hidden){syncNow();if(view!=="drill")fetchTareas()}
 });
+// Las sesiones del instructor se revisan solas cada 3 min mientras la app está a la vista (nunca en medio de una ronda).
+setInterval(()=>{if(!document.hidden&&view!=="drill")fetchTareas()},180000);
 registerLessons();
 render();
 syncNow();
@@ -1480,15 +1482,21 @@ try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}ca
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   const hadSW = !!navigator.serviceWorker.controller;
   let pending = false, done = false;
-  const busy = () => typeof view !== "undefined" && (view === "drill" || view === "tarea");
-  const reloadNow = () => { if (done) return; done = true; location.reload(); };
-  navigator.serviceWorker.addEventListener("controllerchange", () => { if (!hadSW) return; if (busy()) pending = true; else reloadNow(); });
+  const focused = () => { const a = document.activeElement; return !!(a && a.closest && a.closest("input,textarea")); };
+  const busy = () => (typeof view !== "undefined" && view === "drill") || focused();
+  const tryReload = () => {
+    if (!pending || done || busy()) return;
+    done = true;
+    try { if (typeof tSave === "function") tSave(true); } catch (e) {}
+    location.reload();
+  };
+  navigator.serviceWorker.addEventListener("controllerchange", () => { if (!hadSW) return; pending = true; tryReload(); });
+  setInterval(tryReload, 5000);
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) return;
-    if (pending && !busy()) return reloadNow();
+    tryReload();
     navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {});
   });
-  document.addEventListener("click", () => { if (pending && !busy()) setTimeout(() => { if (!busy()) reloadNow(); }, 50); });
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
 </script>
