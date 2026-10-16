@@ -1062,7 +1062,7 @@ function sesStatus(d){const s=T.ses[d],e=entregasDe(d),p=sesProps(d);if(p&&p.est
 
 /* ---------- conexión con el Worker ---------- */
 let tBusy=false;
-async function fetchTareas(extra){
+async function fetchTareas(extra,force){
   if(!syncConfigured()){tState="nocloud";return}
   if(navigator.onLine===false){tState="offline";return}
   if(tBusy)return;tBusy=true;
@@ -1074,11 +1074,16 @@ async function fetchTareas(extra){
     for(const x of T.list){if(want.size>=6)break;if(!T.ses[x.date])want.add(x.date)}
     // El servidor tiene un presupuesto de llamadas a Notion por pedido: lo que no alcanza vuelve en «pending»
     // y se pide en otra vuelta (las sesiones pendientes conservan lo ya guardado mientras tanto).
+    // Notion guarda «última edición» al minuto: si la última descarga fue a menos de 3 min de una edición, pudo
+    // quedar a medias. En ese caso (o al tocar «Actualizar») se piden todas las sesiones sin usar la memoria del servidor.
+    const dudoso=(at,ed)=>{const t=Date.parse(ed);return !at||isNaN(t)||at-t<180000};
+    const fresh=force||!T.verOk||T.list.some(x=>x.src==="db"&&T.ses[x.date]&&dudoso(T.ses[x.date].at,x.edited))?Date.now():0;
+    if(fresh)for(const x of T.list)want.add(x.date);
     let dates=[...want],ver=null,todo=false;const recibidas=new Set();
     for(let vuelta=0;vuelta<30&&dates.length;vuelta++){
       const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),45000);
       const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/tareas/lista",{method:"POST",signal:ctl.signal,
-        headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},body:JSON.stringify({dates})});
+        headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},body:JSON.stringify(fresh?{dates,fresh}:{dates})});
       clearTimeout(to);
       if(r.status===401){tState="badkey";return}
       const j=await r.json();
@@ -1086,16 +1091,18 @@ async function fetchTareas(extra){
       T.list=j.list||[];
       for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now(),src:it&&it.src,edited:it&&it.edited,props:it&&it.props}}
       for(const x of T.list)if(T.ses[x.date]&&x.src==="db"){T.ses[x.date].props=x.props;T.ses[x.date].title=x.title}
+      // Lo que el instructor borró o movió de fecha desaparece también de la app (las entregas quedan aparte).
+      {const vivas=new Map(T.list.map(x=>[x.date,x.tid]));for(const d of Object.keys(T.ses))if(!vivas.has(d)||(T.ses[d].tid&&vivas.get(d)!==T.ses[d].tid&&!recibidas.has(d)&&!(j.sessions||{})[d]))delete T.ses[d]}
       for(const d of Object.keys(j.sessions||{}))recibidas.add(d);
       T.at=Date.now();tSave(true);registerLessons();
       dates=j.more&&Array.isArray(j.pending)?j.pending.filter(d=>!recibidas.has(d)):[];
       // Si la página de Notion cambió desde la última descarga completa, se vuelven a pedir TODAS las sesiones:
       // el instructor puede haber agregado 🎮 Juego, tablas o retroalimentación a días ya guardados.
       for(const x of T.list)if(x.src==="db"&&!recibidas.has(x.date)&&!dates.includes(x.date)&&(!T.ses[x.date]||T.ses[x.date].edited!==x.edited||T.ses[x.date].tid!==x.tid))dates.push(x.date);
-      if(j.ver&&!ver){ver=j.ver;if(ver!==T.ver){todo=true;for(const x of T.list)if(!recibidas.has(x.date)&&!dates.includes(x.date))dates.push(x.date)}}
+      if(j.ver&&!ver){ver=j.ver;if(ver!==T.ver||fresh){todo=true;for(const x of T.list)if(!recibidas.has(x.date)&&!dates.includes(x.date))dates.push(x.date)}}
       if(dates.length){tState="busy";refreshTk()}
     }
-    if(ver&&!dates.length){T.ver=ver;tSave(true)} // solo se marca como al día si se descargó todo
+    if(ver&&!dates.length){const t=Date.parse(ver);T.ver=ver;T.verOk=!isNaN(t)&&Date.now()-t>180000;tSave(true)} // solo se marca como al día si se descargó todo
     tState="ok";
   }catch(e){tState=navigator.onLine===false?"offline":"error";tErr=e.name==="AbortError"?"sin respuesta":e.message}
   finally{tBusy=false;if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="mat")renderMateria();else if(view==="home"){if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("input,textarea"))refreshTk();else renderHome()}}
@@ -1367,7 +1374,7 @@ document.addEventListener("click",e=>{
   if(k==="open"){if(v)openTarea(v);else{view="tareas";renderTareas();fetchTareas()}return}
   if(k==="list"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas();return}
   if(k==="date"){openTarea(v);return}
-  if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null);return}
+  if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null,true);return}
   if(k==="ref"){view="ref";renderRef();fetchTareas();return}
   if(k==="mat"){view="mat";renderMateria();fetchTareas();return}
   if(k==="tab-estudio"||k==="sub-ses"){view="tareas";renderTareas();fetchTareas();return}
