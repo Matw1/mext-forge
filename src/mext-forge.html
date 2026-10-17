@@ -1075,15 +1075,16 @@ async function fetchTareas(extra,force){
     // El servidor tiene un presupuesto de llamadas a Notion por pedido: lo que no alcanza vuelve en «pending»
     // y se pide en otra vuelta (las sesiones pendientes conservan lo ya guardado mientras tanto).
     // Notion guarda «última edición» al minuto: si la última descarga fue a menos de 3 min de una edición, pudo
-    // quedar a medias. En ese caso (o al tocar «Actualizar») se piden todas las sesiones sin usar la memoria del servidor.
+    // quedar a medias, así que se vuelven a pedir todas. «ronda» es una por actualización (el servidor relee lo
+    // editado hace poco con esa clave); «fresh» (al tocar «Actualizar») le pide releer lo de las últimas 24 h.
     const dudoso=(at,ed)=>{const t=Date.parse(ed);return !at||isNaN(t)||at-t<180000};
-    const fresh=force||!T.verOk||T.list.some(x=>x.src==="db"&&T.ses[x.date]&&dudoso(T.ses[x.date].at,x.edited))?Date.now():0;
+    const ronda=Date.now(),fresh=!!force||!T.verOk||T.list.some(x=>x.src==="db"&&T.ses[x.date]&&dudoso(T.ses[x.date].at,x.edited));
     if(fresh)for(const x of T.list)want.add(x.date);
     let dates=[...want],ver=null,todo=false;const recibidas=new Set();
     for(let vuelta=0;vuelta<30&&dates.length;vuelta++){
       const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),45000);
       const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/tareas/lista",{method:"POST",signal:ctl.signal,
-        headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},body:JSON.stringify(fresh?{dates,fresh}:{dates})});
+        headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},body:JSON.stringify(force?{dates,ronda,fresh:true}:{dates,ronda})});
       clearTimeout(to);
       if(r.status===401){tState="badkey";return}
       const j=await r.json();
