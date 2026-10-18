@@ -814,10 +814,10 @@ function phaseInfo(){
 function blocksText(bs){return (bs||[]).map(b=>rtPlain(b.r)+" "+(b.cells||[]).map(rtPlain).join(" ")+" "+blocksText(b.k)).join("\n")}
 const numOf=x=>parseFloat(String(x).replace(",","."));
 // Campos de la sesión en la base de Notion (desde el 17-oct): ganan sobre las líneas de texto de los días viejos.
-const sesProps=d=>{const x=T.list.find(y=>y.date===d);return (x&&x.props)||(T.ses[d]&&T.ses[d].props)||null};
+const sesProps=d=>{const x=T.list.find(y=>y.k===d);return (x&&x.props)||(T.ses[d]&&T.ses[d].props)||null};
 function instructorStats(){
   let dom=null,hrs=null;
-  const dias=[...new Set([...Object.keys(T.ses),...T.list.map(x=>x.date)])].sort().reverse();
+  const dias=porFecha([...new Set([...Object.keys(T.ses),...T.list.map(x=>x.k)])]);
   for(const d of dias){
     const p=sesProps(d);
     if(!dom&&p&&p.dom!=null)dom={fase:p.fase||"1",pct:Math.round(p.dom),d};
@@ -835,9 +835,9 @@ function instructorStats(){
 const fechaCorta=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{day:"numeric",month:"short"}).replace(".","");
 function instructorPills(){
   const{dom,hrs}=instructorStats();let h="";
-  if(dom)h+=`<span class="pill" style="color:var(--accent)" title="Lo estima el instructor; no lo calcula la app">📈 Dominio Fase ${dom.fase}: ${dom.pct}% · instructor, ${fechaCorta(dom.d)}</span>`;
+  if(dom)h+=`<span class="pill" style="color:var(--accent)" title="Lo estima el instructor; no lo calcula la app">📈 Dominio Fase ${dom.fase}: ${dom.pct}% · instructor, ${fechaCorta(sDate(dom.d))}</span>`;
   if(hrs){const dias=Math.max(1,daysTo(EXAM)),min=Math.max(0,Math.round((hrs.meta-hrs.acc)*60/dias));
-    h+=`<span class="pill" title="(meta ${hrs.meta} h − ${hrs.acc} h acumuladas) ÷ ${dias} días hasta el 15 jul 2027 · datos del instructor, ${fechaCorta(hrs.d)}">⏱ Debes estudiar ${Math.floor(min/60)} h ${min%60} min/día</span>`}
+    h+=`<span class="pill" title="(meta ${hrs.meta} h − ${hrs.acc} h acumuladas) ÷ ${dias} días hasta el 15 jul 2027 · datos del instructor, ${fechaCorta(sDate(hrs.d))}">⏱ Debes estudiar ${Math.floor(min/60)} h ${min%60} min/día</span>`}
   return h;
 }
 function renderHome(){
@@ -904,7 +904,7 @@ function renderDrill(){
   const mult=1+Math.min(4,Math.floor(G.combo/3))*.5;
   const cm=G.combo>=3?`<span class="combo ${G.combo>=9?"hot":""}">🔥 ${G.combo} · ×${mult.toFixed(1)}</span>`:"";
   const inBuf=DB.buffer[it.id]&&!fb?DB.buffer[it.id]:null;
-  const modeTag=MODES[G.key]?`<span class="tag" style="--c:${cv(G.key)}">${MODES[G.key].n}</span>`:it.L?`<span class="tag" style="--c:var(--dia)">Lección · ${fechaCorta(it.L)}</span>`:"";
+  const modeTag=MODES[G.key]?`<span class="tag" style="--c:${cv(G.key)}">${MODES[G.key].n}</span>`:it.L?`<span class="tag" style="--c:var(--dia)">Lección · ${fechaCorta(it.D||sDate(it.L))}</span>`:"";
   let prompt,opts="";
   if(it.k==="E"){
     let k=0;
@@ -995,6 +995,18 @@ function render(){applyTheme();if(view==="tareas")return renderTareas();if(view=
 const TK="mextforge.tareas.v1";
 let T={list:[],ses:{},ans:{},tm:{},out:{},edit:{},hb:0,at:0};
 try{const o=JSON.parse(localStorage.getItem(TK));if(o)T=Object.assign(T,o)}catch(e){}
+// Cada sesión se guarda por su clave: la fecha en los días viejos (desplegables) y el id de la página en la base
+// (como en japonés), así dos páginas con la misma fecha conviven. Lo guardado antes por fecha se mueve a su página.
+(function porPagina(){let mv=0;
+  for(const d of Object.keys(T.ses)){const x=T.ses[d];if(!x.date)x.date=/^\d{4}-\d{2}-\d{2}$/.test(d)?d:"";
+    if(x.src==="db"&&x.tid&&d!==x.tid){for(const f of["ses","ans","tm","out","edit"])if(T[f][d]!==undefined){if(T[f][x.tid]===undefined)T[f][x.tid]=T[f][d];delete T[f][d]}mv++}}
+  for(const x of T.list)if(!x.k)x.k=x.src==="db"?x.tid:x.date;
+  if(mv)try{localStorage.setItem(TK,JSON.stringify(T))}catch(e){}})();
+const evKey=e=>e.src==="db"&&e.tid?e.tid:e.date;
+function sDate(k){const x=T.ses[k];if(x&&x.date)return x.date;const y=T.list.find(z=>z.k===k);if(y)return y.date;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(k))return k;const e=DB.ev.find(v=>v.k==="t"&&evKey(v)===k);return e?e.date:""}
+// Más reciente primero; en la misma fecha, en el orden de la lista de Notion.
+const porFecha=ks=>ks.sort((a,b)=>{const da=sDate(a),db=sDate(b);if(da!==db)return da<db?1:-1;const ia=T.list.findIndex(x=>x.k===a),ib=T.list.findIndex(x=>x.k===b);return (ia<0?1e9:ia)-(ib<0?1e9:ib)});
 let tSaveH=0;
 function tSave(now){clearTimeout(tSaveH);const f=()=>{try{localStorage.setItem(TK,JSON.stringify(T))}catch(e){}};if(now)f();else tSaveH=setTimeout(f,300)}
 let tDate=null,tState="idle",tErr="";
@@ -1100,7 +1112,7 @@ const tAns=(d,id)=>{const a=T.ans[d]||(T.ans[d]={});return a[id]||(a[id]={v:"",c
 const tOut=(d,id)=>{const a=T.out[d]||(T.out[d]={});return a[id]||(a[id]={done:false,min:""})};
 const tTm=(d,k)=>{const a=T.tm[d]||(T.tm[d]={});return a[k]||(a[k]={acc:0,since:null})};
 const tEl=t=>t.acc+(t.since?Date.now()-t.since:0);
-const entregasDe=d=>DB.ev.filter(e=>e.k==="t"&&e.date===d).sort((a,b)=>a.t-b.t);
+const entregasDe=d=>DB.ev.filter(e=>e.k==="t"&&evKey(e)===d).sort((a,b)=>a.t-b.t);
 const fmtMS=ms=>{const s=Math.max(0,Math.round(ms/1000));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")};
 function pauseAll(d){for(const k in (T.tm[d]||{})){const t=T.tm[d][k];if(t.since){t.acc+=Date.now()-t.since;t.since=null}}}
 function startTimer(d,k){const t=tTm(d,k);if(t.since)return;pauseAll(d);t.since=Date.now();tSave()}
@@ -1119,18 +1131,18 @@ async function fetchTareas(extra,force){
   if(tBusy)return;tBusy=true;
   tState="busy";refreshTk();
   try{
-    const want=new Set([today()]);if(extra)want.add(extra);
-    if(T.list[0])want.add(T.list[0].date);
-    for(const x of T.list){if(want.size>=4)break;const s=T.ses[x.date];if(s&&!parseSession(s.blocks).retro.length)want.add(x.date)}
-    for(const x of T.list){if(want.size>=6)break;if(!T.ses[x.date])want.add(x.date)}
+    const want=new Set(T.list.filter(x=>x.date===today()).map(x=>x.k));if(!T.list.length)want.add(today());if(extra)want.add(extra);
+    if(T.list[0])want.add(T.list[0].k);
+    for(const x of T.list){if(want.size>=4)break;const s=T.ses[x.k];if(s&&!parseSession(s.blocks).retro.length)want.add(x.k)}
+    for(const x of T.list){if(want.size>=6)break;if(!T.ses[x.k])want.add(x.k)}
     // El servidor tiene un presupuesto de llamadas a Notion por pedido: lo que no alcanza vuelve en «pending»
     // y se pide en otra vuelta (las sesiones pendientes conservan lo ya guardado mientras tanto).
     // Notion guarda «última edición» al minuto: si la última descarga fue a menos de 3 min de una edición, pudo
     // quedar a medias, así que se vuelven a pedir todas. «ronda» es una por actualización (el servidor relee lo
     // editado hace poco con esa clave); «fresh» (al tocar «Actualizar») le pide releer lo de las últimas 24 h.
     const dudoso=(at,ed)=>{const t=Date.parse(ed);return !at||isNaN(t)||at-t<180000};
-    const ronda=Date.now(),fresh=!!force||!T.verOk||T.list.some(x=>x.src==="db"&&T.ses[x.date]&&dudoso(T.ses[x.date].at,x.edited));
-    if(fresh)for(const x of T.list)want.add(x.date);
+    const ronda=Date.now(),fresh=!!force||!T.verOk||T.list.some(x=>x.src==="db"&&T.ses[x.k]&&dudoso(T.ses[x.k].at,x.edited));
+    if(fresh)for(const x of T.list)want.add(x.k);
     let dates=[...want],ver=null,todo=false;const recibidas=new Set();
     for(let vuelta=0;vuelta<30&&dates.length;vuelta++){
       const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),45000);
@@ -1140,18 +1152,18 @@ async function fetchTareas(extra,force){
       if(r.status===401){tState="badkey";return}
       const j=await r.json();
       if(!j.ok){tState=j.error==="sin-seccion"?"nosection":"error";tErr=j.detail||j.error||"";return}
-      T.list=j.list||[];
-      for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.date===d);T.ses[d]={tid:it&&it.tid,title:it?it.title:d,blocks,at:Date.now(),src:it&&it.src,edited:it&&it.edited,props:it&&it.props}}
-      for(const x of T.list)if(T.ses[x.date]&&x.src==="db"){T.ses[x.date].props=x.props;T.ses[x.date].title=x.title}
-      // Lo que el instructor borró o movió de fecha desaparece también de la app (las entregas quedan aparte).
-      {const vivas=new Map(T.list.map(x=>[x.date,x.tid]));for(const d of Object.keys(T.ses))if(!vivas.has(d)||(T.ses[d].tid&&vivas.get(d)!==T.ses[d].tid&&!recibidas.has(d)&&!(j.sessions||{})[d]))delete T.ses[d]}
+      T.list=(j.list||[]).map(x=>Object.assign(x,{k:x.k||(x.src==="db"?x.tid:x.date)}));
+      for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.k===d);T.ses[d]={tid:it&&it.tid,date:it?it.date:d,title:it?it.title:d,blocks,at:Date.now(),src:it&&it.src,edited:it&&it.edited,props:it&&it.props}}
+      for(const x of T.list)if(T.ses[x.k]){T.ses[x.k].date=x.date;if(x.src==="db"){T.ses[x.k].props=x.props;T.ses[x.k].title=x.title}}
+      // Lo que el instructor borró desaparece también de la app (las entregas quedan aparte); si cambió la fecha, la sesión la sigue.
+      {const vivas=new Map(T.list.map(x=>[x.k,x.tid]));for(const d of Object.keys(T.ses))if(!vivas.has(d)||(T.ses[d].tid&&vivas.get(d)!==T.ses[d].tid&&!recibidas.has(d)&&!(j.sessions||{})[d]))delete T.ses[d]}
       for(const d of Object.keys(j.sessions||{}))recibidas.add(d);
       T.at=Date.now();tSave(true);registerLessons();
       dates=j.more&&Array.isArray(j.pending)?j.pending.filter(d=>!recibidas.has(d)):[];
       // Si la página de Notion cambió desde la última descarga completa, se vuelven a pedir TODAS las sesiones:
       // el instructor puede haber agregado 🎮 Juego, tablas o retroalimentación a días ya guardados.
-      for(const x of T.list)if(x.src==="db"&&!recibidas.has(x.date)&&!dates.includes(x.date)&&(!T.ses[x.date]||T.ses[x.date].edited!==x.edited||T.ses[x.date].tid!==x.tid))dates.push(x.date);
-      if(j.ver&&!ver){ver=j.ver;if(ver!==T.ver||fresh){todo=true;for(const x of T.list)if(!recibidas.has(x.date)&&!dates.includes(x.date))dates.push(x.date)}}
+      for(const x of T.list)if(x.src==="db"&&!recibidas.has(x.k)&&!dates.includes(x.k)&&(!T.ses[x.k]||T.ses[x.k].edited!==x.edited||T.ses[x.k].tid!==x.tid))dates.push(x.k);
+      if(j.ver&&!ver){ver=j.ver;if(ver!==T.ver||fresh){todo=true;for(const x of T.list)if(!recibidas.has(x.k)&&!dates.includes(x.k))dates.push(x.k)}}
       if(dates.length){tState="busy";refreshTk()}
     }
     if(ver&&!dates.length){const t=Date.parse(ver);T.ver=ver;T.verOk=!isNaN(t)&&Date.now()-t>180000;tSave(true)} // solo se marca como al día si se descargó todo
@@ -1166,7 +1178,7 @@ function refreshTk(){const el=document.getElementById("tkState");if(el)el.textCo
 
 /* ---------- inicio: tarjeta de acceso ---------- */
 function tareasCard(){
-  const d=today(),s=T.ses[d],e=entregasDe(d);
+  const hoyK=porFecha(Object.keys(T.ses).filter(k=>sDate(k)===today())),d=hoyK.find(k=>sesStatus(k)[0]==="Por hacer")||hoyK[0],s=d&&T.ses[d],e=d?entregasDe(d):[];
   let sub;
   if(s){const p=parseSession(s.blocks);sub=e.length?(p.retro.length?"Entregada · el instructor ya dejó retroalimentación":"Entregada · esperando corrección del instructor"):`Sesión de hoy lista · ${p.acts.filter(a=>a.ty!=="ref").length} actividades`}
   else sub=syncConfigured()?"Aún no hay sesión para hoy":"Configura la nube para recibir sesiones";
@@ -1192,22 +1204,23 @@ function lessonItemsOf(d){
     const q=san(rtPlain(b.r)).trim();
     if(!q||opts.length<2||opts.filter(o=>o.ok).length!==1)continue; // mal formada: se ignora
     const right=opts.find(o=>o.ok).t;
-    out.push({id:"d:"+d+":"+b.id,k:"R",c:"DIA",L:d,q,all:opts,o:[right].concat(opts.filter(o=>!o.ok).map(o=>o.t)),
-      r:(exp?san(exp):"Correcta: "+right)+" · Lección del "+fechaCorta(d)});
+    const D=sDate(d); // el id usa la fecha (el id del bloque ya es único): así se conserva el progreso de las lecciones viejas
+    out.push({id:"d:"+D+":"+b.id,k:"R",c:"DIA",L:d,D,q,all:opts,o:[right].concat(opts.filter(o=>!o.ok).map(o=>o.t)),
+      r:(exp?san(exp):"Correcta: "+right)+" · Lección del "+fechaCorta(D)});
   }
   return out;
 }
 function registerLessons(){
   for(const id of Object.keys(BYID))if(id.startsWith("d:"))delete BYID[id];
   LESSONS=[];
-  for(const d of Object.keys(T.ses).sort().reverse())for(const it of lessonItemsOf(d)){LESSONS.push(it);BYID[it.id]=it}
+  for(const d of porFecha(Object.keys(T.ses)))for(const it of lessonItemsOf(d)){LESSONS.push(it);BYID[it.id]=it}
 }
 const allItems=()=>ITEMS.concat(LESSONS);
 const lessonDays=()=>[...new Set(LESSONS.map(x=>x.L))];
 function modeLabel(m){
   m=String(m);
   if(m==="days")return "Todas las lecciones";
-  if(m.startsWith("day:"))return "Lección · "+fechaCorta(m.slice(4))+" · "+tituloSes(m.slice(4));
+  if(m.startsWith("day:"))return "Lección · "+fechaCorta(sDate(m.slice(4)))+" · "+tituloSes(m.slice(4));
   const c=CUI[m]||MODES[m];if(!c)return m;
   return c.n+(CATS[m]&&m!=="DIA"?" · "+CATS[m].n:"");
 }
@@ -1221,7 +1234,7 @@ function lessonsHtml(f){
   const all=LESSONS.map(x=>x.id);
   return `<h3>📅 Lecciones de días estudiados</h3><div class="lessons">
     ${days.length>1?card("days","Todas las lecciones",`${days.length} días · ${all.length} preguntas`,all):""}
-    ${days.map(d=>{const ids=LESSONS.filter(x=>x.L===d).map(x=>x.id);return card("day:"+d,tituloSes(d),`${esc(fechaCorta(d))} · ${ids.length} preguntas`,ids,!ids.some(id=>DB.items[id]))}).join("")}
+    ${days.map(d=>{const ids=LESSONS.filter(x=>x.L===d).map(x=>x.id);return card("day:"+d,tituloSes(d),`${esc(fechaCorta(sDate(d)))} · ${ids.length} preguntas`,ids,!ids.some(id=>DB.items[id]))}).join("")}
   </div>`;
 }
 
@@ -1231,7 +1244,7 @@ function eTables(list,out){for(const b of list||[]){if(b.ty==="table")out.push(b
 function sinTablas(list){return (list||[]).map(b=>b.ty==="table"?{ty:"paragraph",r:[{t:"(La tabla está en 📊 Materia)",i:1}]}:b.k?{...b,k:sinTablas(b.k)}:b)}
 function renderMateria(){
   const dias=[];
-  for(const d of Object.keys(T.ses).sort().reverse()){
+  for(const d of porFecha(Object.keys(T.ses))){
     const p=parseSession(T.ses[d].blocks),tablas=[];
     eTables(p.intro,[]).forEach(t=>tablas.push({tema:"",t}));
     for(const a of p.acts)if(a.ty==="ref")eTables(a.blocks,[]).forEach(t=>tablas.push({tema:a.title,t}));
@@ -1241,7 +1254,7 @@ function renderMateria(){
     <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
     <div class="estat" id="tkState">${esc(tkLabel())}</div>
     ${subTabs("mat")}
-    ${dias.length?dias.map((x,i)=>`<details class="card emat" ${i===0?"open":""}><summary><span class="ek">${esc(fechaLarga(x.d))} · ${x.tablas.length} tabla${x.tablas.length>1?"s":""}</span><b>${esc(tituloSes(x.d))}</b></summary>
+    ${dias.length?dias.map((x,i)=>`<details class="card emat" ${i===0?"open":""}><summary><span class="ek">${esc(fechaLarga(sDate(x.d)))} · ${x.tablas.length} tabla${x.tablas.length>1?"s":""}</span><b>${esc(tituloSes(x.d))}</b></summary>
       <div>${x.tablas.map((y,j)=>`${y.tema&&(j===0||x.tablas[j-1].tema!==y.tema)?`<div class="emtema">${esc(y.tema)}</div>`:""}${blockHtml(y.t)}`).join("")}</div></details>`).join("")
     :`<div class="ecard eempty"><b>Aún no hay tablas.</b><span class="muted small">Aquí aparecerán, por día, las tablas que el instructor ponga en tus clases.</span></div>`}
   </div>`;
@@ -1252,7 +1265,7 @@ function renderMateria(){
 const tabsHtml=on=>`<nav class="tabs" role="tablist"><button role="tab" aria-selected="${on==="juego"}" data-tk="tab-juego" class="${on==="juego"?"on":""}">🎮 Juego</button><button role="tab" aria-selected="${on==="estudio"}" data-tk="tab-estudio" class="${on==="estudio"?"on":""}">📝 Estudio</button></nav>`;
 const subTabs=on=>`<div class="seg esub"><button data-tk="sub-ses" class="${on==="ses"?"on":""}">Sesiones</button><button data-tk="ref" class="${on==="ref"?"on":""}">📘 Referencia</button><button data-tk="mat" class="${on==="mat"?"on":""}">📊 Materia</button></div>`;
 const fechaLarga=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{weekday:"long",day:"numeric",month:"long"});
-const tituloSes=d=>{const s=T.ses[d],x=T.list.find(y=>y.date===d);return ((s&&s.title)||(x&&x.title)||"Sesión").replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,"")||"Sesión"};
+const tituloSes=d=>{const s=T.ses[d],x=T.list.find(y=>y.k===d);return ((s&&s.title)||(x&&x.title)||"Sesión").replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,"")||"Sesión"};
 // Calificación 1–10 que el instructor escribe en su retroalimentación («Calificación: 6/10»). Solo se muestra; no afecta nada.
 function notaDe(d){
   const p=sesProps(d);if(p&&p.nota!=null&&p.nota>=0&&p.nota<=10)return p.nota; // campo «Calificación» de la base
@@ -1265,16 +1278,16 @@ const chip=d=>{const[st]=sesStatus(d);return `<span class="echips"><span class="
 
 /* ---------- lista de fechas ---------- */
 function renderTareas(){
-  const dates=[...new Set([...T.list.map(x=>x.date),...Object.keys(T.ses),...DB.ev.filter(e=>e.k==="t").map(e=>e.date)])].sort().reverse();
-  const hoy=dates.find(d=>d===today())||dates.find(d=>T.ses[d]&&!entregasDe(d).length);
+  const dates=porFecha([...new Set([...T.list.map(x=>x.k),...Object.keys(T.ses),...DB.ev.filter(e=>e.k==="t").map(evKey)])]);
+  const hoy=dates.find(d=>sDate(d)===today()&&T.ses[d]&&sesStatus(d)[0]==="Por hacer")||dates.find(d=>sDate(d)===today())||dates.find(d=>T.ses[d]&&!entregasDe(d).length);
   const rest=dates.filter(d=>d!==hoy);
   $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
     <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
     <div class="estat" id="tkState">${esc(tkLabel())}</div>
     ${subTabs("ses")}
-    ${hoy?`<button class="ecard ehoy" data-tk="date" data-v="${hoy}"><span class="muted small">${hoy===today()?"Hoy":"Pendiente"} · ${fechaLarga(hoy)}</span><b>${esc(tituloSes(hoy))}</b>${chip(hoy)}</button>`
+    ${hoy?`<button class="ecard ehoy" data-tk="date" data-v="${hoy}"><span class="muted small">${sDate(hoy)===today()?"Hoy":"Pendiente"} · ${fechaLarga(sDate(hoy))}</span><b>${esc(tituloSes(hoy))}</b>${chip(hoy)}</button>`
       :`<div class="ecard eempty"><b>Todavía no hay sesión para hoy.</b><span class="muted small">Cuando el instructor la publique en Notion, toca «Actualizar».</span></div>`}
-    ${rest.length?`<h3>Sesiones anteriores</h3>${rest.map(d=>`<button class="ecard" data-tk="date" data-v="${d}"><span class="muted small">${fechaLarga(d)}</span><b>${esc(tituloSes(d))}</b>${chip(d)}</button>`).join("")}`:""}
+    ${rest.length?`<h3>Sesiones anteriores</h3>${rest.map(d=>`<button class="ecard" data-tk="date" data-v="${d}"><span class="muted small">${fechaLarga(sDate(d))}</span><b>${esc(tituloSes(d))}</b>${chip(d)}</button>`).join("")}`:""}
   </div>`;
   window.scrollTo(0,0);
 }
@@ -1283,17 +1296,17 @@ function renderTareas(){
 let refQ="";
 function renderRef(keep){
   const y=window.scrollY,q=refQ.trim().toLowerCase();
-  const all=[];for(const d of Object.keys(T.ses).sort().reverse()){for(const a of parseSession(T.ses[d].blocks).acts)if(a.ty==="ref")all.push({d,a})}
+  const all=[];for(const d of porFecha(Object.keys(T.ses))){for(const a of parseSession(T.ses[d].blocks).acts)if(a.ty==="ref")all.push({d,a})}
   const txtOf=x=>(x.a.title+" "+x.a.blocks.map(b=>rtPlain(b.r)+" "+(b.k||[]).map(c=>rtPlain(c.r)+(c.cells||[]).map(rtPlain).join(" ")).join(" ")).join(" ")).toLowerCase();
   const list=q?all.filter(x=>txtOf(x).includes(q)):all;
-  const pend=T.list.filter(x=>!T.ses[x.date]).length;
+  const pend=T.list.filter(x=>!T.ses[x.k]).length;
   $("#app").innerHTML=`<div class="stack tk">
     ${tabsHtml("estudio")}
     <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
     ${subTabs("ref")}
     <input class="tk-in" id="refSearch" type="search" placeholder="Buscar (ej. no longer, uncountable…)" value="${esc(refQ)}" autocomplete="off" spellcheck="false" autocapitalize="off">
     <div class="muted small" id="tkState">${all.length} ${all.length===1?"explicación guardada":"explicaciones guardadas"}${pend?` · ${pend} sesiones anteriores aún por descargar (se bajan solas al actualizar)`:""}</div>
-    ${list.map(x=>`<section class="card tk-act ref"><div class="tk-ah"><span class="tag">Consulta</span><span class="sp"></span><button class="btn" data-tk="date" data-v="${x.d}" style="min-height:34px;padding:4px 10px">${x.d}</button></div>
+    ${list.map(x=>`<section class="card tk-act ref"><div class="tk-ah"><span class="tag">Consulta</span><span class="sp"></span><button class="btn" data-tk="date" data-v="${x.d}" style="min-height:34px;padding:4px 10px">${sDate(x.d)}</button></div>
       <h3 class="tk-title">${esc(x.a.title)}</h3>${sinTablas(x.a.blocks).map(blockHtml).join("")}</section>`).join("")||`<div class="card muted">${q?"Nada coincide con la búsqueda.":"Aún no hay explicaciones. Aparecen aquí las secciones 📘 Consulta de cada sesión."}</div>`}
   </div>`;
   window.scrollTo(0,keep?y:0);
@@ -1354,7 +1367,7 @@ function renderTarea(keepScroll){
   const p=parseSession(s.blocks),locked=tLocked(d),ents=entregasDe(d),m=totalMin(d,p);corrMap(p);
   const dudas=Object.values(T.ans[d]||{}).filter(a=>a.d).length;
   $("#app").innerHTML=`<div class="stack tk">
-    <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><div style="min-width:0"><b style="font-size:1.05rem">${d===today()?"Hoy · ":""}${d}</b><div class="muted small">${esc(s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""))}</div></div><span class="sp"></span><button class="btn" data-tk="refresh" title="Actualizar">↻</button></div>
+    <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><div style="min-width:0"><b style="font-size:1.05rem">${sDate(d)===today()?"Hoy · ":""}${sDate(d)}</b><div class="muted small">${esc(s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""))}</div></div><span class="sp"></span><button class="btn" data-tk="refresh" title="Actualizar">↻</button></div>
     <div class="muted small" id="tkState">${esc(tkLabel())}</div>
     ${p.retro.length?`<section class="card tk-retro"><div class="row" style="justify-content:space-between"><h3 style="margin:0">🧑‍🏫 Retroalimentación del instructor</h3>${notaPill(d)}</div>${p.retro.map(blockHtml).join("")}</section>`:""}
     ${ents.length?`<div class="card tk-sent"><b>📤 ${ents.length>1?ents.length+" entregas":"Entregada"}</b> · ${ents.map(e=>`Entrega ${e.n}: ${new Date(e.t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"})}${DB.outbox.includes(e.i)?" (en cola, se enviará con conexión)":""}`).join(" · ")}
@@ -1384,7 +1397,7 @@ function buildEntrega(d){
   });
   const now=new Date(),off=-now.getTimezoneOffset(),pad=x=>String(Math.abs(x)).padStart(2,"0");
   const iso=today(now)+"T"+pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds())+(off>=0?"+":"-")+pad(Math.trunc(off/60))+":"+pad(off%60);
-  return{t:now.getTime(),k:"t",date:d,tid:s.tid,src:s.src||"toggle",estado:(sesProps(d)||{}).estado||"",n:entregasDe(d).length+1,iso,dn:DB.dev.name,min:m.total,dudas,acts};
+  return{t:now.getTime(),k:"t",date:sDate(d),tid:s.tid,src:s.src||"toggle",estado:(sesProps(d)||{}).estado||"",n:entregasDe(d).length+1,iso,dn:DB.dev.name,min:m.total,dudas,acts};
 }
 const HELPN={nada:"sin ayuda",dic:"diccionario",trad:"traductor"};
 function entregaMd(e){
