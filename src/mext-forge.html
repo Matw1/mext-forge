@@ -1686,7 +1686,7 @@ function verTip(el){const c=el.closest(".chart");if(!c)return;c.querySelectorAll
 function tabla(cols,rows){return `<details class="cdatos"><summary>Ver datos</summary><div class="tk-table"><table><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map(v=>`<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div></details>`}
 const CW=340,CH=170,ML=30,MR=12,MT=14,MB=24;
 function ejeY(max,paso,fmt){let s="";for(let v=0;v<=max+1e-9;v+=paso){const y=MT+(CH-MT-MB)*(1-v/max);s+=`<line x1="${ML}" x2="${CW-MR}" y1="${y}" y2="${y}" class="cgrid"/><text x="${ML-6}" y="${y+3.5}" class="cax" text-anchor="end">${fmt(v)}</text>`}return s}
-function barras(datos,{max,paso,fmt,refV,refTxt,color}){
+function barras(datos,{max,paso,fmt,refV,refTxt,color,refColor}){
   const n=datos.length,bw=Math.min(26,(CW-ML-MR)/n-4),y0=CH-MB;
   let s=ejeY(max,paso,fmt);
   datos.forEach((d,i)=>{const cx=ML+(CW-ML-MR)*(i+.5)/n,hgt=Math.max(1,(CH-MT-MB)*Math.min(d.v,max)/max),y=y0-hgt;
@@ -1694,7 +1694,8 @@ function barras(datos,{max,paso,fmt,refV,refTxt,color}){
     if(i===n-1||i===0)s+=`<text x="${cx}" y="${CH-8}" class="cax" text-anchor="middle">${esc(d.label)}</text>`;
     if(i===n-1)s+=`<text x="${cx}" y="${y-5}" class="clbl" text-anchor="middle">${esc(fmt(d.v))}</text>`;
   });
-  if(refV!=null){const y=MT+(CH-MT-MB)*(1-refV/max);s+=`<line x1="${ML}" x2="${CW-MR}" y1="${y}" y2="${y}" class="cref"/><text x="${ML+4}" y="${y-4}" class="cax clbg">${esc(refTxt)}</text>`}
+  if(refV!=null){const y=MT+(CH-MT-MB)*(1-refV/max),rc=refColor?` style="stroke:${refColor};stroke-width:2"`:"",tc=refColor?` style="fill:${refColor};font-weight:800"`:"";
+    s+=`<line x1="${ML}" x2="${CW-MR}" y1="${y}" y2="${y}" class="cref"${rc}/><text x="${ML+4}" y="${y-4}" class="cax clbg"${tc}>${esc(refTxt)}</text>`}
   return `<svg viewBox="0 0 ${CW} ${CH}" class="csvg" role="img">${s}</svg>`;
 }
 function lineas(serie,{max,paso,fmt,x0,x1,refV,refTxt,ref2,color,serie2,color2}){
@@ -1734,8 +1735,8 @@ function renderProg(){
   // Promedio de TODAS las notas (el gráfico muestra las últimas 14); color por nota: rojo < 7 · amarillo 7–8,5 · verde > 8,5
   const todasN=ses.filter(s=>typeof s.nota==="number"),notas=todasN.slice(-14),prom=todasN.length?todasN.reduce((a,s)=>a+s.nota,0)/todasN.length:null;
   const cN=v=>({ok:"var(--ok)",warn:"var(--amar)",bad:"var(--bad)"})[notaNivel(v)];
-  html+=card("Calificación por sesión",todasN.length?`La nota de 1 a 10 que pone el instructor · <span class="enota" data-n="${{ok:"alta",warn:"media",bad:"baja"}[notaNivel(prom)]}" style="font-size:.8rem">promedio ${coma(prom)}/10 (${todasN.length} ${todasN.length===1?"sesión":"sesiones"})</span><br>Rojo &lt; 7 · amarillo 7–8,5 · verde &gt; 8,5`:"La nota de 1 a 10 que pone el instructor",
-    notas.length?barras(notas.map(s=>({v:Math.min(10,s.nota),color:cN(s.nota),label:fechaCorta(s.fecha),tip:`${fechaCorta(s.fecha)} · ${s.titulo} · ${coma(s.nota)}/10`})),{max:10,paso:2,fmt:coma,color:"var(--accent)",refV:prom,refTxt:"Prom. "+coma(prom)})
+  html+=card("Calificación por sesión",todasN.length?`<span class="enota" data-n="${{ok:"alta",warn:"media",bad:"baja"}[notaNivel(prom)]}" style="font-size:.8rem">Promedio ${coma(prom)}/10 (${todasN.length} ${todasN.length===1?"sesión":"sesiones"})</span>`:"",
+    notas.length?barras(notas.map(s=>({v:Math.min(10,s.nota),color:cN(s.nota),label:fechaCorta(s.fecha),tip:`${fechaCorta(s.fecha)} · ${s.titulo} · ${coma(s.nota)}/10`})),{max:10,paso:2,fmt:coma,color:"var(--accent)",refV:prom,refTxt:"Prom. "+coma(prom),refColor:"var(--inf)"})
     +tabla(["Fecha","Sesión","Nota"],todasN.map(s=>[s.fecha,s.titulo,coma(s.nota)]).concat([["Promedio",`${todasN.length} ${todasN.length===1?"sesión":"sesiones"}`,coma(prom)]])):vacio("Aparecerá cuando el instructor ponga la Calificación en tus sesiones."));
   // 2) Dominio de la fase actual (el eje x cubre solo el rango de los datos)
   const conDom=ses.filter(s=>typeof s.dom==="number"),fase=conDom.length?conDom[conDom.length-1].fase:null,dom=conDom.filter(s=>s.fase===fase);
