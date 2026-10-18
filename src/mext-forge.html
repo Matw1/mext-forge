@@ -13,16 +13,16 @@
 :root{--bg:#f6f0e4;--surface:#fffdf8;--surface2:#f2eadb;--text:#211b17;--muted:#74695e;--line:#e4d8c4;
   --accent:#d6336c;--accent2:#b07d12;--accent-t:#fff;--ok:#1d8a50;--okbg:#e2f3e8;--bad:#c9302c;--badbg:#fbe6e2;--warn:#b26b00;--warnbg:#fbefd9;--focus:#d63a2f;
   --glow:rgba(214,51,108,.16);--shadow:0 1px 2px rgba(60,40,20,.06),0 6px 20px rgba(60,40,20,.07);
-  --cop:#d63a2f;--inf:#2457d6;--neg:#7348d1;--unc:#1c9459;--ind:#bb7400;--c1:#0b8aa3;--mix:#211b17;--buf:#b26b00;--fos:#c23c7c;--dia:#4f46e5}
+  --cop:#d63a2f;--inf:#2457d6;--neg:#7348d1;--unc:#1c9459;--ind:#bb7400;--c1:#0b8aa3;--mix:#211b17;--buf:#b26b00;--fos:#c23c7c;--dia:#4f46e5;--esc:#0f766e}
 /* ===== Tema 夜 (oscuro) ===== */
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
   --accent:#ff7aa8;--accent2:#ffc857;--accent-t:#2a0714;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
   --glow:rgba(255,122,168,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
-  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6;--dia:#a5b4fc}}
+  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6;--dia:#a5b4fc;--esc:#5eead4}}
 :root[data-theme="dark"]{--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
   --accent:#ff7aa8;--accent2:#ffc857;--accent-t:#2a0714;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
   --glow:rgba(255,122,168,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
-  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6;--dia:#a5b4fc}
+  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6;--dia:#a5b4fc;--esc:#5eead4}
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;color:var(--text);background-color:var(--bg)}
@@ -245,6 +245,33 @@ details[open].card summary::after{content:"－"}
 .lesson:hover,.lesson.on{border-color:var(--dia)}.lesson.on{box-shadow:0 0 0 1.5px var(--dia),var(--shadow)}.lesson .glyph{margin:0}
 .lesson .lt{flex:1;min-width:0;display:flex;flex-direction:column}.lesson .lt b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lesson .mb{position:absolute;left:0;bottom:0;height:3px}.lnew{color:var(--dia);font-weight:800}
+/* Producción: escribir la respuesta */
+.lrow{display:flex;gap:8px;align-items:stretch}.lrow .lesson{flex:1;min-width:0}
+.lprod{flex:none;width:58px;border:1px solid var(--line);background:var(--surface);border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:1.2rem;box-shadow:var(--shadow)}
+.lprod small{font-size:.68rem;font-weight:800;color:var(--muted)}.lprod:hover{border-color:var(--esc)}
+.lesson.lp:hover{border-color:var(--esc)}
+.prod{margin-top:14px;display:grid;gap:10px}
+.prod input{width:100%;font:inherit;font-size:1.2rem;padding:14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:var(--text)}
+.prod input:focus{outline:2px solid var(--esc);outline-offset:1px}
+.pbtn{min-height:52px;font-size:1.05rem}
+.pjudge{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pjudge .btn{min-height:52px;font-weight:800}
+.pbad{color:var(--bad);border-color:var(--bad)}.pok{color:var(--ok);border-color:var(--ok)}
+.pgood{text-align:center;font-size:1.3rem;font-weight:900;color:var(--ok);padding:14px;border-radius:14px;background:var(--okbg)}
+.pcmp{display:grid;gap:6px}.pantes{margin-top:10px;font-size:.85rem;color:var(--muted)}
+.pnext{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.pcount{font-weight:900;font-variant-numeric:tabular-nums;color:var(--muted);min-width:48px;text-align:right}
+@media (max-width:420px){.pjudge{grid-template-columns:1fr}}
+/* Panel de progreso: gráficos SVG sin librerías */
+.csvg{display:block;width:100%;height:auto;margin-top:10px;overflow:visible}
+.cgrid{stroke:var(--line);stroke-width:1}.cref{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 4}
+.cax{font-size:10px;fill:var(--muted);font-family:inherit}.clbl{font-size:11px;font-weight:800;fill:var(--text);font-family:inherit}
+.cmk{cursor:pointer}.cmk.sel path,.cmk.sel circle+circle{stroke:var(--text);stroke-width:2}
+.ccap{min-height:1.4em;margin-top:4px}.cvacio{padding:14px 0}
+.cdatos{margin-top:6px}.cdatos summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
+.chero{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:8px}.chero b{font-size:1.6rem;font-variant-numeric:tabular-nums}
+.chero .pos{color:var(--ok)}.chero .neg{color:var(--bad)}
+.cleg{display:flex;gap:14px;font-size:.78rem;color:var(--muted);margin-top:4px}.cleg i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin-right:5px}
+.cleg i.dash{background:repeating-linear-gradient(90deg,var(--muted) 0 4px,transparent 4px 8px)}
 .lempty{display:flex;flex-direction:column;gap:4px}
 .emat summary{cursor:pointer;list-style:none}.emat summary::-webkit-details-marker{display:none}.emat summary .ek{display:block;font-size:.78rem;color:var(--muted)}
 .emtema{font-size:.8rem;font-weight:700;color:var(--muted);margin:12px 0 2px}
@@ -325,6 +352,8 @@ const CATS={
 // Error Hunter: 4 segmentos [..]; e = índice del erróneo; fx = corrección
 // Categoría de las lecciones que arma el instructor (preguntas dinámicas, claves «d:<fecha>:<bloque>»)
 CATS.DIA={n:"Lecciones del instructor",r:"Preguntas que el instructor armó con los temas y tus errores de ese día."};
+// Producción: escribir la respuesta (claves «w:<sesión>:c<bloque>» de tus errores corregidos y «w:<sesión>:g<bloque>» del 🎮)
+CATS.ESC={n:"Producción",r:"Escribe tú la forma completa: reconocerla entre opciones no es lo mismo que producirla."};
 const EH=[
  // COP
  {c:"COP",t:"When the exam is over, [I'm feel] much [more relaxed] [than] I was [before].",e:0,fx:"I feel"},
@@ -508,7 +537,8 @@ const CUI={
   IND:{g:"any",n:"Some / any / no",s:"Doble negación",v:"ind"},
   C1:{g:"C1",n:"Formal C1",s:"Inversión y colocaciones",v:"c1"},
   buf:{g:"↻",n:"Errores",s:"Buffer pendiente",v:"buf"},
-  DIA:{g:"Día",n:"Lecciones",s:"Días con el instructor",v:"dia"}
+  DIA:{g:"Día",n:"Lecciones",s:"Días con el instructor",v:"dia"},
+  ESC:{g:"✎",n:"Producción",s:"Escribir en vez de elegir",v:"esc"}
 };
 const FOCI=["mix","COP","INF","NEG","UNC","IND","C1","buf"];
 // modos de juego
@@ -554,7 +584,7 @@ const cs=c=>{const s=DB.cats[c]||(DB.cats[c]={n:0,w:0,to:0,ms:0,f:0});if(!s.r)s.
 // Aplica un evento al estado derivado. Devuelve {freed} si sacó un ejercicio del buffer.
 function applyEvent(e){
   if(e.k==="a"){
-    const it=BYID[e.q],cat=it?it.c:(String(e.q).startsWith("d:")?"DIA":null);if(!cat)return{};
+    const it=BYID[e.q],cat=it?it.c:(String(e.q).startsWith("d:")?"DIA":String(e.q).startsWith("w:")?"ESC":null);if(!cat)return{};
     const s=cs(cat),ok=!!e.o;
     s.n++;s.ms+=e.ms||0;s.r.push(ok?1:0);if(s.r.length>15)s.r.shift();
     const is=DB.items[e.q]||(DB.items[e.q]={w:0,c:0});is.n=(is.n||0)+1;if(ok)is.ok=(is.ok||0)+1;
@@ -700,7 +730,13 @@ function buildQueue(key){
   if(key==="buf"){const b=shuffle(bufItems());return b.slice(0,ROUND)}
   if(key==="days"){const L=shuffle(LESSONS.slice());return L.slice(0,20)}
   if(String(key).startsWith("day:")){const d=key.slice(4);return shuffle(LESSONS.filter(x=>x.L===d)).slice(0,20)}
-  if(key==="mix"){pool=allItems();blind=true;lead=shuffle(bufItems()).slice(0,3)}
+  // Producción: 8 tarjetas (mín. 3; si hay pocas, se repiten), primero las del buffer; sin tiempo por pregunta
+  if(key==="prod"||String(key).startsWith("prod:")){const kk=key.slice(5),pool2=PROD.filter(x=>!kk||x.L===kk);if(!pool2.length)return[];
+    const n=Math.min(8,Math.max(3,2*pool2.length)),q=shuffle(bufItems(x=>x.k==="W"&&(!kk||x.L===kk))).slice(0,3);
+    while(q.length<n){const add=pick(pool2,Math.min(n-q.length,pool2.length),false,new Set(q.slice(-1).map(x=>x.id)));if(!add.length)break;q.push(...add)}
+    return q.slice(0,n)}
+  if(key==="top")return topErrores().map(x=>BYID[x.k]).filter(Boolean);
+  if(key==="mix"){pool=allItems();blind=true;lead=shuffle(bufItems(x=>x.k!=="W")).slice(0,3)}
   else if(CATS[key]){pool=ITEMS.filter(x=>x.c===key);lead=shuffle(bufItems(x=>x.c===key)).slice(0,3)}
   else if(key==="hunter")pool=ITEMS.filter(x=>x.k==="E");
   else if(key==="rebuild")pool=ITEMS.filter(x=>x.k==="R");
@@ -726,9 +762,10 @@ function nextQ(){
   while(G.idx<G.queue.length&&!BYID[G.queue[G.idx].id])G.idx++; // lecciones que el instructor borró
   if(G.idx>=G.queue.length)return finish();
   const it=G.it=G.queue[G.idx];
-  if(it.L&&it.all.length>4){const c=it.all.find(o=>o.ok);it.o=[c.t].concat(shuffle(it.all.filter(o=>!o.ok)).slice(0,3).map(o=>o.t))}
+  if(it.L&&it.all&&it.all.length>4){const c=it.all.find(o=>o.ok);it.o=[c.t].concat(shuffle(it.all.filter(o=>!o.ok)).slice(0,3).map(o=>o.t))}
   G.state="q";G.chosen=null;G.gain=0;G.fos=null;G.limit=limitFor(it);G.qEl=0;G.last=performance.now();
   if(it.k==="R")G.order=shuffle(it.o.map((_,i)=>i));
+  if(it.k==="W"){G.limit=Infinity;G.typed="";G.pr=null}
   renderDrill();
   cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick);
 }
@@ -749,19 +786,21 @@ function updateClock(){
   if(tr)tr.classList.toggle("low",p<.3);
   if(qt){qt.style.width=(100*p)+"%";qt.className=p<.25?"low":p<.5?"mid":""}
 }
-function answer(choice){
-  if(!G||G.state!=="q")return;
+// pr = respuesta escrita (producción): {ok, exact, typed}
+function answer(choice,pr){
+  if(!G||!(G.state==="q"||pr&&G.state==="judge"))return;
   cancelAnimationFrame(G.raf);
-  const it=G.it,ms=Math.min(G.qEl,G.limit),timeout=choice<0;
+  const it=G.it,ms=Math.min(G.qEl,G.limit),timeout=!pr&&choice<0;
   const orig=it.k==="R"&&!timeout?G.order[choice]:choice;
-  const ok=!timeout&&(it.k==="E"?choice===it.e:orig===0);
-  let fos=null;
-  if(!ok){if(it.k==="E")fos=fossilOf(clean(it.t));else if(!timeout)fos=fossilOf(fill(it.q,it.o[orig]))}
+  const ok=pr?!!pr.ok:!timeout&&(it.k==="E"?choice===it.e:orig===0);
+  let fos=null;G.pr=pr||null;
+  if(!ok&&!pr){if(it.k==="E")fos=fossilOf(clean(it.t));else if(!timeout)fos=fossilOf(fill(it.q,it.o[orig]))}
   // evento de respuesta (fuente de verdad); el estado derivado se actualiza al aplicarlo
   const bc=G.byCat[it.c]||(G.byCat[it.c]={n:0,ok:0});bc.n++;if(ok)bc.ok++;
   // detalle para el instructor: pregunta, lo que respondió y lo correcto (unido a la ronda por sid)
   const segs=it.k==="E"?it.t.match(/\[([^\]]+)\]/g).map(x=>x.slice(1,-1)):null;
-  const det={c:it.c,sid:G.sid,pr:it.k==="E"?clean(it.t):it.q,ch:timeout?"":it.k==="E"?segs[choice]:it.o[orig],cr:it.k==="E"?segs[it.e]+" → "+it.fx:it.o[0]};
+  const det=pr?{c:it.c,sid:G.sid,pr:it.q,ch:pr.typed+(pr.ok&&!pr.exact?" (válida según yo)":""),cr:it.ans}
+    :{c:it.c,sid:G.sid,pr:it.k==="E"?clean(it.t):it.q,ch:timeout?"":it.k==="E"?segs[choice]:it.o[orig],cr:it.k==="E"?segs[it.e]+" → "+it.fx:it.o[0]};
   if(addLocal(Object.assign({t:Date.now(),k:"a",q:it.id,o:ok?1:0,ms:Math.round(ms),to:timeout?1:0,f:fos?1:0},det)).freed)G.freed++;
   save();
   if(ok){G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);
@@ -841,14 +880,14 @@ function instructorPills(){
   return h;
 }
 function renderHome(){
-  if(String(DB.settings.focus).startsWith("day")&&!buildQueue(DB.settings.focus).length)DB.settings.focus="mix"; // la lección ya no existe
+  if(/^(day|prod)/.test(String(DB.settings.focus))&&!buildQueue(DB.settings.focus).length)DB.settings.focus="mix"; // la lección ya no existe
   const ts=todayStats(),bufN=Object.keys(DB.buffer).length,f=DB.settings.focus;
   const exam=daysTo(EXAM),prog=Math.min(1,Math.max(0,(new Date()-JOURNEY_START)/(EXAM-JOURNEY_START))),C=2*Math.PI*44;
   const {ph,pct,days}=phaseInfo();
-  const keys=Object.keys(CATS).filter(k=>k!=="DIA"),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
+  const keys=Object.keys(CATS).filter(k=>k!=="DIA"&&k!=="ESC"),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
   $("#app").innerHTML=`${tabsHtml("juego")}
     <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
-      <button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
+      <button class="icon-btn" data-act="prog" aria-label="Panel de progreso" title="Panel de progreso (P)">📈</button><button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
     <section class="hero">
       <div class="ring" aria-label="${exam} días para el examen">
         <svg viewBox="0 0 100 100"><defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffb3cd"/><stop offset="1" stop-color="var(--accent)"/></linearGradient></defs>
@@ -862,7 +901,7 @@ function renderHome(){
         <div class="pills">${instructorPills()}<span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
       </div>
     </section>
-    <button class="start" data-act="go"><span class="play">▶</span><span><b>${String(f).startsWith("day")?"Lección":"Ronda de "+ROUND}</b><small>${esc(modeLabel(f).replace(/^Lección · /,""))} · Enter</small></span></button>
+    <button class="start" data-act="go"><span class="play">▶</span><span><b>${String(f).startsWith("day")?"Lección":String(f).startsWith("prod")?"Producción":"Ronda de "+ROUND}</b><small>${esc(modeLabel(f).replace(/^Lección · /,""))} · Enter</small></span></button>
     ${lessonsHtml(f)}
     <h3>Otros</h3>
     <div class="modes">${FOCI.map(k=>{
@@ -906,7 +945,11 @@ function renderDrill(){
   const inBuf=DB.buffer[it.id]&&!fb?DB.buffer[it.id]:null;
   const modeTag=MODES[G.key]?`<span class="tag" style="--c:${cv(G.key)}">${MODES[G.key].n}</span>`:it.L?`<span class="tag" style="--c:var(--dia)">Lección · ${fechaCorta(it.D||sDate(it.L))}</span>`:"";
   let prompt,opts="";
-  if(it.k==="E"){
+  if(it.k==="W"){
+    const [a,b]=it.q.split("___");
+    prompt=`<div class="head">${esc(it.src)} · ${esc(tituloSes(it.L))}</div><div class="prompt rb" lang="en">${b===undefined?a:a+'<span class="blank">&nbsp;?&nbsp;</span>'+b}</div>${it.antes?`<div class="pantes">Antes escribiste: <span lang="en">${esc(it.antes)}</span></div>`:""}`;
+    opts=prodHtml(it);
+  }else if(it.k==="E"){
     let k=0;
     const html=it.t.replace(/\[([^\]]+)\]/g,(m,s)=>{const i=k++;
       const cls=fb?(i===it.e?"ok":i===G.chosen?"bad":"dim"):"";
@@ -922,7 +965,7 @@ function renderDrill(){
       return `<button class="opt ${cls}" data-ans="${i}" ${fb?'tabindex="-1"':""}><span class="k">${i+1}</span><span>${it.o[o]}</span></button>`}).join("")}</div>`;
   }
   let fbHtml="";
-  if(fb&&!ok){
+  if(fb&&!ok&&it.k!=="W"){
     const chosenTxt=G.timeout?null:it.k==="E"?it.t.match(/\[([^\]]+)\]/g)[G.chosen].slice(1,-1):it.o[G.order[G.chosen]];
     const rightTxt=it.k==="E"?`${it.t.match(/\[([^\]]+)\]/g)[it.e].slice(1,-1)} → ${it.fx}`:it.o[0];
     fbHtml=`<div class="fb" role="alert" data-act="cont"><span class="ic">${G.timeout?"⏱":"✗"}</span><div style="flex:1;min-width:0">
@@ -937,16 +980,41 @@ function renderDrill(){
     <div class="hud"><button class="icon-btn" data-act="quit" aria-label="Salir">✕</button>
       <div class="score"><b>${G.score}</b><small>puntos</small></div>${fb&&ok&&G.gain?`<span class="float">+${G.gain}</span>`:""}
       <span class="sp"></span>${G.death?`<span class="lives">${"♥".repeat(G.lives)}<span style="opacity:.25">${"♥".repeat(3-G.lives)}</span></span>`:""}${cm}
-      <div class="tring" id="tring" aria-label="Tiempo restante"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="var(--surface2)" stroke-width="5"/>
-        <circle id="tfg" class="fg" cx="24" cy="24" r="20" fill="none" stroke="var(--text)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${RC}" stroke-dashoffset="0"/></svg><span id="ttx"></span></div>
+      ${it.k==="W"?`<span class="pcount">${G.idx+1}/${G.queue.length}</span>`:`<div class="tring" id="tring" aria-label="Tiempo restante"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="20" fill="none" stroke="var(--surface2)" stroke-width="5"/>
+        <circle id="tfg" class="fg" cx="24" cy="24" r="20" fill="none" stroke="var(--text)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${RC}" stroke-dashoffset="0"/></svg><span id="ttx"></span></div>`}
     </div>
     <div class="qcard ${ok?"pop":""}" style="--c:${cv(c)}"><span class="wm" aria-hidden="true">${CUI[c].g}</span>
       <div class="tags"><span class="tag">${CUI[c].g} ${CATS[c].n}</span>${modeTag}${inBuf?`<span class="tag buf">↻ repaso ${inBuf.s}/3</span>`:""}<span class="sp"></span><span class="muted small">${prog}</span></div>
       ${prompt}
-      <div class="qtimer"><i id="qt"></i></div>
+      ${it.k==="W"?"":`<div class="qtimer"><i id="qt"></i></div>`}
     </div>
     ${opts}${fbHtml}`;
   updateClock();
+  if(it.k==="W"&&G.state==="q"){const el=$("#prodIn");if(el)setTimeout(()=>el.focus(),30)}
+}
+/* ---------- Producción ---------- */
+// Comparación tolerante: sin espacios de más ni signos (. , ! ? ; :), apóstrofo curvo = recto. Las mayúsculas sí cuentan.
+const pNorm=s=>String(s||"").normalize("NFKC").replace(/[’‘`]/g,"'").replace(/[.,!?;:"“”¿¡()]/g," ").replace(/\s+/g," ").trim();
+function prodCheck(){
+  if(!G||!G.it||G.it.k!=="W"||G.state!=="q")return;
+  const el=$("#prodIn"),typed=(el?el.value:"").trim();
+  if(!typed){toast("Escribe tu respuesta");el&&el.focus();return}
+  G.typed=typed;
+  if(pNorm(typed)===pNorm(G.it.ans))return answer(0,{ok:true,exact:true,typed});
+  cancelAnimationFrame(G.raf);G.state="judge";renderDrill(); // no coincide: decides tú
+}
+function prodHtml(it){
+  const inp='lang="en" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false"';
+  if(G.state==="q")return `<div class="prod"><input id="prodIn" type="text" ${inp} placeholder="Escribe aquí en inglés" enterkeyhint="done">
+    <button class="btn tk-send pbtn" data-act="prodcheck">Comprobar ⏎</button><div class="muted small">Se ignoran los espacios de más y los signos (. , ! ?). Las mayúsculas sí cuentan.</div></div>`;
+  const d=G.typed&&G.typed.length>2?cDiffHtml(G.typed,it.ans):null;
+  const caja=`<div class="pcmp"><div class="muted small">Escribiste</div><div class="tk-ans" lang="en">${d?d.a:esc(G.typed||"")}</div>
+    <div class="muted small">Respuesta del instructor</div><div class="tk-fix" lang="en">✏️ ${d?d.f:esc(it.ans)}</div>
+    ${it.exp?`<div class="tk-com">🧑‍🏫 ${esc(it.exp)}</div>`:""}</div>`;
+  if(G.state==="judge")return `<div class="prod">${caja}
+    <div class="pjudge"><button class="btn pbad" data-act="prodbad">✗ Me equivoqué <span class="kbd">1</span></button><button class="btn pok" data-act="prodok">✓ La mía también es válida <span class="kbd">2</span></button></div></div>`;
+  return G.ok?`<div class="prod"><div class="pgood">✓ ¡Correcto!${G.pr&&!G.pr.exact?" (válida según tú)":""}</div></div>`
+    :`<div class="prod">${caja}<div class="pnext"><span class="tag buf">↻ al buffer · 0/3</span><button class="btn" data-act="cont">Seguir ⏎</button></div></div>`;
 }
 function grade(a){return a>=.9?["優","EXCELENTE"]:a>=.75?["良","BIEN"]:a>=.6?["可","PASA"]:["再","OTRA VEZ"]}
 function renderEnd(){
@@ -982,10 +1050,10 @@ function renderStats(){
     <div class="card"><h3>↻ Buffer de errores (${buf.length})</h3>${buf.length?`<ul class="list">${buf.map(([id,v])=>`<li>${glyph(BYID[id].c)}<span class="t" lang="en">${label(BYID[id])}</span><span class="dots">${"●".repeat(v.s)}${"○".repeat(3-v.s)}</span></li>`).join("")}</ul>
       <button class="btn" data-focus-go="buf" style="margin-top:10px;width:100%">Practicar el buffer</button>`:'<span class="muted">Vacío. Lo que falles entra aquí hasta acertarlo 3 veces seguidas.</span>'}</div>
     <div class="card"><h3>Más fallados</h3>${miss.length?`<ul class="list">${miss.map(([id,v])=>`<li>${glyph(BYID[id].c)}<span class="t" lang="en">${label(BYID[id])}</span><span class="muted small">${v.w}✗</span></li>`).join("")}</ul>`:'<span class="muted">Todavía nada.</span>'}</div>
-    <div class="card"><h3>Últimas rondas</h3>${ss.length?`<ul class="list">${ss.map(s=>`<li>${CUI[s.m]||MODES[s.m]?glyph(s.m):String(s.m).startsWith("day")?glyph("DIA"):glyph("mix")}<span class="t">${nameOf(s.m)} · ${s.ts?new Date(s.ts).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):s.d}</span><span class="muted small">${s.ok!=null?s.ok:Math.round(s.acc*s.n/100)}/${s.n} · <b style="color:var(--text)">${s.s}</b></span></li>`).join("")}</ul>`:'<span class="muted">Sin rondas.</span>'}</div>
+    <div class="card"><h3>Últimas rondas</h3>${ss.length?`<ul class="list">${ss.map(s=>`<li>${CUI[s.m]||MODES[s.m]?glyph(s.m):String(s.m).startsWith("day")?glyph("DIA"):String(s.m).startsWith("prod")?glyph("ESC"):glyph("mix")}<span class="t">${nameOf(s.m)} · ${s.ts?new Date(s.ts).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):s.d}</span><span class="muted small">${s.ok!=null?s.ok:Math.round(s.acc*s.n/100)}/${s.n} · <b style="color:var(--text)">${s.s}</b></span></li>`).join("")}</ul>`:'<span class="muted">Sin rondas.</span>'}</div>
   </div>`;
 }
-function render(){applyTheme();if(view==="tareas")return renderTareas();if(view==="ref")return renderRef(true);if(view==="mat")return renderMateria();if(view==="tarea")return renderTarea(true);if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
+function render(){applyTheme();if(view==="prog")return renderProg();if(view==="tareas")return renderTareas();if(view==="ref")return renderRef(true);if(view==="mat")return renderMateria();if(view==="tarea")return renderTarea(true);if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
 
 /* ================= TAREAS DIARIAS (instructor) =================
    Sección separada del juego: sin puntos, rachas ni corrección automática.
@@ -1205,36 +1273,59 @@ function lessonItemsOf(d){
     if(!q||opts.length<2||opts.filter(o=>o.ok).length!==1)continue; // mal formada: se ignora
     const right=opts.find(o=>o.ok).t;
     const D=sDate(d); // el id usa la fecha (el id del bloque ya es único): así se conserva el progreso de las lecciones viejas
-    out.push({id:"d:"+D+":"+b.id,k:"R",c:"DIA",L:d,D,q,all:opts,o:[right].concat(opts.filter(o=>!o.ok).map(o=>o.t)),
+    out.push({id:"d:"+D+":"+b.id,bid:b.id,exp:exp?san(exp):"",k:"R",c:"DIA",L:d,D,q,all:opts,o:[right].concat(opts.filter(o=>!o.ok).map(o=>o.t)),
       r:(exp?san(exp):"Correcta: "+right)+" · Lección del "+fechaCorta(D)});
   }
   return out;
 }
 function registerLessons(){
-  for(const id of Object.keys(BYID))if(id.startsWith("d:"))delete BYID[id];
-  LESSONS=[];
-  for(const d of porFecha(Object.keys(T.ses)))for(const it of lessonItemsOf(d)){LESSONS.push(it);BYID[it.id]=it}
+  for(const id of Object.keys(BYID))if(id.startsWith("d:")||id.startsWith("w:"))delete BYID[id];
+  LESSONS=[];PROD=[];
+  for(const d of porFecha(Object.keys(T.ses))){for(const it of lessonItemsOf(d)){LESSONS.push(it);BYID[it.id]=it}
+    for(const it of prodItemsOf(d)){PROD.push(it);BYID[it.id]=it}}
+}
+/* ---------- Producción: escribir la respuesta ----------
+   Tarjetas: a) cada consigna corregida ✗/◐ en 🔍 con «forma correcta — comentario» (forma de 2+ palabras);
+   b) cada pregunta del 🎮 Juego, escribiendo la opción ✓. */
+let PROD=[];
+const nPal=x=>(String(x).trim().match(/\S+/g)||[]).length;
+function prodItemsOf(k){
+  const s=T.ses[k];if(!s)return[];
+  const p=parseSession(s.blocks),out=[],D=sDate(k);corrMap(p);
+  for(const a of p.acts){if(!a.verd)continue;let i=0;
+    for(const b of a.blocks){if(!isList(b.ty))continue;const V=a.verd[i++];
+      if(!V||V.v==="ok"||!V.fix||nPal(V.fix)<2)continue;
+      const A=(T.ans[k]||{})[b.id]||{},antes=String(A.ch||A.v||"").trim();
+      out.push({id:"w:"+k+":c"+b.id,k:"W",c:"ESC",L:k,D,q:san(rtPlain(splitOpts(b.r||[]).r)).trim()||"Escribe la forma correcta",o:[san(V.fix)],ans:V.fix,exp:V.com,antes,src:"Corrige tu error",
+        r:(V.com?san(V.com):"Forma correcta: "+san(V.fix))+" · Lección del "+fechaCorta(D)})}}
+  for(const it of lessonItemsOf(k))out.push({id:"w:"+k+":g"+it.bid,k:"W",c:"ESC",L:k,D,q:it.q,o:[it.o[0]],ans:it.o[0],exp:it.exp,antes:"",src:"Escribe la respuesta",r:it.r});
+  return out;
 }
 const allItems=()=>ITEMS.concat(LESSONS);
 const lessonDays=()=>[...new Set(LESSONS.map(x=>x.L))];
 function modeLabel(m){
   m=String(m);
   if(m==="days")return "Todas las lecciones";
+  if(m==="prod")return "Producción: escribir";
+  if(m==="top")return "Errores frecuentes (7 días)";
+  if(m.startsWith("prod:"))return "Producción · "+fechaCorta(sDate(m.slice(5)))+" · "+tituloSes(m.slice(5));
   if(m.startsWith("day:"))return "Lección · "+fechaCorta(sDate(m.slice(4)))+" · "+tituloSes(m.slice(4));
   const c=CUI[m]||MODES[m];if(!c)return m;
-  return c.n+(CATS[m]&&m!=="DIA"?" · "+CATS[m].n:"");
+  return c.n+(CATS[m]&&m!=="DIA"&&m!=="ESC"?" · "+CATS[m].n:"");
 }
 function lessonsHtml(f){
-  const days=lessonDays();
-  if(!days.length)return `<h3>📅 Lecciones de días estudiados</h3><div class="card lempty"><b>Aún no hay lecciones.</b><div class="muted small">Cada vez que el instructor corrija un día y agregue la sección «🎮 Juego», aparecerá aquí una lección nueva para jugar.</div></div>`;
+  const days=lessonDays(),pn=k=>PROD.filter(x=>x.L===k).length;
+  const prodCard=PROD.length?`<button class="lesson lp" data-mode="prod"><span class="glyph" style="--c:var(--esc)">✎</span><span class="lt"><b>✏️ Producción: escribir</b><span class="muted small">${PROD.length} tarjetas · tus errores corregidos y las preguntas del juego</span></span><span class="pct">▶</span></button>`:"";
+  if(!days.length)return prodCard?`<h3>📅 Lecciones de días estudiados</h3><div class="lessons">${prodCard}</div>`: `<h3>📅 Lecciones de días estudiados</h3><div class="card lempty"><b>Aún no hay lecciones.</b><div class="muted small">Cada vez que el instructor corrija un día y agregue la sección «🎮 Juego», aparecerá aquí una lección nueva para jugar.</div></div>`;
   const acc=ids=>{let n=0,ok=0;for(const id of ids){const it=DB.items[id];if(it&&it.n){n+=it.n;ok+=it.ok||0}}return n?ok/n:null};
-  const card=(mode,title,sub,ids,isNew)=>{const p=acc(ids);return `<button class="lesson ${f===mode?"on":""}" data-focus="${esc(mode)}">
+  const card=(mode,title,sub,ids,isNew,pk)=>{const p=acc(ids),n=pk?pn(pk):0;return `<div class="lrow"><button class="lesson ${f===mode?"on":""}" data-focus="${esc(mode)}">
       <span class="glyph" style="--c:var(--dia)">Día</span><span class="lt"><b>${esc(title)}</b><span class="muted small">${sub}${isNew?' · <span class="lnew">nueva</span>':""}</span></span>
-      <span class="pct">${p==null?"▶":Math.round(p*100)+"%"}</span>${p!=null?`<span class="mb" style="width:${p*100}%;background:var(--dia)"></span>`:""}</button>`};
+      <span class="pct">${p==null?"▶":Math.round(p*100)+"%"}</span>${p!=null?`<span class="mb" style="width:${p*100}%;background:var(--dia)"></span>`:""}</button>${n?`<button class="lprod" data-mode="prod:${esc(pk)}" title="Escribir las respuestas" aria-label="Producción: escribir">✏️<small>${n}</small></button>`:""}</div>`};
   const all=LESSONS.map(x=>x.id);
   return `<h3>📅 Lecciones de días estudiados</h3><div class="lessons">
     ${days.length>1?card("days","Todas las lecciones",`${days.length} días · ${all.length} preguntas`,all):""}
-    ${days.map(d=>{const ids=LESSONS.filter(x=>x.L===d).map(x=>x.id);return card("day:"+d,tituloSes(d),`${esc(fechaCorta(sDate(d)))} · ${ids.length} preguntas`,ids,!ids.some(id=>DB.items[id]))}).join("")}
+    ${prodCard}
+    ${days.map(d=>{const ids=LESSONS.filter(x=>x.L===d).map(x=>x.id);return card("day:"+d,tituloSes(d),`${esc(fechaCorta(sDate(d)))} · ${ids.length} preguntas`,ids,!ids.some(id=>DB.items[id]),d)}).join("")}
   </div>`;
 }
 
@@ -1477,6 +1568,87 @@ function updTotal(){const el=document.getElementById("tkTotal");if(!el||!T.ses[t
   const sub=document.getElementById("tkSub"),du=Object.values(T.ans[tDate]||{}).filter(a=>a.d).length;if(sub)sub.textContent=`(app ${m.app} + fuera ${m.out}) · ${du} ${du===1?"duda":"dudas"}`}
 setInterval(()=>{T.hb=Date.now();try{localStorage.setItem(TK+".hb",String(T.hb))}catch(e){}if(view==="tarea")updTimers()},1000);
 
+/* ================= PANEL DE PROGRESO =================
+   Un gráfico por pregunta, una sola serie cada uno (más su línea de referencia), marcas finas, etiqueta solo en
+   el último valor, valor al tocar/pasar y tabla «Ver datos». SVG en línea: funciona sin conexión. */
+const P_EXAMEN="2027-07-15",dms=f=>new Date(f+"T12:00:00").getTime();
+const fcT=t=>fechaCorta(today(new Date(t)));
+function verTip(el){const c=el.closest(".chart");if(!c)return;c.querySelectorAll(".sel").forEach(x=>x.classList.remove("sel"));el.classList.add("sel");const cap=c.querySelector(".ccap");if(cap)cap.textContent=el.dataset.tip}
+function tabla(cols,rows){return `<details class="cdatos"><summary>Ver datos</summary><div class="tk-table"><table><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map(v=>`<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div></details>`}
+const CW=340,CH=170,ML=30,MR=12,MT=14,MB=24;
+function ejeY(max,paso,fmt){let s="";for(let v=0;v<=max+1e-9;v+=paso){const y=MT+(CH-MT-MB)*(1-v/max);s+=`<line x1="${ML}" x2="${CW-MR}" y1="${y}" y2="${y}" class="cgrid"/><text x="${ML-6}" y="${y+3.5}" class="cax" text-anchor="end">${fmt(v)}</text>`}return s}
+function barras(datos,{max,paso,fmt,refV,refTxt,color}){
+  const n=datos.length,bw=Math.min(26,(CW-ML-MR)/n-4),y0=CH-MB;
+  let s=ejeY(max,paso,fmt);
+  datos.forEach((d,i)=>{const cx=ML+(CW-ML-MR)*(i+.5)/n,hgt=Math.max(1,(CH-MT-MB)*Math.min(d.v,max)/max),y=y0-hgt;
+    s+=`<g data-tip="${esc(d.tip)}" class="cmk"><rect x="${cx-bw/2-4}" y="${MT}" width="${bw+8}" height="${CH-MT-MB}" fill="transparent"/><path d="M${cx-bw/2},${y0}V${y+Math.min(4,hgt)}q0,-${Math.min(4,hgt)} 4,-${Math.min(4,hgt)}h${Math.max(0,bw-8)}q4,0 4,${Math.min(4,hgt)}V${y0}Z" fill="${color}"/></g>`;
+    if(i===n-1||i===0)s+=`<text x="${cx}" y="${CH-8}" class="cax" text-anchor="middle">${esc(d.label)}</text>`;
+    if(i===n-1)s+=`<text x="${cx}" y="${y-5}" class="clbl" text-anchor="middle">${esc(fmt(d.v))}</text>`;
+  });
+  if(refV!=null){const y=MT+(CH-MT-MB)*(1-refV/max);s+=`<line x1="${ML}" x2="${CW-MR}" y1="${y}" y2="${y}" class="cref"/><text x="${CW-MR}" y="${y-4}" class="cax" text-anchor="end">${esc(refTxt)}</text>`}
+  return `<svg viewBox="0 0 ${CW} ${CH}" class="csvg" role="img">${s}</svg>`;
+}
+function lineas(serie,{max,paso,fmt,x0,x1,refV,refTxt,ref2,color}){
+  const X=t=>ML+(CW-ML-MR)*(t-x0)/Math.max(1,x1-x0),Y=v=>MT+(CH-MT-MB)*(1-Math.min(v,max)/max);
+  let s=ejeY(max,paso,fmt);
+  if(refV!=null){const y=Y(refV);s+=`<line x1="${ML}" x2="${CW-MR}" y1="${y}" y2="${y}" class="cref"/><text x="${CW-MR}" y="${y-4}" class="cax" text-anchor="end">${esc(refTxt)}</text>`}
+  if(ref2)s+=`<line x1="${X(ref2.t0)}" y1="${Y(ref2.v0)}" x2="${X(ref2.t1)}" y2="${Y(ref2.v1)}" class="cref"/>`;
+  if(serie.length>1)s+=`<polyline points="${serie.map(p=>X(p.t)+","+Y(p.v)).join(" ")}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  serie.forEach((p,i)=>{s+=`<g data-tip="${esc(p.tip)}" class="cmk"><circle cx="${X(p.t)}" cy="${Y(p.v)}" r="12" fill="transparent"/><circle cx="${X(p.t)}" cy="${Y(p.v)}" r="4" fill="${color}" stroke="var(--surface)" stroke-width="2"/></g>`;
+    if(i===serie.length-1)s+=`<text x="${Math.min(X(p.t),CW-MR-8)}" y="${Y(p.v)-9}" class="clbl" text-anchor="middle">${esc(fmt(p.v))}</text>`});
+  s+=`<text x="${ML}" y="${CH-8}" class="cax">${fcT(x0)}</text><text x="${CW-MR}" y="${CH-8}" class="cax" text-anchor="end">${fcT(x1)}</text>`;
+  return `<svg viewBox="0 0 ${CW} ${CH}" class="csvg" role="img">${s}</svg>`;
+}
+function semana(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()}
+function topErrores(){
+  const desde=Date.now()-7*864e5,m={};
+  for(const e of DB.ev)if(e.k==="a"&&e.t>=desde&&!e.o&&BYID[e.q])m[e.q]=(m[e.q]||0)+1;
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,n])=>({k,n}));
+}
+// Números del instructor por sesión: propiedades de la base y, en los días viejos, las líneas de texto
+function sesNums(k){
+  const p=sesProps(k)||{},s=T.ses[k],txt=s?blocksText(s.blocks):"",o={nota:notaDe(k),dom:p.dom,fase:p.fase,horas:p.horas,meta:p.meta};
+  if(o.dom==null){const m=txt.match(/📊\s*Fase\s*(\d)\s*(?:[:·\-–—]\s*)?(?:dominio\s*)?(\d{1,3}(?:[.,]\d+)?)\s*%/i);if(m){o.fase=m[1];o.dom=numOf(m[2])}}
+  if(o.horas==null){const m=txt.match(/horas\s+acumuladas\s*:?\s*(\d+(?:[.,]\d+)?)/i);if(m){o.horas=numOf(m[1]);const mm=txt.match(/meta(?:\s+(?:de\s+)?horas)?\s*:?\s*(\d+(?:[.,]\d+)?)/i);if(mm&&o.meta==null)o.meta=numOf(mm[1])}}
+  return o;
+}
+function renderProg(){
+  const ses=porFecha([...new Set([...Object.keys(T.ses),...T.list.map(x=>x.k)])]).reverse().map(k=>Object.assign({k,fecha:sDate(k),titulo:tituloSes(k)},sesNums(k))).filter(x=>x.fecha);
+  const card=(t,sub,cuerpo)=>`<section class="card chart"><h3>${t}</h3>${sub?`<div class="muted small">${sub}</div>`:""}${cuerpo}<div class="ccap muted small" aria-live="polite">Toca un punto para ver su valor.</div></section>`;
+  const vacio=t=>`<div class="muted small cvacio">${t}</div>`,coma=v=>String(Math.round(v*10)/10).replace(".",",");
+  let html="";
+  // 1) Calificación por sesión
+  const notas=ses.filter(s=>typeof s.nota==="number").slice(-14);
+  html+=card("Calificación por sesión","La nota de 1 a 10 que pone el instructor",notas.length?barras(notas.map(s=>({v:Math.min(10,s.nota),label:fechaCorta(s.fecha),tip:`${fechaCorta(s.fecha)} · ${s.titulo} · ${coma(s.nota)}/10`})),{max:10,paso:2,fmt:coma,color:"var(--accent)"})
+    +tabla(["Fecha","Sesión","Nota"],notas.map(s=>[s.fecha,s.titulo,coma(s.nota)])):vacio("Aparecerá cuando el instructor ponga la Calificación en tus sesiones."));
+  // 2) Dominio de la fase actual (el eje x cubre solo el rango de los datos)
+  const conDom=ses.filter(s=>typeof s.dom==="number"),fase=conDom.length?conDom[conDom.length-1].fase:null,dom=conDom.filter(s=>s.fase===fase);
+  const dv=s=>s.dom>0&&s.dom<1?s.dom*100:s.dom;
+  html+=card(`Dominio de la Fase ${esc(fase||"")}`,"Lo estima el instructor · línea punteada = 50%",dom.length?lineas(dom.map(s=>({t:dms(s.fecha),v:dv(s),tip:`${fechaCorta(s.fecha)} · ${Math.round(dv(s))}%`})),{max:100,paso:25,fmt:v=>Math.round(v)+"%",x0:dms(dom[0].fecha)-864e5,x1:Math.max(dms(dom[dom.length-1].fecha)+864e5,dms(dom[0].fecha)+6*864e5),refV:50,refTxt:"50%",color:"var(--dia)"})
+    +tabla(["Fecha","Fase","Dominio"],dom.map(s=>[s.fecha,s.fase||"",Math.round(dv(s))+"%"])):vacio("Aparecerá cuando el instructor ponga «Dominio %» en tus sesiones."));
+  // 3) Horas reales vs ritmo necesario desde el PRIMER registro de horas (no desde el día 1: las pausas solo desaniman)
+  const hs=ses.filter(s=>typeof s.horas==="number");
+  if(hs.length){
+    const ult=hs[hs.length-1],ini=hs[0],meta=typeof ult.meta==="number"&&ult.meta>0?ult.meta:500,t0=dms(ini.fecha),tE=dms(P_EXAMEN);
+    const ideal=t=>ini.horas+(meta-ini.horas)*(t-t0)/Math.max(1,tE-t0),delta=ult.horas-ideal(dms(ult.fecha));
+    const x0=dms(ini.fecha)-3*864e5,x1=Math.max(dms(ult.fecha),Date.now())+3*864e5,mx=Math.max(ideal(x1),ult.horas)*1.15;
+    const paso=mx>80?20:mx>40?10:5,maxY=Math.ceil(mx/paso)*paso;
+    const hero=`<div class="chero"><b class="${delta>=0?"pos":"neg"}">${delta>=0?"+":"−"}${coma(Math.abs(delta))} h</b><span class="muted small">${delta>=0?"adelantado":"atrasado"} respecto al ritmo necesario desde el ${fechaCorta(ini.fecha)} para llegar a ${meta} h el 15 jul 2027</span></div>`;
+    html+=card("Horas de estudio","Tus horas reales (instructor) · punteada = ritmo necesario",hero+lineas(hs.map(s=>({t:dms(s.fecha),v:s.horas,tip:`${fechaCorta(s.fecha)} · ${coma(s.horas)} h (necesarias: ${coma(ideal(dms(s.fecha)))} h)`})),{max:maxY,paso,fmt:v=>Math.round(v)+"h",x0,x1,ref2:{t0:x0,v0:ideal(x0),t1:x1,v1:ideal(x1)},color:"var(--unc)"})
+      +`<div class="cleg"><span><i style="background:var(--unc)"></i>Tus horas</span><span><i class="dash"></i>Ritmo necesario</span></div>`
+      +tabla(["Fecha","Horas reales","Necesarias"],hs.map(s=>[s.fecha,coma(s.horas),coma(ideal(dms(s.fecha)))])));
+  }else html+=card("Horas de estudio","",vacio("Aparecerá cuando el instructor ponga «Horas acumuladas» en tus sesiones."));
+  // 4) Aciertos del juego por semana
+  const sem={};for(const e of DB.ev)if(e.k==="a"){const k=semana(e.t),o=sem[k]||(sem[k]={n:0,ok:0});o.n++;if(e.o)o.ok++}
+  const ks=Object.keys(sem).map(Number).sort((a,b)=>a-b).slice(-8);
+  html+=card("Aciertos del juego por semana","Todas las rondas, lecciones y producción",ks.length?barras(ks.map(k=>({v:100*sem[k].ok/sem[k].n,label:fcT(k),tip:`Semana del ${fcT(k)} · ${Math.round(100*sem[k].ok/sem[k].n)}% (${sem[k].ok}/${sem[k].n})`})),{max:100,paso:25,fmt:v=>Math.round(v)+"%",color:"var(--inf)"})
+    +tabla(["Semana","Aciertos","Respuestas"],ks.map(k=>[today(new Date(k)),Math.round(100*sem[k].ok/sem[k].n)+"%",String(sem[k].n)])):vacio("Aparecerá cuando juegues tu primera ronda."));
+  // 5) Errores más repetidos de la semana
+  const top=topErrores();
+  html+=`<section class="card"><h3>Tus errores más repetidos (7 días)</h3>${top.length?`<ul class="list">${top.map(x=>`<li>${glyph(BYID[x.k].c)}<span class="t" lang="en">${label(BYID[x.k])}</span><span class="muted small">${x.n}✗</span></li>`).join("")}</ul><button class="btn tk-send" data-act="practicar-top" style="margin-top:10px;width:100%">Practicar estos ${top.length}</button>`:'<span class="muted">Sin errores esta semana. 🎉</span>'}</section>`;
+  $("#app").innerHTML=`<div class="stack"><div class="row"><button class="icon-btn" data-act="home" aria-label="Inicio">←</button><b style="font-size:1.15rem">Panel de progreso</b><span class="sp"></span><span class="kbd">Esc</span></div>${html}</div>`;
+}
+
 /* ================= EVENTS ================= */
 function exportData(){
   const a=document.createElement("a");
@@ -1491,6 +1663,7 @@ $("#imp").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;c
     rebuild();save();render();toast("Respaldo importado y fusionado");syncNow()}catch(err){toast("Archivo no válido")}};
   r.readAsText(f);e.target.value=""});
 document.addEventListener("click",e=>{
+  const tip=e.target.closest&&e.target.closest("[data-tip]");if(tip&&tip.closest(".chart")){verTip(tip);return}
   const t=e.target.closest("button,[data-act]");
   if(!t)return;
   const d=t.dataset;
@@ -1509,6 +1682,11 @@ document.addEventListener("click",e=>{
     case "quit":quit();break;
     case "home":quit();break;
     case "stats":view="stats";render();break;
+    case "prog":view="prog";render();break;
+    case "practicar-top":start("top");break;
+    case "prodcheck":prodCheck();break;
+    case "prodbad":answer(0,{ok:false,typed:G.typed});break;
+    case "prodok":answer(0,{ok:true,exact:false,typed:G.typed});break;
     case "export":exportData();break;
     case "import":$("#imp").click();break;
     case "reset":if(confirm(syncConfigured()?"¿Borrar el progreso de ESTE dispositivo? Lo que ya está en la nube se volverá a descargar al sincronizar.":"¿Borrar todo el progreso, buffer y estadísticas? Exporta un respaldo antes si lo quieres conservar.")){const keep=DB.settings;DB=fresh();DB.settings=keep;derivedReset(DB);save();render();toast("Progreso borrado");syncNow()}break;
@@ -1518,14 +1696,17 @@ document.addEventListener("click",e=>{
   }
 });
 document.addEventListener("keydown",e=>{
+  if(e.target.id==="prodIn"){if(e.key==="Enter"&&!e.isComposing){e.preventDefault();prodCheck()}else if(e.key==="Escape")quit();return} // Enter comprueba (no durante el IME)
   if(e.target.closest&&e.target.closest("summary,input,textarea"))return;
   if(view==="tareas"||view==="tarea"||view==="ref"||view==="mat"){if(e.key==="Escape"){if(view==="tarea"||view==="ref"||view==="mat"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas()}else quit()}return}
   const k=e.key.toLowerCase();
   if(e.key==="Escape"){quit();return}
-  if(view==="home"){if(e.key==="Enter"){e.preventDefault();start(DB.settings.focus)}else if(k==="s"){view="stats";render()}return}
-  if(view==="stats"){return}
+  if(view==="home"){if(e.key==="Enter"){e.preventDefault();start(DB.settings.focus)}else if(k==="s"){view="stats";render()}else if(k==="p"){view="prog";render()}return}
+  if(view==="stats"||view==="prog"){return}
   if(view==="end"){if(e.key==="Enter"){e.preventDefault();start(G.key)}return}
   if(view==="drill"&&G){
+    if(G.state==="judge"){if(k==="1"){e.preventDefault();answer(0,{ok:false,typed:G.typed})}else if(k==="2"){e.preventDefault();answer(0,{ok:true,exact:false,typed:G.typed})}return}
+    if(G.state==="q"&&G.it.k==="W")return;
     if(G.state==="q"){
       let i=-1;if(k.length===1&&"1234".includes(k))i=+k-1;else if(k.length===1&&"abcd".includes(k))i="abcd".indexOf(k);
       const max=G.it.k==="E"?4:G.it.o.length;
@@ -1533,6 +1714,7 @@ document.addEventListener("keydown",e=>{
     }else if(e.key==="Enter"||e.key===" "){e.preventDefault();cont()}
   }
 });
+document.addEventListener("mouseover",e=>{const t=e.target.closest&&e.target.closest(".chart [data-tip]");if(t)verTip(t)});
 document.addEventListener("visibilitychange",()=>{
   if(G&&G.state==="q"&&!document.hidden){G.last=performance.now();cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick)}
   if(!document.hidden){syncNow();if(view!=="drill")fetchTareas()}
