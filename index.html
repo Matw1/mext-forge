@@ -1253,6 +1253,63 @@ function startTimer(d,k){const t=tTm(d,k);if(t.since)return;pauseAll(d);t.since=
   for(const d in T.tm)for(const k in T.tm[d]){const t=T.tm[d][k];if(t.since){t.acc+=Math.max(0,T.hb-t.since);t.since=null;fixed++}}
   if(fixed)tSave(true)})();
 const tLocked=d=>entregasDe(d).length>0&&!T.edit[d];
+/* ---------- Borradores: la tarea a medias se copia sola al otro dispositivo (y viceversa) ----------
+   Cada respuesta, actividad «fuera de la app» y cronómetro viaja por separado; gana la edición más reciente.
+   Sin conexión espera; en Android el service worker lo manda solo al volver la señal aunque la app esté cerrada. */
+const BK="mextforge.borr.v1";let BQ={bs:{},bt:{},bc:0};
+try{const o=JSON.parse(localStorage.getItem(BK));if(o)BQ=Object.assign(BQ,o)}catch(e){}
+const bqSave=()=>{try{localStorage.setItem(BK,JSON.stringify(BQ))}catch(e){}};
+const bTm=t=>({acc:Math.round(tEl(t)/1000)*1000});
+function bCampos(){const m={};
+  for(const k in T.ans)for(const id in T.ans[k])m[k+"|a:"+id]=T.ans[k][id];
+  for(const k in T.out)for(const id in T.out[k])m[k+"|o:"+id]=T.out[k][id];
+  for(const k in T.tm)for(const a in T.tm[k])m[k+"|t:"+a]=bTm(T.tm[k][a]);
+  return m}
+const B_VACIO=new Set([JSON.stringify({v:"",ch:null,d:0,nt:"",h:"nada",s:0}),JSON.stringify({done:false,min:""}),JSON.stringify({acc:0})]);
+function bPend(){const m=bCampos(),now=Date.now(),push=[];
+  for(const c in m){const j=JSON.stringify(m[c]);if(BQ.bs[c]===j||(BQ.bs[c]===undefined&&B_VACIO.has(j)))continue; // un campo solo abierto, sin escribir, no pisa al otro dispositivo
+    const i=c.indexOf("|"),s=c.slice(0,i);if(tLocked(s))continue;
+    push.push({c,j,s,k:c.slice(i+1),t:Math.max(now,(BQ.bt[c]||0)+1),v:m[c]})}
+  return push}
+function bgCola(clave,url,h,body){try{
+  const r=indexedDB.open("mextforge-bg",1);r.onupgradeneeded=()=>r.result.createObjectStore("q");
+  r.onsuccess=()=>{const db=r.result,t=db.transaction("q","readwrite");t.objectStore("q").put({url,headers:h,body:JSON.stringify(body)},clave);
+    t.oncomplete=()=>{db.close();navigator.serviceWorker&&navigator.serviceWorker.ready.then(g=>g.sync&&g.sync.register("mextforge-bg")).catch(()=>{})}};
+}catch(e){}}
+const bBase=()=>DB.settings.syncUrl.replace(/\/+$/,""),bH=()=>({Authorization:"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"});
+let bBusy=false,bT=0;
+function bSoon(ms){clearTimeout(bT);bT=setTimeout(bSync,ms)}
+async function bSync(fondo){
+  if(!syncConfigured()||bBusy)return;
+  if(navigator.onLine===false&&!fondo)return;
+  const push=bPend(),body={push:push.map(({s,k,t,v})=>({s,k,t,v})),since:BQ.bc||0,dev:DB.dev.id};
+  if(fondo){if(push.length){bgCola("borr:"+Date.now(),bBase()+"/tareas/borrador",bH(),{...body,since:0});
+    if(navigator.onLine!==false)try{fetch(bBase()+"/tareas/borrador",{method:"POST",headers:bH(),body:JSON.stringify(body),keepalive:true})}catch(e){}}return}
+  bBusy=true;
+  try{let r,guard=0;
+    do{const res=await fetch(bBase()+"/tareas/borrador",{method:"POST",headers:bH(),body:JSON.stringify(body)});if(!res.ok)throw new Error("HTTP "+res.status);r=await res.json();
+      for(const p of push){BQ.bs[p.c]=p.j;BQ.bt[p.c]=p.t}push.length=0;body.push=[];
+      bAplicar(r.rows||[]);BQ.bc=body.since=r.cursor;bqSave()}while(r.more&&++guard<20);
+  }catch(e){}finally{bBusy=false}
+}
+function bAplicar(rows){const tocadas=new Set();
+  for(const x of rows){const c=x.s+"|"+x.k,tipo=x.k[0],id=x.k.slice(2);
+    if(x.v==null||(BQ.bt[c]||0)>=x.t||tLocked(x.s))continue;
+    if(tipo==="a")(T.ans[x.s]||(T.ans[x.s]={}))[id]=Object.assign({v:"",ch:null,d:0,nt:"",h:"nada",s:0},x.v);
+    else if(tipo==="o")(T.out[x.s]||(T.out[x.s]={}))[id]=Object.assign({done:false,min:""},x.v);
+    else if(tipo==="t")(T.tm[x.s]||(T.tm[x.s]={}))[id]={acc:x.v.acc||0,since:null};
+    else continue;
+    BQ.bt[c]=x.t;BQ.bs[c]=JSON.stringify(tipo==="a"?T.ans[x.s][id]:tipo==="o"?T.out[x.s][id]:bTm(T.tm[x.s][id]));tocadas.add(x.s)}
+  if(!tocadas.size)return;tSave(true);bqSave();
+  if(view!=="tarea"||!tocadas.has(tDate))return;
+  const foco=document.activeElement;
+  if(!(foco&&foco.closest&&foco.closest("input,textarea"))){renderTarea(true);return}
+  // Estás escribiendo: se actualizan los demás campos sin tocar el que tienes abierto
+  document.querySelectorAll("[data-tk=text],[data-tk=note]").forEach(el=>{if(el===foco)return;const A=(T.ans[tDate]||{})[el.dataset.v];if(!A)return;
+    const v=el.dataset.tk==="text"?A.v:A.nt;if(v!=null&&el.value!==v)el.value=v});
+  document.querySelectorAll("[data-tk=outdone]").forEach(el=>{const O=(T.out[tDate]||{})[el.dataset.v];if(O)el.checked=!!O.done});
+  updTimers();
+}
 function sesStatus(d){const s=T.ses[d],e=entregasDe(d),p=sesProps(d);if(p&&p.estado==="Corregida"||s&&parseSession(s.blocks).retro.length)return["Corregida","ok"];if(e.length)return[`Entregada${e.length>1?" ×"+e.length:""}`,"warn"];return s?["Por hacer",""]:["Sin descargar","muted"]}
 
 /* ---------- conexión con el Worker ---------- */
@@ -1573,7 +1630,7 @@ function renderTarea(keepScroll){
   </div>`;
   if(keepScroll)window.scrollTo(0,y);else window.scrollTo(0,0);
 }
-function openTarea(d){tDate=d;view="tarea";renderTarea();fetchTareas(d)}
+function openTarea(d){tDate=d;view="tarea";renderTarea();fetchTareas(d);bSync()}
 
 /* ---------- entrega ---------- */
 function buildEntrega(d){
@@ -1611,6 +1668,7 @@ function sendEntrega(){
   const e=buildEntrega(d),n=e.acts.reduce((x,a)=>x+(a.out?0:a.items.length),0),empty=e.acts.reduce((x,a)=>x+(a.out?0:a.items.filter(i=>!i.v&&!i.ch).length),0);
   if(!confirm(`¿Entregar la sesión del ${d}?\n\n${n} respuestas${empty?` (${empty} vacías)`:""} · ${e.dudas} ${e.dudas===1?"duda":"dudas"} · ${e.min} min${e.n>1?`\n\nSerá la entrega ${e.n}; las anteriores no se borran.`:""}`)){tSave();return renderTarea(true)}
   addLocal(e);save();T.edit[d]=false;tSave(true);
+  if(syncConfigured()){const ev=DB.ev[DB.ev.length-1];bgCola("ent:"+ev.i,bBase()+"/sync",bH(),{events:[ev],since:Number.MAX_SAFE_INTEGER})}
   toast(syncConfigured()?(navigator.onLine===false?"Entrega guardada: se enviará al volver la conexión":"📤 Entregada"):"Entrega guardada. Configura la nube para que llegue a Notion; mientras, usa «Copiar respuestas».");
   renderTarea();syncNow();
 }
@@ -1848,15 +1906,20 @@ document.addEventListener("keydown",e=>{
 document.addEventListener("mouseover",e=>{const t=e.target.closest&&e.target.closest(".chart [data-tip]");if(t)verTip(t)});
 document.addEventListener("visibilitychange",()=>{
   if(G&&G.state==="q"&&!document.hidden){G.last=performance.now();cancelAnimationFrame(G.raf);G.raf=requestAnimationFrame(tick)}
-  if(!document.hidden){syncNow();if(view!=="drill")fetchTareas()}
+  if(!document.hidden){syncNow();if(view!=="drill")fetchTareas();bSync()}
+  else{tSave(true);bSync(true)}
 });
+// Tarea a medias: se sube poco después de cada cambio y se revisa cada 15 s lo que llegó del otro dispositivo
+["input","change","click"].forEach(n=>document.addEventListener(n,()=>{if(view==="tarea")bSoon(2500)}));
+setInterval(()=>{if(!document.hidden&&view!=="drill")bSync()},15000);
 // Las sesiones del instructor se revisan solas cada 3 min mientras la app está a la vista (nunca en medio de una ronda).
 setInterval(()=>{if(!document.hidden&&view!=="drill")fetchTareas()},180000);
 registerLessons();
 render();
 syncNow();
 fetchTareas();
-addEventListener("online",()=>syncNow());
+addEventListener("online",()=>{syncNow();bSync()});
+bSync();
 addEventListener("offline",()=>{syncState=syncConfigured()?"offline":"off";refreshSync()});
 setInterval(()=>{if(view==="home"||view==="stats")syncNow()},120000);
 // que Android no borre los datos de la app
