@@ -15,16 +15,16 @@
 :root{--bg:#f6f0e4;--surface:#fffdf8;--surface2:#f2eadb;--text:#211b17;--muted:#74695e;--line:#e4d8c4;
   --accent:#d6336c;--accent2:#b07d12;--accent-t:#fff;--ok:#1d8a50;--okbg:#e2f3e8;--bad:#c9302c;--badbg:#fbe6e2;--warn:#b26b00;--warnbg:#fbefd9;--focus:#d63a2f;
   --glow:rgba(214,51,108,.16);--shadow:0 1px 2px rgba(60,40,20,.06),0 6px 20px rgba(60,40,20,.07);
-  --cop:#d63a2f;--inf:#2457d6;--neg:#7348d1;--unc:#1c9459;--ind:#bb7400;--c1:#0b8aa3;--mix:#211b17;--buf:#b26b00;--fos:#c23c7c;--dia:#4f46e5;--esc:#0f766e}
+  --cop:#d63a2f;--inf:#2457d6;--neg:#7348d1;--unc:#1c9459;--ind:#bb7400;--c1:#0b8aa3;--mix:#211b17;--buf:#b26b00;--fos:#c23c7c;--dia:#4f46e5;--esc:#0f766e;--amar:#e3b100;--amarbg:#ffe27a;--amart:#3a3000}
 /* ===== Tema 夜 (oscuro) ===== */
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
   --accent:#ff7aa8;--accent2:#ffc857;--accent-t:#2a0714;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
   --glow:rgba(255,122,168,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
-  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6;--dia:#a5b4fc;--esc:#5eead4}}
+  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6;--dia:#a5b4fc;--esc:#5eead4;--amar:#ffd84d;--amarbg:rgba(255,216,77,.18);--amart:#ffd84d}}
 :root[data-theme="dark"]{--bg:#0c0e1b;--surface:#161a2d;--surface2:#1f2440;--text:#f2efe8;--muted:#a2a5bc;--line:#2a2f4f;
   --accent:#ff7aa8;--accent2:#ffc857;--accent-t:#2a0714;--ok:#3ddc84;--okbg:rgba(61,220,132,.13);--bad:#ff6b6b;--badbg:rgba(255,107,107,.13);--warn:#ffb347;--warnbg:rgba(255,179,71,.13);--focus:#ff8a7a;
   --glow:rgba(255,122,168,.22);--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.25);
-  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6;--dia:#a5b4fc;--esc:#5eead4}
+  --cop:#ff6b5e;--inf:#8fb0ff;--neg:#ad90ff;--unc:#4fe090;--ind:#ffb84d;--c1:#3cc8e6;--mix:#f2efe8;--buf:#ffb347;--fos:#ff7ab6;--dia:#a5b4fc;--esc:#5eead4;--amar:#ffd84d;--amarbg:rgba(255,216,77,.18);--amart:#ffd84d}
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;color:var(--text);background-color:var(--bg)}
@@ -236,7 +236,7 @@ details[open].card summary::after{content:"－"}
 .ecard b{font-size:1.02rem}.ehoy{border-left:4px solid var(--accent)}.eempty{cursor:default}
 .echip{align-self:flex-start;font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:99px;background:var(--surface2);color:var(--muted)}
 .enota{align-self:flex-start;font-size:.72rem;font-weight:800;padding:2px 9px;border-radius:99px;font-variant-numeric:tabular-nums}
-.enota[data-n="alta"]{color:var(--ok);background:var(--okbg)}.enota[data-n="media"]{color:var(--warn);background:var(--warnbg)}.enota[data-n="baja"]{color:var(--bad);background:var(--badbg)}
+.enota[data-n="alta"]{color:var(--ok);background:var(--okbg)}.enota[data-n="media"]{color:var(--amart);background:var(--amarbg)}.enota[data-n="baja"]{color:var(--bad);background:var(--badbg)}
 .echips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .echip[data-st="Por hacer"]{color:var(--accent)}.echip[data-st="Entregada"]{color:var(--warn)}.echip[data-st="Corregida"]{color:var(--ok)}
 .esub{display:flex;margin:0 0 14px}.esub button{flex:1}
@@ -266,7 +266,7 @@ details[open].card summary::after{content:"－"}
 /* Panel de progreso: gráficos SVG sin librerías */
 .csvg{display:block;width:100%;height:auto;margin-top:10px;overflow:visible}
 .cgrid{stroke:var(--line);stroke-width:1}.cref{stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 4}
-.cax{font-size:10px;fill:var(--muted);font-family:inherit}.clbl{font-size:11px;font-weight:800;fill:var(--text);font-family:inherit}
+.cax{font-size:10px;fill:var(--muted);font-family:inherit}.clbg{paint-order:stroke;stroke:var(--surface);stroke-width:3px;font-weight:700}.clbl{font-size:11px;font-weight:800;fill:var(--text);font-family:inherit}
 .cmk{cursor:pointer}.cmk.sel path,.cmk.sel circle+circle{stroke:var(--text);stroke-width:2}
 .ccap{min-height:1.4em;margin-top:4px}.cvacio{padding:14px 0}
 .cdatos{margin-top:6px}.cdatos summary{cursor:pointer;font-size:.8rem;color:var(--muted)}
@@ -1464,7 +1464,9 @@ function notaDe(d){
   const m=blocksText(parseSession(s.blocks).retro).match(/calificaci[oó]n\s*:?\s*(\d{1,2}(?:[.,]\d)?)\s*\/\s*10\b/i);
   if(!m)return null;const n=parseFloat(m[1].replace(",","."));return n>=0&&n<=10?n:null;
 }
-const notaPill=d=>{const n=notaDe(d);return n==null?"":`<span class="enota" data-n="${n>=8?"alta":n>=6?"media":"baja"}" title="Calificación del instructor (solo referencia)">${String(n).replace(".",",")}/10</span>`};
+// Colores de la nota (reglas de Matías): rojo < 7 · amarillo 7–8,5 · verde > 8,5
+const notaNivel=v=>v>8.5?"ok":v>=7?"warn":"bad";
+const notaPill=d=>{const n=notaDe(d);return n==null?"":`<span class="enota" data-n="${{ok:"alta",warn:"media",bad:"baja"}[notaNivel(n)]}" title="Calificación del instructor (solo referencia)">${String(n).replace(".",",")}/10</span>`};
 const chip=d=>{const[st]=sesStatus(d);return `<span class="echips"><span class="echip" data-st="${st.replace(/ ×\d+/,"")}">${st}</span>${notaPill(d)}</span>`};
 
 /* ---------- lista de fechas ---------- */
@@ -1690,11 +1692,11 @@ function barras(datos,{max,paso,fmt,refV,refTxt,color}){
   const n=datos.length,bw=Math.min(26,(CW-ML-MR)/n-4),y0=CH-MB;
   let s=ejeY(max,paso,fmt);
   datos.forEach((d,i)=>{const cx=ML+(CW-ML-MR)*(i+.5)/n,hgt=Math.max(1,(CH-MT-MB)*Math.min(d.v,max)/max),y=y0-hgt;
-    s+=`<g data-tip="${esc(d.tip)}" class="cmk"><rect x="${cx-bw/2-4}" y="${MT}" width="${bw+8}" height="${CH-MT-MB}" fill="transparent"/><path d="M${cx-bw/2},${y0}V${y+Math.min(4,hgt)}q0,-${Math.min(4,hgt)} 4,-${Math.min(4,hgt)}h${Math.max(0,bw-8)}q4,0 4,${Math.min(4,hgt)}V${y0}Z" fill="${color}"/></g>`;
+    s+=`<g data-tip="${esc(d.tip)}" class="cmk"><rect x="${cx-bw/2-4}" y="${MT}" width="${bw+8}" height="${CH-MT-MB}" fill="transparent"/><path d="M${cx-bw/2},${y0}V${y+Math.min(4,hgt)}q0,-${Math.min(4,hgt)} 4,-${Math.min(4,hgt)}h${Math.max(0,bw-8)}q4,0 4,${Math.min(4,hgt)}V${y0}Z" fill="${d.color||color}"/></g>`;
     if(i===n-1||i===0)s+=`<text x="${cx}" y="${CH-8}" class="cax" text-anchor="middle">${esc(d.label)}</text>`;
     if(i===n-1)s+=`<text x="${cx}" y="${y-5}" class="clbl" text-anchor="middle">${esc(fmt(d.v))}</text>`;
   });
-  if(refV!=null){const y=MT+(CH-MT-MB)*(1-refV/max);s+=`<line x1="${ML}" x2="${CW-MR}" y1="${y}" y2="${y}" class="cref"/><text x="${CW-MR}" y="${y-4}" class="cax" text-anchor="end">${esc(refTxt)}</text>`}
+  if(refV!=null){const y=MT+(CH-MT-MB)*(1-refV/max);s+=`<line x1="${ML}" x2="${CW-MR}" y1="${y}" y2="${y}" class="cref"/><text x="${ML+4}" y="${y-4}" class="cax clbg">${esc(refTxt)}</text>`}
   return `<svg viewBox="0 0 ${CW} ${CH}" class="csvg" role="img">${s}</svg>`;
 }
 function lineas(serie,{max,paso,fmt,x0,x1,refV,refTxt,ref2,color,serie2,color2}){
@@ -1731,9 +1733,12 @@ function renderProg(){
   const vacio=t=>`<div class="muted small cvacio">${t}</div>`,coma=v=>String(Math.round(v*10)/10).replace(".",",");
   let html="";
   // 1) Calificación por sesión
-  const notas=ses.filter(s=>typeof s.nota==="number").slice(-14);
-  html+=card("Calificación por sesión","La nota de 1 a 10 que pone el instructor",notas.length?barras(notas.map(s=>({v:Math.min(10,s.nota),label:fechaCorta(s.fecha),tip:`${fechaCorta(s.fecha)} · ${s.titulo} · ${coma(s.nota)}/10`})),{max:10,paso:2,fmt:coma,color:"var(--accent)"})
-    +tabla(["Fecha","Sesión","Nota"],notas.map(s=>[s.fecha,s.titulo,coma(s.nota)])):vacio("Aparecerá cuando el instructor ponga la Calificación en tus sesiones."));
+  // Promedio de TODAS las notas (el gráfico muestra las últimas 14); color por nota: rojo < 7 · amarillo 7–8,5 · verde > 8,5
+  const todasN=ses.filter(s=>typeof s.nota==="number"),notas=todasN.slice(-14),prom=todasN.length?todasN.reduce((a,s)=>a+s.nota,0)/todasN.length:null;
+  const cN=v=>({ok:"var(--ok)",warn:"var(--amar)",bad:"var(--bad)"})[notaNivel(v)];
+  html+=card("Calificación por sesión",todasN.length?`La nota de 1 a 10 que pone el instructor · <span class="enota" data-n="${{ok:"alta",warn:"media",bad:"baja"}[notaNivel(prom)]}" style="font-size:.8rem">promedio ${coma(prom)}/10 (${todasN.length} ${todasN.length===1?"sesión":"sesiones"})</span><br>Rojo &lt; 7 · amarillo 7–8,5 · verde &gt; 8,5`:"La nota de 1 a 10 que pone el instructor",
+    notas.length?barras(notas.map(s=>({v:Math.min(10,s.nota),color:cN(s.nota),label:fechaCorta(s.fecha),tip:`${fechaCorta(s.fecha)} · ${s.titulo} · ${coma(s.nota)}/10`})),{max:10,paso:2,fmt:coma,color:"var(--accent)",refV:prom,refTxt:"Prom. "+coma(prom)})
+    +tabla(["Fecha","Sesión","Nota"],todasN.map(s=>[s.fecha,s.titulo,coma(s.nota)]).concat([["Promedio",`${todasN.length} ${todasN.length===1?"sesión":"sesiones"}`,coma(prom)]])):vacio("Aparecerá cuando el instructor ponga la Calificación en tus sesiones."));
   // 2) Dominio de la fase actual (el eje x cubre solo el rango de los datos)
   const conDom=ses.filter(s=>typeof s.dom==="number"),fase=conDom.length?conDom[conDom.length-1].fase:null,dom=conDom.filter(s=>s.fase===fase);
   const dv=s=>s.dom>0&&s.dom<1?s.dom*100:s.dom;
