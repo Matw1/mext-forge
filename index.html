@@ -289,6 +289,16 @@ details[open].card summary::after{content:"－"}
 .tk-min{display:inline-flex;align-items:center;gap:6px;margin:8px 0 0 32px;font-size:.85rem;color:var(--muted)}
 .tk-min input{width:80px;font:inherit;font-size:16px;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
 .tk-retro{border-left:4px solid var(--ok)}
+.tk-item.v-ok,.tk-item.v-mid,.tk-item.v-bad{border-left:4px solid var(--vc);padding-left:12px}
+.tk-item.v-ok{--vc:var(--ok)}.tk-item.v-mid{--vc:var(--warn)}.tk-item.v-bad{--vc:var(--bad)}
+.tk-ans{background:var(--surface2);border-radius:12px;padding:10px 12px;white-space:pre-wrap;line-height:1.55;font-size:1rem}
+.tk-fix{margin-top:8px;line-height:1.55}
+.tk-com{margin-top:6px;font-size:.95rem;line-height:1.5}
+.tk-v{font-weight:900;margin-right:6px;color:var(--vc,var(--text))}
+.emal{color:var(--bad);text-decoration:underline wavy var(--bad);text-decoration-thickness:1.5px;text-underline-offset:3px}
+.efalta{color:var(--bad);font-weight:900}
+.ebien{color:var(--ok);font-weight:800}
+.tk-act .tag.tk-cnt{--c:var(--ok)}
 .tk-sent{border-left:4px solid var(--warn)}
 .tk-send{background:var(--accent);color:#fff;border-color:transparent;font-weight:800}
 .foot{margin-top:22px;text-align:center;font-size:.78rem;color:var(--muted);line-height:2}
@@ -994,7 +1004,7 @@ let tDate=null,tState="idle",tErr="";
 // Marcas que reconoce la app al inicio de un título del instructor (### o ##)
 const TMARK=[["📘","ref","Consulta"],["✍","write","Escritura"],["🔁","trans","Traducción"],["🛠","fix","Corrección"],["🧩","cloze","Completar"],
   ["🔤","vocab","Vocabulario"],["📖","read","Lectura"],["🎧","dict","Dictado"],["🗣","oral","Producción oral"],["🎯","mastery","Prueba de dominio"],
-  ["⏱","mock","Simulacro"],["✅","out","Fuera de la app"],["🧑‍🏫","retro","Retroalimentación"],["📤","entrega","Entrega"],["🎮","juego","Juego"]];
+  ["⏱","mock","Simulacro"],["✅","out","Fuera de la app"],["🧑‍🏫","retro","Retroalimentación"],["📤","entrega","Entrega"],["🎮","juego","Juego"],["🔍","corr","Corrección por consigna"]];
 const TLONG=new Set(["write","trans","fix","read","dict","oral"]);
 const nfe=s=>String(s).replace(/️/g,"");
 const rtPlain=r=>(r||[]).map(x=>x.t).join("");
@@ -1003,12 +1013,15 @@ function rtHtml(r){return (r||[]).map(x=>{let h=esc(x.t);if(x.c)h=`<code>${h}</c
 function markOf(text){const t=nfe(text).trim();for(const[e,ty,n]of TMARK)if(t.startsWith(nfe(e)))return{ty,n};return null}
 const isList=ty=>ty==="bulleted_list_item"||ty==="numbered_list_item"||ty==="to_do";
 
-// Bloques de Notion → {intro, acts:[{key,ty,n,title,min,blocks}], retro:[]}
+// Bloques de Notion → {intro, acts:[{key,ty,n,title,min,blocks}], retro:[], juego:[], corr:[{title,items}]}
+// En «🔍 Corrección por consigna» cada título es el de una tarea y cada elemento de lista, el ✓/◐/✗ de una consigna.
 function parseSession(blocks){
-  const res={intro:[],acts:[],retro:[],juego:[]};let cur=null,zone="intro";
+  const res={intro:[],acts:[],retro:[],juego:[],corr:[]};let cur=null,cg=null,zone="intro";
   for(const b of blocks||[]){
     if(/^heading_/.test(b.ty)){const m=markOf(rtPlain(b.r));
+      if(zone==="corr"&&!(m&&["retro","juego","entrega","corr"].includes(m.ty))){res.corr.push(cg={title:rtPlain(b.r),items:[]});continue}
       if(m){
+        if(m.ty==="corr"){zone="corr";cur=null;cg=null;continue}
         if(m.ty==="retro"){zone="retro";cur=null;continue}
         if(m.ty==="entrega"){zone="skip";cur=null;continue}
         if(m.ty==="juego"){zone="juego";cur=null;continue}
@@ -1018,12 +1031,50 @@ function parseSession(blocks){
         res.acts.push(cur);zone="act";continue}
     }
     if(zone==="skip")continue;
+    if(zone==="corr"){if(cg&&isList(b.ty))cg.items.push(b);continue}
     if(zone==="juego"){res.juego.push(b);continue}
     if(zone==="retro")res.retro.push(b);else if(zone==="act")cur.blocks.push(b);else res.intro.push(b);
   }
   res.retro=res.retro.filter(b=>!/retroalimentaci[oó]n pendiente/i.test(rtPlain(b.r)));
   return res;
 }
+/* ---------- corrección por consigna (la escribe el instructor; la app solo la muestra) ---------- */
+// Título de tarea normalizado: sin emoji, sin «Escritura:», sin «· N min» ni «: 2/4».
+const cNorm=t=>{let x=nfe(t).replace(/^[^\p{L}\p{N}]+/u,"").replace(/\s*:\s*\d+\s*\/\s*\d+\s*$/,"").replace(/\s*[·—–-]\s*\d+\s*min\b.*$/i,"");
+  if(x.includes(":"))x=x.slice(x.indexOf(":")+1);return x.toLowerCase().replace(/\s+/g," ").trim()};
+function cVerd(b){const t=rtPlain(b.r).trim(),m=t.match(/^(✓|✔️?|✅|◐|✗|✘|❌|×)\s*/u);if(!m)return null;
+  const v=/^[✓✔✅]/u.test(m[1])?"ok":m[1]==="◐"?"mid":"bad";let rest=t.slice(m[0].length).trim(),fix="";
+  if(v!=="ok"){const k=rest.search(/\s[—–]\s/);if(k>0){fix=rest.slice(0,k).trim();rest=rest.slice(k+3).trim()}}
+  return{v,fix,com:rest,k:b.k||[]}}
+// Reparte los grupos entre las tareas: por título y, si no coincide, por orden.
+function corrMap(p){
+  const G=p.acts.filter(a=>a.ty!=="ref"&&a.ty!=="out"&&a.blocks.some(b=>isList(b.ty))),used=new Set();
+  G.forEach((a,i)=>{let g=p.corr.findIndex((c,j)=>!used.has(j)&&(cNorm(c.title)===cNorm(a.title)||cNorm(c.title)===cNorm(a.n)));
+    if(g<0&&p.corr[i]&&!used.has(i))g=i;if(g<0)return;used.add(g);a.verd=p.corr[g].items.map(cVerd)});
+}
+// Comparación por palabras (LCS): en la respuesta se subraya lo que sobra o está mal, ‸ marca lo que falta;
+// en la forma correcta se pinta de verde lo que cambió.
+const cTok=s=>String(s||"").replace(/[’‘]/g,"'").match(/\n|[A-Za-z0-9'-]+|[^\s]/g)||[];
+function cDiff(a,b){const n=a.length,m=b.length,L=Array.from({length:n+1},()=>new Int16Array(m+1));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)L[i][j]=a[i]===b[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  const ops=[];let i=0,j=0;
+  while(i<n||j<m){if(i<n&&j<m&&a[i]===b[j]){ops.push(["=",a[i]]);i++;j++}else if(j<m&&(i>=n||L[i][j+1]>=L[i+1][j])){ops.push(["+",b[j]]);j++}else{ops.push(["-",a[i]]);i++}}
+  return ops}
+function cJoin(parts){let h="",prev="\n";for(const[t,html]of parts){const sp=!(t==="\n"||prev==="\n"||/^[.,!?;:)\]}%]$/.test(t)||/^[(\[{]$/.test(prev));h+=(sp?" ":"")+html;prev=t}return h}
+function cDiffHtml(ans,fix){
+  const ops=cDiff(cTok(ans),cTok(fix)),A=[],F=[];
+  for(let k=0;k<ops.length;){
+    if(ops[k][0]==="="){A.push([ops[k][1],esc(ops[k][1])]);F.push([ops[k][1],esc(ops[k][1])]);k++;continue}
+    let e=k;while(e<ops.length&&ops[e][0]!=="=")e++;const run=ops.slice(k,e);
+    if(run.some(o=>o[0]==="-")){for(const o of run)if(o[0]==="-")A.push([o[1],`<span class="emal">${esc(o[1])}</span>`])}
+    else A.push(["‸",`<span class="efalta">‸</span>`]);
+    for(const o of run)if(o[0]==="+")F.push([o[1],`<span class="ebien">${esc(o[1])}</span>`]);
+    k=e}
+  return{a:cJoin(A),f:cJoin(F)}}
+function verdHtml(V,ans){
+  if(!V)return"";const mk={ok:"✓",mid:"◐",bad:"✗"}[V.v];
+  let fx="";if(V.fix){const d=ans&&ans.trim().length>2?cDiffHtml(ans,V.fix):null;fx=`<div class="tk-fix">✏️ ${d?d.f:esc(V.fix)}</div>`}
+  return `${fx}<div class="tk-com"><span class="tk-v">${mk}</span>🧑‍🏫 ${esc(V.com)||{ok:"Bien.",mid:"Casi.",bad:"Revisa esta."}[V.v]}</div>${V.k.length?`<div class="tk-sub">${V.k.map(blockHtml).join("")}</div>`:""}`}
 function splitOpts(r){const s=rtPlain(r),m=s.match(/\{([^{}]*\|[^{}]*)\}\s*$/);
   if(!m)return{r,opts:null};const cut=s.length-m[0].length;let n=0;const r2=[];
   for(const x of r){if(n>=cut)break;r2.push(Object.assign({},x,{t:x.t.slice(0,cut-n)}));n+=x.t.length}
@@ -1252,7 +1303,7 @@ function renderRef(keep){
 document.addEventListener("input",e=>{if(view==="ref"&&e.target.id==="refSearch"){refQ=e.target.value;const pos=e.target.selectionStart;renderRef(true);const el=$("#refSearch");el.focus();el.setSelectionRange(pos,pos)}});
 
 /* ---------- sesión de un día ---------- */
-function itemHtml(d,a,b,locked){
+function itemHtml(d,a,b,locked,V){
   const id=b.id,A=tAns(d,id);
   if(a.ty==="out"){const o=tOut(d,id);
     return `<div class="tk-item ${A.d?"doubt":""}" data-item="${id}" data-act-key="${a.key}"><label class="tk-check"><input type="checkbox" data-tk="outdone" data-v="${id}" ${o.done?"checked":""} ${locked?"disabled":""}> <span>${rtHtml(b.r)}</span></label>
@@ -1262,6 +1313,13 @@ function itemHtml(d,a,b,locked){
   const input=opts?`<div class="tk-opts">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`
     :`<textarea class="tk-in" rows="${TLONG.has(a.ty)?3:1}" data-tk="text" data-v="${id}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false" ${locked?"readonly":""} placeholder="Escribe en inglés…">${esc(A.v)}</textarea>`;
   const kids=b.k&&b.k.length?`<div class="tk-sub">${b.k.map(blockHtml).join("")}</div>`:"";
+  if(locked){ // entregada: solo lectura, con la corrección del instructor si ya la dejó
+    const ans=opts?(A.ch||""):(A.v||""),d2=V&&V.fix&&ans.trim().length>2?cDiffHtml(ans,V.fix):null;
+    return `<div class="tk-item ro ${V?"v-"+V.v:""}" data-item="${id}" data-act-key="${a.key}">
+    <div class="tk-q">${b.ty==="numbered_list_item"?"":"• "}${rtHtml(r)}</div>${kids}
+    <div class="tk-ans">${ans.trim()?(d2?d2.a:esc(ans)):`<span class="muted">(sin respuesta)</span>`}</div>
+    ${verdHtml(V,ans)}
+    <div class="muted small" style="margin-top:6px">${HELPN[A.h]||"sin ayuda"}${A.d?` · ❓ ${esc(A.nt||"duda")}`:""}</div></div>`}
   return `<div class="tk-item ${A.d?"doubt":""}" data-item="${id}" data-act-key="${a.key}">
     <div class="tk-q">${b.ty==="numbered_list_item"?"":"• "}${rtHtml(r)}</div>${kids}${input}
     <div class="tk-meta"><span class="seg tk-help">${[["nada","Sin ayuda"],["dic","Diccionario"],["trad","Traductor"]].map(([k,n])=>`<button class="${A.h===k?"on":""}" data-tk="help" data-v="${id}" data-h="${k}" ${locked?"disabled":""}>${n}</button>`).join("")}</span>
@@ -1271,15 +1329,16 @@ function itemHtml(d,a,b,locked){
 }
 function actHtml(d,a,locked){
   const isTask=a.ty!=="ref";
-  let body="",ol=0;
+  let body="",ol=0,ix=0;
   for(const b of a.blocks){
-    if(isTask&&isList(b.ty)){body+=itemHtml(d,a,b,locked);continue}
+    if(isTask&&isList(b.ty)){body+=itemHtml(d,a,b,locked,a.verd&&a.verd[ix++]);continue}
     body+=blockHtml(b);
   }
   const t=tTm(d,a.key),lim=a.ty==="mock"&&a.min?a.min*60000:0;
-  const timer=isTask?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
+  const vs=(a.verd||[]).filter(Boolean),cuenta=vs.length?`<span class="tag tk-cnt">${vs.filter(v=>v.v==="ok").length}/${vs.length} ✓</span>`:"";
+  const timer=isTask&&!locked?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
   const sug=a.min?`<span class="muted small">${a.ty==="mock"?"límite":"sugerido"} ${a.min} min</span>`:"";
-  return `<section class="card tk-act ${a.ty==="ref"?"ref":""}" data-akey="${a.key}"><div class="tk-ah"><span class="tag">${esc(a.n)}</span>${sug}<span class="sp"></span>${timer}</div>
+  return `<section class="card tk-act ${a.ty==="ref"?"ref":""}" data-akey="${a.key}"><div class="tk-ah"><span class="tag">${esc(a.n)}</span>${cuenta}${sug}<span class="sp"></span>${timer}</div>
     <h3 class="tk-title">${esc(a.title)}</h3>${a.ty==="mastery"?`<div class="muted small" style="margin-bottom:8px">Resuélvela sin ayuda: es para medir si dominas el tema.</div>`:""}${body}</section>`;
 }
 function totalMin(d,p){let ms=0,oms=0;for(const a of p.acts){if(a.ty==="ref")continue;const t=tEl(tTm(d,a.key));if(a.ty==="out")oms+=t;else ms+=t}
@@ -1294,7 +1353,7 @@ function hydrateFromEntrega(d){
 function renderTarea(keepScroll){
   const d=tDate,s=T.ses[d],y=window.scrollY;hydrateFromEntrega(d);
   if(!s){view="tareas";return renderTareas()}
-  const p=parseSession(s.blocks),locked=tLocked(d),ents=entregasDe(d),m=totalMin(d,p);
+  const p=parseSession(s.blocks),locked=tLocked(d),ents=entregasDe(d),m=totalMin(d,p);corrMap(p);
   const dudas=Object.values(T.ans[d]||{}).filter(a=>a.d).length;
   $("#app").innerHTML=`<div class="stack tk">
     <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><div style="min-width:0"><b style="font-size:1.05rem">${d===today()?"Hoy · ":""}${d}</b><div class="muted small">${esc(s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""))}</div></div><span class="sp"></span><button class="btn" data-tk="refresh" title="Actualizar">↻</button></div>
