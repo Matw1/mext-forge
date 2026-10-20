@@ -49,6 +49,7 @@ h3{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mu
 .brand{display:flex;align-items:center;gap:10px}
 .hanko{width:42px;height:42px;border-radius:10px;background:var(--accent);color:var(--accent-t);display:grid;place-items:center;font-weight:900;font-size:1.25rem;transform:rotate(-4deg);box-shadow:0 4px 14px var(--glow)}
 .brand b{display:block;font-size:1.15rem;letter-spacing:.02em}
+.nivel{display:inline-block;margin-left:7px;padding:1px 8px;border-radius:99px;border:1.5px solid var(--accent);color:var(--accent);font-size:.72rem;font-weight:900;letter-spacing:.06em;vertical-align:2px}
 .brand small{color:var(--muted);font-size:.78rem}
 
 /* ===== Hero ===== */
@@ -891,6 +892,12 @@ function instructorStats(){
   return{dom,hrs,tem};
 }
 const fechaCorta=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{day:"numeric",month:"short"}).replace(".","");
+// Nivel MCER que pone el instructor (propiedad «Nivel» de la sesión más reciente que lo tenga)
+function nivelBadge(){
+  const ks=porFecha([...new Set([...Object.keys(T.ses),...T.list.map(x=>x.k)])]);
+  for(const d of ks){const p=sesProps(d);if(p&&p.nivel)return `<span class="nivel" title="Nivel según el instructor · ${fechaCorta(sDate(d))}">${esc(p.nivel)}</span>`}
+  return "";
+}
 function instructorPills(){
   const{dom,hrs,tem}=instructorStats();let h="";
   if(dom)h+=`<span class="pill" style="color:var(--accent)" title="Lo estima el instructor; no lo calcula la app">📈 Dominio Fase ${dom.fase}: ${dom.pct}% · instructor, ${fechaCorta(sDate(dom.d))}</span>`;
@@ -908,7 +915,7 @@ function renderHome(){
   const {ph,pct,days}=phaseInfo();
   const keys=Object.keys(CATS).filter(k=>k!=="DIA"&&k!=="ESC"),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
   $("#app").innerHTML=`${tabsHtml("juego")}
-    <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
+    <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge${nivelBadge()}</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
       <button class="icon-btn" data-act="prog" aria-label="Panel de progreso" title="Panel de progreso (P)">📈</button><button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
     <section class="hero">
       <div class="ring" aria-label="${exam} días para el examen">
