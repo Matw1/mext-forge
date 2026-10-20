@@ -1,6 +1,6 @@
 // MEXT Forge — service worker: guarda la app en el teléfono para que funcione sin internet.
 // Al publicar una versión nueva, build.js sube VERSION automáticamente para que el teléfono la descargue.
-const VERSION = 'mext-forge-202610200020';
+const VERSION = 'mext-forge-202610200030';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
 // cache:'reload' evita guardar una copia vieja que venga de la caché HTTP de GitHub Pages (max-age 600).
@@ -27,11 +27,24 @@ self.addEventListener('fetch', e => {
   const pagina = e.request.mode === 'navigate' || /\/$|\.html$/.test(url.pathname);
   e.respondWith(caches.open(VERSION).then(async cache => {
     if (pagina) {
-      const net = fetch(e.request, { cache: 'no-cache' }).then(r => { if (r.ok) cache.put('index.html', r.clone()); return r; });
+      // Solo sirve una respuesta que sea de verdad la app: un wifi con portal o el operador sin saldo
+      // pueden contestar «200» con otra página, y esa no debe reemplazar a la copia guardada.
+      const MARCA = 'MEXT Forge';
+      const esApp = async r => !!r && r.ok && !r.redirected && (await r.clone().text()).includes(MARCA);
+      const net = fetch(e.request, { cache: 'no-cache' }).then(async r => {
+        if (!(await esApp(r))) throw new Error('no es la app');
+        cache.put('index.html', r.clone());
+        return r;
+      });
       net.catch(() => {});
-      const tope = new Promise((_, no) => setTimeout(() => no(new Error('lento')), 4000));
+      const tope = new Promise((_, no) => setTimeout(() => no(new Error('lento')), 3000));
       try { return await Promise.race([net, tope]); }
-      catch (err) { return (await cache.match('index.html')) || net; }
+      catch (err) {
+        for (const k of ['index.html', './']) { const c = await cache.match(k); if (await esApp(c)) return c; }
+        try { return await net; } catch (e2) {
+          return new Response('<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width"><body style="font-family:sans-serif;padding:24px"><h2>Sin conexión</h2><p>Esta vez la app no quedó guardada en el teléfono. Ábrela una vez con internet y después funcionará sin conexión.</p>', { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+        }
+      }
     }
     const hit = await cache.match(e.request, { ignoreSearch: true });
     const net = fetch(e.request).then(r => { if (r.ok) cache.put(e.request, r.clone()); return r; }).catch(() => hit);
