@@ -239,7 +239,14 @@ details[open].card summary::after{content:"－"}
 .enota[data-n="alta"]{color:var(--ok);background:var(--okbg)}.enota[data-n="media"]{color:var(--amart);background:var(--amarbg)}.enota[data-n="baja"]{color:var(--bad);background:var(--badbg)}
 .echips{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .echip[data-st="Por hacer"]{color:var(--accent)}.echip[data-st="Entregada"]{color:var(--warn)}.echip[data-st="Corregida"]{color:var(--ok)}
-.esub{display:flex;margin:0 0 14px}.esub button{flex:1}
+.esub{display:flex;margin:0 0 14px;overflow-x:auto;scrollbar-width:none}.esub::-webkit-scrollbar{display:none}.esub button{flex:1 0 auto}
+.etf summary{cursor:pointer;list-style:none;display:flex;align-items:baseline;gap:8px}.etf summary::-webkit-details-marker{display:none}
+.etf summary b{font-size:1rem}.etf summary .muted{margin-left:auto}
+.etema{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:9px 0;border-top:1px solid var(--line)}
+.etema:first-of-type{border-top:0}.etema .en{font-weight:600}.etema .ec{color:var(--muted);font-weight:700;margin-right:6px;font-variant-numeric:tabular-nums}
+.etema .ep{font-weight:800;font-variant-numeric:tabular-nums;text-align:right}.etema .ep.ok{color:var(--ok)}.etema .ep.cero,.etema .ep.sin{color:var(--muted);font-weight:600}
+.etema .eb{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.etema .eb i{display:block;height:100%;background:var(--inf);border-radius:3px}.etema .eb i.ok{background:var(--ok)}
+.etema .etnota{grid-column:1/-1;font-size:.78rem;color:var(--muted)}
 .ehead1{font-size:1.2rem;margin:0}
 /* ===== Lecciones de días estudiados (como en MEXT Ráfaga) ===== */
 .lessons{display:grid;gap:10px}
@@ -1070,7 +1077,7 @@ function renderStats(){
     <div class="card"><h3>Últimas rondas</h3>${ss.length?`<ul class="list">${ss.map(s=>`<li>${CUI[s.m]||MODES[s.m]?glyph(s.m):String(s.m).startsWith("day")?glyph("DIA"):String(s.m).startsWith("prod")?glyph("ESC"):glyph("mix")}<span class="t">${nameOf(s.m)} · ${s.ts?new Date(s.ts).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):s.d}</span><span class="muted small">${s.ok!=null?s.ok:Math.round(s.acc*s.n/100)}/${s.n} · <b style="color:var(--text)">${s.s}</b></span></li>`).join("")}</ul>`:'<span class="muted">Sin rondas.</span>'}</div>
   </div>`;
 }
-function render(){applyTheme();if(view==="prog")return renderProg();if(view==="sim")return renderSimLista();if(view==="simu")return renderSimHoja();if(view==="tareas")return renderTareas();if(view==="ref")return renderRef(true);if(view==="mat")return renderMateria();if(view==="tarea")return renderTarea(true);if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
+function render(){applyTheme();if(view==="prog")return renderProg();if(view==="sim")return renderSimLista();if(view==="simu")return renderSimHoja();if(view==="tareas")return renderTareas();if(view==="ref")return renderRef(true);if(view==="mat")return renderMateria();if(view==="tem")return renderTemas();if(view==="tarea")return renderTarea(true);if(view==="home")renderHome();else if(view==="drill")renderDrill();else if(view==="end")renderEnd();else renderStats();if(view!=="drill")window.scrollTo(0,0)}
 
 /* ================= TAREAS DIARIAS (instructor) =================
    Sección separada del juego: sin puntos, rachas ni corrección automática.
@@ -1337,6 +1344,8 @@ async function fetchTareas(extra,force){
     const ronda=Date.now(),fresh=!!force||!T.verOk||T.list.some(x=>x.src==="db"&&T.ses[x.k]&&dudoso(T.ses[x.k].at,x.edited));
     if(fresh)for(const x of T.list)want.add(x.k);
     try{await simSync(DB.settings.syncUrl.replace(/\/+$/,""),{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"})}catch(e){if(e.badkey){tState="badkey";return}}
+    // Temas por fase (base del instructor); si la base no existe, se ignora
+    try{const r=await fetch(DB.settings.syncUrl.replace(/\/+$/,"")+"/temas/lista",{method:"POST",headers:{"Authorization":"Bearer "+DB.settings.syncKey,"Content-Type":"application/json"},body:"{}"});const j=await r.json();if(j.ok){T.temas=j.temas||[];tSave(true)}}catch(e){}
     let dates=[...want],ver=null,todo=false;const recibidas=new Set();
     for(let vuelta=0;vuelta<30&&dates.length;vuelta++){
       const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),45000);
@@ -1363,7 +1372,7 @@ async function fetchTareas(extra,force){
     if(ver&&!dates.length){const t=Date.parse(ver);T.ver=ver;T.verOk=!isNaN(t)&&Date.now()-t>180000;tSave(true)} // solo se marca como al día si se descargó todo
     tState="ok";
   }catch(e){tState=navigator.onLine===false?"offline":"error";tErr=e.name==="AbortError"?"sin respuesta":e.message}
-  finally{tBusy=false;if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="mat")renderMateria();else if(view==="sim")renderSimLista();else if(view==="home"){if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("input,textarea"))refreshTk();else renderHome()}}
+  finally{tBusy=false;if(view==="tareas")renderTareas();else if(view==="tarea"){if(!document.activeElement.closest(".tk-item"))renderTarea(true)}else if(view==="ref")renderRef(true);else if(view==="mat")renderMateria();else if(view==="tem")renderTemas();else if(view==="sim")renderSimLista();else if(view==="home"){if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("input,textarea"))refreshTk();else renderHome()}}
 }
 function tkLabel(){
   return {busy:"Actualizando…",offline:"Sin conexión · mostrando lo guardado",badkey:"⚠ Clave inválida (Ajustes)",nosection:"Aún no existe la sección en Notion",
@@ -1459,6 +1468,39 @@ function lessonsHtml(f){
 function eTables(list,out){for(const b of list||[]){if(b.ty==="table")out.push(b);else if(b.k)eTables(b.k,out)}return out}
 // Referencia = solo teoría escrita: cada tabla se reemplaza por un aviso (las tablas viven en Materia)
 function sinTablas(list){return (list||[]).map(b=>b.ty==="table"?{ty:"paragraph",r:[{t:"(La tabla está en 📊 Materia)",i:1}]}:b.k?{...b,k:sinTablas(b.k)}:b)}
+/* ---------- 🗺️ Temas por fase: lista del instructor con el % de cada tema (no visto = 0) ----------
+   Si una sesión más reciente trae el mismo tema en «Tema» (por código, p. ej. «B4», o por nombre)
+   con «Dominio tema %», se usa ese valor: así el tema del día está al día aunque la fila no se haya tocado. */
+const tNorm=s=>String(s||"").toLowerCase().normalize("NFKC").replace(/\s+/g," ").trim();
+function temaDeSesion(t){
+  let best=null;
+  for(const x of T.list){
+    const p=x.props;if(!p||p.domTema==null||!p.tema)continue;
+    const st=tNorm(p.tema),cod=tNorm(t.codigo);
+    // por código: «B1» al inicio, sin confundirlo con «B10»
+    const ok=!!cod&&st.startsWith(cod)&&!/^[\w.]/.test(st.slice(cod.length));
+    if(!ok&&!(st===tNorm(t.tema)||st.includes(tNorm(t.tema))))continue;
+    if(!best||(x.edited||x.date)>(best.edited||best.date))best=x;
+  }
+  return best&&(!t.edited||(best.edited||"")>t.edited)?best:null;
+}
+function temaPct(t){const x=temaDeSesion(t);let v=x?x.props.domTema:t.dom;if(typeof v!=="number")return null;if(v>0&&v<1)v*=100;return Math.max(0,Math.min(100,Math.round(v)))}
+function renderTemas(){
+  const ts=T.temas||[],fases=[...new Set(ts.map(t=>t.fase))],dom0=(instructorStats().dom||{}).fase,actual=dom0?"Fase "+dom0:null;
+  $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
+    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    <div class="estat" id="tkState">${esc(tkLabel())}</div>
+    ${subTabs("tem")}
+    ${fases.length?fases.map((f,i)=>{const l=ts.filter(t=>t.fase===f),ps=l.map(temaPct),dom=ps.filter(v=>v===100).length;
+      return `<details class="card etf" ${(actual&&fases.includes(actual)?f===actual:i===0)?"open":""}><summary><b>${esc(f)} (Temas)</b><span class="muted small">${dom}/${l.length} dominados</span></summary>
+        ${l.map((t,j)=>{const v=ps[j],cls=v===100?"ok":v===0?"cero":v==null?"sin":"";
+          return `<div class="etema"><span class="en">${t.codigo?`<span class="ec">${esc(t.codigo)}</span>`:""}${esc(t.tema)}</span><span class="ep ${cls}">${v==null?"sin medir":v===100?"✅ 100%":v+"%"}</span>
+            <span class="eb"><i class="${v===100?"ok":""}" style="width:${v||0}%"></i></span>${t.nota?`<span class="etnota">${esc(t.nota)}</span>`:""}</div>`}).join("")}
+      </details>`}).join("")
+    :'<div class="card"><b>Aún no hay temas.</b><div class="muted small">Aquí aparecerán los temas de cada fase con su % de dominio, cuando el instructor los cargue en Notion.</div></div>'}
+    <div class="muted small" style="margin:6px 2px 0">El % lo pone el instructor. Tema no visto = 0%.</div>
+  </div>`;
+}
 function renderMateria(){
   const dias=[];
   for(const d of porFecha(Object.keys(T.ses))){
@@ -1480,7 +1522,7 @@ function renderMateria(){
 
 /* ---------- pestañas y formato de fechas ---------- */
 const tabsHtml=on=>`<nav class="tabs" role="tablist"><button role="tab" aria-selected="${on==="juego"}" data-tk="tab-juego" class="${on==="juego"?"on":""}">🎮 Juego</button><button role="tab" aria-selected="${on==="estudio"}" data-tk="tab-estudio" class="${on==="estudio"?"on":""}">📝 Estudio</button></nav>`;
-const subTabs=on=>`<div class="seg esub"><button data-tk="sub-ses" class="${on==="ses"?"on":""}">Sesiones</button><button data-tk="ref" class="${on==="ref"?"on":""}">📘 Referencia</button><button data-tk="mat" class="${on==="mat"?"on":""}">📊 Materia</button><button data-tk="sim" class="${on==="sim"?"on":""}">📋 Simulacros</button></div>`;
+const subTabs=on=>`<div class="seg esub"><button data-tk="sub-ses" class="${on==="ses"?"on":""}">Sesiones</button><button data-tk="ref" class="${on==="ref"?"on":""}">📘 Referencia</button><button data-tk="mat" class="${on==="mat"?"on":""}">📊 Materia</button><button data-tk="sim" class="${on==="sim"?"on":""}">📋 Simulacros</button><button data-tk="tem" class="${on==="tem"?"on":""}">🗺️ Temas</button></div>`;
 function renderSimLista(){
   const hoyF=today(),hechos=new Set((T.sims||[]).map(x=>x.examen)),fmtP=v=>typeof v==="number"?Math.round(v)+"%":"—";
   $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
@@ -1705,6 +1747,7 @@ document.addEventListener("click",e=>{
   if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null,true);return}
   if(k==="ref"){view="ref";renderRef();fetchTareas();return}
   if(k==="mat"){view="mat";renderMateria();fetchTareas();return}
+  if(k==="tem"){view="tem";renderTemas();fetchTareas();return}
   if(k==="tab-estudio"||k==="sub-ses"){view="tareas";renderTareas();fetchTareas();return}
   if(k==="tab-juego"){view="home";render();return}
   if(k==="sim"){view="sim";renderSimLista();fetchTareas();return}
