@@ -1633,10 +1633,10 @@ function itemHtml(d,a,b,locked,V){
     <div class="tk-q">${b.ty==="numbered_list_item"?"":"• "}${rtHtml(r)}</div>${kids}
     <div class="tk-ans">${ans.trim()?(d2?d2.a:esc(ans)):`<span class="muted">(sin respuesta)</span>`}</div>
     ${verdHtml(V,ans)}
-    <div class="muted small" style="margin-top:6px">${HELPN[A.h]||"sin ayuda"}${A.d?` · ❓ ${esc(A.nt||"duda")}`:""}</div></div>`}
+    ${A.d?`<div class="muted small" style="margin-top:6px">❓ ${esc(A.nt||"duda")}</div>`:""}</div>`}
   return `<div class="tk-item ${A.d?"doubt":""}" data-item="${id}" data-act-key="${a.key}">
     <div class="tk-q">${b.ty==="numbered_list_item"?"":"• "}${rtHtml(r)}</div>${kids}${input}
-    <div class="tk-meta"><span class="seg tk-help">${[["nada","Sin ayuda"],["dic","Diccionario"],["trad","Traductor"]].map(([k,n])=>`<button class="${A.h===k?"on":""}" data-tk="help" data-v="${id}" data-h="${k}" ${locked?"disabled":""}>${n}</button>`).join("")}</span>
+    <div class="tk-meta">
       <button class="tk-doubt ${A.d?"on":""}" data-tk="doubt" data-v="${id}" ${locked?"disabled":""}>❓ Tengo duda</button></div>
     <textarea class="tk-note" rows="2" data-tk="note" data-v="${id}" placeholder="Nota para el instructor (en español)" ${locked?"readonly":""}>${esc(A.nt)}</textarea>
   </div>`;
@@ -1702,14 +1702,13 @@ function buildEntrega(d){
   const iso=today(now)+"T"+pad(now.getHours())+":"+pad(now.getMinutes())+":"+pad(now.getSeconds())+(off>=0?"+":"-")+pad(Math.trunc(off/60))+":"+pad(off%60);
   return{t:now.getTime(),k:"t",date:sDate(d),tid:s.tid,src:s.src||"toggle",estado:(sesProps(d)||{}).estado||"",n:entregasDe(d).length+1,iso,dn:DB.dev.name,min:m.total,dudas,acts};
 }
-const HELPN={nada:"sin ayuda",dic:"diccionario",trad:"traductor"};
 function entregaMd(e){
   const L=[`## 📤 Entrega ${e.n} — ${e.date} · ${e.min} min · ${e.dudas} ${e.dudas===1?"duda":"dudas"}`];
   for(const a of e.acts){L.push("",`### ${a.title} · ${a.sec!=null?fmtMS(a.sec*1000):a.min+" min"}${a.lim?" / límite "+a.lim+" min":""}`);
     a.items.forEach((it,i)=>{
       if(a.out){L.push(`- [${it.done?"x":" "}] ${it.p} — ${it.done?"hecho":"no hecho"}`);if(it.d)L.push(`   ❓ Duda: ${it.nt||"(sin nota)"}`);return}
       const ans=it.ch?`[${it.ch}]${it.v?" "+it.v:""}`:(it.v||"(sin respuesta)");
-      L.push(`${i+1}. ${it.p}`,...ans.split("\n").map(x=>"   > "+x),`   _⏱ ${it.s} s · ${HELPN[it.h]||"sin ayuda"}_`);
+      L.push(`${i+1}. ${it.p}`,...ans.split("\n").map(x=>"   > "+x),`   _⏱ ${it.s} s_`);
       if(it.d)L.push(`   ❓ Duda: ${it.nt||"(sin nota)"}`);
     })}
   return L.join("\n");
