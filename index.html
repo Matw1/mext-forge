@@ -868,26 +868,30 @@ const numOf=x=>parseFloat(String(x).replace(",","."));
 // Campos de la sesión en la base de Notion (desde el 17-oct): ganan sobre las líneas de texto de los días viejos.
 const sesProps=d=>{const x=T.list.find(y=>y.k===d);return (x&&x.props)||(T.ses[d]&&T.ses[d].props)||null};
 function instructorStats(){
-  let dom=null,hrs=null;
+  let dom=null,hrs=null,tem=null;
   const dias=porFecha([...new Set([...Object.keys(T.ses),...T.list.map(x=>x.k)])]);
   for(const d of dias){
     const p=sesProps(d);
     if(!dom&&p&&p.dom!=null)dom={fase:p.fase||"1",pct:Math.round(p.dom),d};
+    if(!tem&&p&&p.domTema!=null){let v=p.domTema;if(v>0&&v<1)v*=100;tem={tema:p.tema||"tema actual",pct:Math.max(0,Math.min(100,Math.round(v))),d}}
     if(!hrs&&p&&p.horas!=null)hrs={acc:p.horas,meta:p.meta!=null?p.meta:500,d};
-    if(dom&&hrs)break;
+    if(dom&&hrs&&tem)break;
     if(!T.ses[d])continue;
     const txt=blocksText(T.ses[d].blocks);
     if(!dom){const m=txt.match(/📊\s*Fase\s*(\d)\s*(?:[:·\-–—]\s*)?(?:dominio\s*)?(\d{1,3}(?:[.,]\d+)?)\s*%/i);if(m)dom={fase:+m[1],pct:Math.round(numOf(m[2])),d}}
     if(!hrs){const m=txt.match(/horas\s+acumuladas\s*:?\s*(\d+(?:[.,]\d+)?)/i);
       if(m){const mm=txt.match(/meta(?:\s+(?:de\s+)?horas)?\s*:?\s*(\d+(?:[.,]\d+)?)/i);hrs={acc:numOf(m[1]),meta:mm?numOf(mm[1]):500,d}}}
-    if(dom&&hrs)break;
+    if(dom&&hrs&&tem)break;
   }
-  return{dom,hrs};
+  return{dom,hrs,tem};
 }
 const fechaCorta=d=>new Date(d+"T12:00:00").toLocaleDateString("es",{day:"numeric",month:"short"}).replace(".","");
 function instructorPills(){
-  const{dom,hrs}=instructorStats();let h="";
+  const{dom,hrs,tem}=instructorStats();let h="";
   if(dom)h+=`<span class="pill" style="color:var(--accent)" title="Lo estima el instructor; no lo calcula la app">📈 Dominio Fase ${dom.fase}: ${dom.pct}% · instructor, ${fechaCorta(sDate(dom.d))}</span>`;
+  // Dominio del tema actual: en 100 queda superado; el instructor decide cuándo pasar al siguiente
+  if(tem)h+=tem.pct>=100?`<span class="pill" style="color:var(--inf)" title="El instructor lo dio por superado">✅ ${esc(tem.tema)}: superado · instructor, ${fechaCorta(sDate(tem.d))}</span>`
+    :`<span class="pill" style="color:var(--inf)" title="Lo estima el instructor; no lo calcula la app">🎯 ${esc(tem.tema)}: ${tem.pct}% · instructor, ${fechaCorta(sDate(tem.d))}</span>`;
   if(hrs){const dias=Math.max(1,daysTo(EXAM)),min=Math.max(0,Math.round((hrs.meta-hrs.acc)*60/dias));
     h+=`<span class="pill" title="(meta ${hrs.meta} h − ${hrs.acc} h acumuladas) ÷ ${dias} días hasta el 15 jul 2027 · datos del instructor, ${fechaCorta(sDate(hrs.d))}">⏱ Debes estudiar ${Math.floor(min/60)} h ${min%60} min/día</span>`}
   return h;
