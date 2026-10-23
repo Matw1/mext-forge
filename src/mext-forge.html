@@ -1557,7 +1557,7 @@ function renderMateria(){
     <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
     <div class="estat" id="tkState">${esc(tkLabel())}</div>
     ${subTabs("mat")}
-    ${dias.length?dias.map((x,i)=>`<details class="card emat" ${i===0?"open":""}><summary><span class="ek">${esc(fechaLarga(sDate(x.d)))} · ${x.tablas.length} tabla${x.tablas.length>1?"s":""}</span><b>${esc(tituloSes(x.d))}</b></summary>
+    ${dias.length?dias.map((x,i)=>`<details class="card emat" data-mat="${esc(x.d)}" ${matAbiertos.has(x.d)?"open":""}><summary><span class="ek">${esc(fechaLarga(sDate(x.d)))} · ${x.tablas.length} tabla${x.tablas.length>1?"s":""}</span><b>${esc(tituloSes(x.d))}</b></summary>
       <div>${x.tablas.map((y,j)=>`${y.tema&&(j===0||x.tablas[j-1].tema!==y.tema)?`<div class="emtema">${esc(y.tema)}</div>`:""}${blockHtml(y.t)}`).join("")}</div></details>`).join("")
     :`<div class="ecard eempty"><b>Aún no hay tablas.</b><span class="muted small">Aquí aparecerán, por día, las tablas que el instructor ponga en tus clases.</span></div>`}
   </div>`;
@@ -2017,6 +2017,10 @@ addEventListener("offline",()=>{syncState=syncConfigured()?"offline":"off";refre
 setInterval(()=>{if(view==="home"||view==="stats")syncNow()},120000);
 // que Android no borre los datos de la app
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+
+/* Materia: los bloques se abren solo al tocarlos y siguen abiertos aunque la pantalla se actualice al sincronizar */
+var matAbiertos=new Set();
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.matches&&d.matches('details[data-mat]')){if(d.open)matAbiertos.add(d.dataset.mat);else matAbiertos.delete(d.dataset.mat)}},true);
 </script>
 </body>
 </html>
