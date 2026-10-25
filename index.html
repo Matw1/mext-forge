@@ -357,6 +357,13 @@ details[open].card summary::after{content:"－"}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
 #matSearch{margin-bottom:2px}#matCuenta{margin:0 2px 6px}.mtab{margin-top:6px}td.hit,th.hit{background:color-mix(in srgb,var(--amar) 35%,transparent)}
+.elupa{font:inherit;font-size:1.05rem;width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer;margin-right:6px}
+#lupa{position:fixed;top:0;right:0;bottom:0;width:min(420px,100vw);background:var(--bg);border-left:1px solid var(--line);box-shadow:-8px 0 30px rgba(0,0,0,.12);z-index:60;padding:12px 14px 30px;overflow-y:auto;transform:translateX(105%);transition:transform .2s ease}
+#lupa.on{transform:none}#lupa .lp-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}#lupa .lp-tabs{display:flex}#lupa .lp-tabs button{padding:6px 10px}#lupa .lp-tabs button.on{background:var(--text);color:var(--bg)}
+#lupa .lp-x{margin-left:auto;font:inherit;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+#lupa .lp-it{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px}#lupa .lp-it summary{cursor:pointer}#lupa table{font-size:.92rem}
+@media (min-width:1100px){body.lupa-on #app{margin-right:440px}}
+@media (max-width:759px){#lupa{top:auto;width:100vw;height:72vh;border-left:0;border-top:1px solid var(--line);border-radius:16px 16px 0 0;transform:translateY(105%)}#lupa.on{transform:none}}
 </style>
 </head>
 <body>
@@ -1705,6 +1712,40 @@ function itemHtml(d,a,b,locked,V){
     <textarea class="tk-note" rows="2" data-tk="note" data-v="${id}" placeholder="Nota para el instructor (en español)" ${locked?"readonly":""}>${esc(A.nt)}</textarea>
   </div>`;
 }
+/* 🔍 Consulta rápida dentro de la sesión: panel a la derecha (abajo en el teléfono) para buscar en
+   Materia (tablas) y Referencia (teoría) sin salir. No aparece en pruebas de dominio, simulacros ni tareas «sin apuntes». */
+function lupaOk(a){if(a.ty==="mastery"||a.ty==="mock")return false;
+  const t=(a.title+" "+a.blocks.filter(b=>!isList(b.ty)).map(b=>rtPlain(b.r)).join(" ")).toLowerCase();
+  return !/sin apuntes|sin tablas|sin mirar|sin consultar|en fr[ií]o|sin ayuda|minisimulacro|simulacro/.test(t)}
+let lupaTab="mat",lupaQ="",lupaTodo=false;
+// «Este tema»: la sesión abierta y las que tienen el mismo «Tema» (por código, p. ej. B4, o por nombre)
+const temaClave=t=>{t=String(t||"").trim().toLowerCase();const m=t.match(/^[a-z]?\d+(\.\d+)?\b/);return m?m[0]:t};
+function lupaEnTema(d){if(lupaTodo||!tDate)return true;if(d===tDate)return true;
+  const k=temaClave((sesProps(tDate)||{}).tema);return !!k&&temaClave((sesProps(d)||{}).tema)===k}
+function lupaAbrir(){lupaTodo=false;let el=document.getElementById("lupa");
+  if(!el){el=document.createElement("aside");el.id="lupa";document.body.appendChild(el);
+    el.innerHTML=`<div class="lp-head"><b>🔍 Consulta</b><div class="seg lp-tabs"><button data-lp="mat">📊 Materia</button><button data-lp="ref">📘 Referencia</button></div><div class="seg lp-tabs"><button data-lp="tema">Este tema</button><button data-lp="todo">Todo</button></div><button class="lp-x" data-lp="x" aria-label="Cerrar">✕</button></div>
+      <input type="search" id="lpQ" class="tk-in" placeholder="Palabra clave (ej. much, while, advice)" autocomplete="off" spellcheck="false" autocapitalize="off"><div class="muted small" id="lpN"></div><div id="lpRes"></div>`;
+    el.addEventListener("click",e=>{const b=e.target.closest("[data-lp]");if(!b)return;if(b.dataset.lp==="x")return lupaCerrar();if(b.dataset.lp==="tema"||b.dataset.lp==="todo")lupaTodo=b.dataset.lp==="todo";else lupaTab=b.dataset.lp;lupaPintar()});
+    el.querySelector("#lpQ").addEventListener("input",e=>{lupaQ=e.target.value;lupaPintar()});}
+  el.classList.add("on");document.body.classList.add("lupa-on");el.querySelector("#lpQ").value=lupaQ;lupaPintar();
+}
+function lupaCerrar(){const el=document.getElementById("lupa");if(el)el.classList.remove("on");document.body.classList.remove("lupa-on")}
+function lupaPintar(){const el=document.getElementById("lupa");if(!el)return;
+  el.querySelectorAll('[data-lp="mat"],[data-lp="ref"]').forEach(b=>b.classList.toggle("on",b.dataset.lp===lupaTab));
+  el.querySelectorAll('[data-lp="tema"],[data-lp="todo"]').forEach(b=>b.classList.toggle("on",(b.dataset.lp==="todo")===lupaTodo));
+  const q=lupaQ.trim().toLowerCase();let html="",n=0;
+  for(const d of porFecha(Object.keys(T.ses))){if(!lupaEnTema(d))continue;const p=parseSession(T.ses[d].blocks);
+    if(lupaTab==="mat"){const ts=eTables(p.intro,[]).map(t=>({tema:"",t}));for(const a of p.acts)if(a.ty==="ref")eTables(a.blocks,[]).forEach(t=>ts.push({tema:a.title,t}));
+      for(const x of ts){if(q&&!((x.tema||"")+" "+tablaTxt(x.t)).toLowerCase().includes(q))continue;n++;
+        html+=`<div class="lp-it"><div class="muted small">${esc(fechaCorta(sDate(d)))} · ${esc(x.tema||tituloSes(d))}</div>${blockHtml(x.t)}</div>`}}
+    else for(const a of p.acts){if(a.ty!=="ref")continue;const t=(a.title+" "+a.blocks.map(b=>rtPlain(b.r)+" "+(b.k||[]).map(c=>rtPlain(c.r)+(c.cells||[]).map(rtPlain).join(" ")).join(" ")).join(" ")).toLowerCase();
+      if(q&&!t.includes(q))continue;n++;
+      html+=`<details class="lp-it" ${q?"open":""}><summary><span class="muted small">${esc(fechaCorta(sDate(d)))}</span> <b>${esc(a.title)}</b></summary>${sinTablas(a.blocks).map(blockHtml).join("")}</details>`}}
+  el.querySelector("#lpRes").innerHTML=html||`<div class="muted small" style="padding:10px 2px">${q?"Nada con «"+esc(lupaQ.trim())+"»"+(lupaTodo?".":" en este tema. Prueba con «Todo»."):(lupaTodo?"Aún no hay material.":"Esta clase no tiene material de consulta. Prueba con «Todo».")}</div>`;
+  el.querySelector("#lpN").textContent=q?`${n} resultado${n===1?"":"s"}`:"";
+  if(q)el.querySelectorAll("#lpRes td,#lpRes th").forEach(c=>c.classList.toggle("hit",c.textContent.toLowerCase().includes(q)));
+}
 function actHtml(d,a,locked){
   const isTask=a.ty!=="ref";
   let body="",ol=0,ix=0;
@@ -1717,7 +1758,7 @@ function actHtml(d,a,locked){
   const timer=(isTask||(a.ty==="ref"&&a.min))&&!locked?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
   const sug=a.min?`<span class="muted small">${a.ty==="mock"?"límite":"sugerido"} ${a.min} min</span>`:"";
   if(a.ty==="match"&&matchOpts(a).length)body=`<div class="tk-legend">${matchOpts(a).map(o=>`<span><b>${esc(o.k)}</b> ${esc(o.t)}</span>`).join("")}</div>`+body;
-  return `<section class="card tk-act ${a.ty==="ref"?"ref":""}" data-akey="${a.key}"><div class="tk-ah"><span class="tag">${esc(a.n)}</span>${cuenta}${sug}<span class="sp"></span>${timer}</div>
+  return `<section class="card tk-act ${a.ty==="ref"?"ref":""}" data-akey="${a.key}"><div class="tk-ah"><span class="tag">${esc(a.n)}</span>${cuenta}${sug}<span class="sp"></span>${!locked&&isTask&&a.ty!=="out"&&lupaOk(a)?'<button class="elupa" data-tk="lupa" title="Consultar Materia y Referencia sin salir" aria-label="Consultar Materia y Referencia">🔍</button>':""}${timer}</div>
     <h3 class="tk-title">${esc(a.title)}</h3>${a.ty==="mastery"?`<div class="muted small" style="margin-bottom:8px">Resuélvela sin ayuda: es para medir si dominas el tema.</div>`:""}${body}</section>`;
 }
 function totalMin(d,p){let ms=0,oms=0;for(const a of p.acts){const t=tEl(tTm(d,a.key));if(a.ty==="out")oms+=t;else ms+=t}
@@ -1813,7 +1854,8 @@ document.addEventListener("click",e=>{
   const b=e.target.closest("[data-tk]");if(!b||b.disabled)return;
   const k=b.dataset.tk,v=b.dataset.v;
   if(k==="open"){if(v)openTarea(v);else{view="tareas";renderTareas();fetchTareas()}return}
-  if(k==="list"){if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas();return}
+  if(k==="lupa"){lupaAbrir();return}
+  if(k==="list"){lupaCerrar();if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas();return}
   if(k==="date"){openTarea(v);return}
   if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null,true);return}
   if(k==="ref"){view="ref";renderRef();fetchTareas();return}
