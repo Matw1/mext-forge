@@ -353,6 +353,8 @@ details[open].card summary::after{content:"－"}
 
 @media (max-width:420px){.prompt{font-size:1.22rem}.opt{font-size:1.05rem}.ring{width:92px;height:92px}.ring .in b{font-size:1.6rem}.hero{gap:12px;padding:14px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+#matSearch{margin-bottom:2px}#matCuenta{margin:0 2px 6px}.mtab{margin-top:6px}td.hit,th.hit{background:color-mix(in srgb,var(--amar) 35%,transparent)}
 </style>
 </head>
 <body>
@@ -1557,12 +1559,26 @@ function renderMateria(){
     <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
     <div class="estat" id="tkState">${esc(tkLabel())}</div>
     ${subTabs("mat")}
+    ${dias.length?`<input class="tk-in" id="matSearch" type="search" placeholder="🔍 Buscar en las tablas (ej. much, while, advice…)" value="${esc(matQ)}" autocomplete="off" spellcheck="false" autocapitalize="off"><div class="muted small" id="matCuenta"></div>`:""}
     ${dias.length?dias.map((x,i)=>`<details class="card emat" data-mat="${esc(x.d)}" ${matAbiertos.has(x.d)?"open":""}><summary><span class="ek">${esc(fechaLarga(sDate(x.d)))} · ${x.tablas.length} tabla${x.tablas.length>1?"s":""}</span><b>${esc(tituloSes(x.d))}</b></summary>
-      <div>${x.tablas.map((y,j)=>`${y.tema&&(j===0||x.tablas[j-1].tema!==y.tema)?`<div class="emtema">${esc(y.tema)}</div>`:""}${blockHtml(y.t)}`).join("")}</div></details>`).join("")
+      <div>${x.tablas.map((y,j)=>`<div class="mtab" data-q="${esc((y.tema+" "+tituloSes(x.d)+" "+tablaTxt(y.t)).toLowerCase())}">${y.tema?`<div class="emtema">${esc(y.tema)}</div>`:""}${blockHtml(y.t)}</div>`).join("")}</div></details>`).join("")
     :`<div class="ecard eempty"><b>Aún no hay tablas.</b><span class="muted small">Aquí aparecerán, por día, las tablas que el instructor ponga en tus clases.</span></div>`}
   </div>`;
   window.scrollTo(0,0);
+  if(matQ)matFiltrar();
 }
+// Búsqueda en Materia: deja solo las tablas que contienen lo escrito, abre su día y resalta las celdas
+let matQ="";
+const tablaTxt=t=>(t.k||[]).map(r=>(r.cells||[]).map(rtPlain).join(" ")).join(" ");
+function matFiltrar(){
+  const q=matQ.trim().toLowerCase();let n=0;
+  document.querySelectorAll("details.emat").forEach(d=>{let hay=0;
+    d.querySelectorAll(".mtab").forEach(t=>{const ok=!q||t.dataset.q.includes(q);t.style.display=ok?"":"none";if(ok&&q){hay++;n++}
+      t.querySelectorAll("td,th").forEach(c=>c.classList.toggle("hit",!!q&&ok&&c.textContent.toLowerCase().includes(q)))});
+    d.style.display=!q||hay?"":"none";if(q&&hay)d.open=true;else if(!q)d.open=matAbiertos.has(d.dataset.mat)});
+  const c=document.getElementById("matCuenta");if(c)c.textContent=q?(n?`${n} tabla${n>1?"s":""} con «${matQ.trim()}»`:`Ninguna tabla tiene «${matQ.trim()}»`):"";
+}
+document.addEventListener("input",e=>{if(view==="mat"&&e.target.id==="matSearch"){matQ=e.target.value;matFiltrar()}});
 
 /* ---------- pestañas y formato de fechas ---------- */
 const tabsHtml=on=>`<nav class="tabs" role="tablist"><button role="tab" aria-selected="${on==="juego"}" data-tk="tab-juego" class="${on==="juego"?"on":""}">🎮 Juego</button><button role="tab" aria-selected="${on==="estudio"}" data-tk="tab-estudio" class="${on==="estudio"?"on":""}">📝 Estudio</button></nav>`;
@@ -1634,6 +1650,8 @@ function renderTareas(){
 
 /* ---------- referencia: todo lo 📘 Consulta que ya explicó el instructor ---------- */
 let refQ="";
+function matCuentaQ(q){let n=0;for(const d of Object.keys(T.ses)){const p=parseSession(T.ses[d].blocks),ts=eTables(p.intro,[]);
+  for(const a of p.acts)if(a.ty==="ref")eTables(a.blocks,ts);for(const t of ts)if(tablaTxt(t).toLowerCase().includes(q))n++}return n}
 function renderRef(keep){
   const y=window.scrollY,q=refQ.trim().toLowerCase();
   const all=[];for(const d of porFecha(Object.keys(T.ses))){for(const a of parseSession(T.ses[d].blocks).acts)if(a.ty==="ref")all.push({d,a})}
@@ -1645,6 +1663,7 @@ function renderRef(keep){
     <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
     ${subTabs("ref")}
     <input class="tk-in" id="refSearch" type="search" placeholder="Buscar (ej. no longer, uncountable…)" value="${esc(refQ)}" autocomplete="off" spellcheck="false" autocapitalize="off">
+    ${q?(()=>{const nt=matCuentaQ(q);return nt?`<button class="btn" data-tk="ref2mat" style="justify-self:start">📊 Ver ${nt} tabla${nt>1?"s":""} con «${esc(refQ.trim())}» en Materia</button>`:""})():""}
     <div class="muted small" id="tkState">${all.length} ${all.length===1?"explicación guardada":"explicaciones guardadas"}${pend?` · ${pend} sesiones anteriores aún por descargar (se bajan solas al actualizar)`:""}</div>
     ${list.map(x=>`<section class="card tk-act ref"><div class="tk-ah"><span class="tag">Consulta</span><span class="sp"></span><button class="btn" data-tk="date" data-v="${x.d}" style="min-height:34px;padding:4px 10px">${sDate(x.d)}</button></div>
       <h3 class="tk-title">${esc(x.a.title)}</h3>${sinTablas(x.a.blocks).map(blockHtml).join("")}</section>`).join("")||`<div class="card muted">${q?"Nada coincide con la búsqueda.":"Aún no hay explicaciones. Aparecen aquí las secciones 📘 Consulta de cada sesión."}</div>`}
@@ -1688,13 +1707,13 @@ function actHtml(d,a,locked){
   }
   const t=tTm(d,a.key),lim=a.ty==="mock"&&a.min?a.min*60000:0;
   const vs=(a.verd||[]).filter(Boolean),cuenta=vs.length?`<span class="tag tk-cnt">${vs.filter(v=>v.v==="ok").length}/${vs.length} ✓</span>`:"";
-  const timer=isTask&&!locked?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
+  const timer=(isTask||a.ty==="ref")&&!locked?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
   const sug=a.min?`<span class="muted small">${a.ty==="mock"?"límite":"sugerido"} ${a.min} min</span>`:"";
   if(a.ty==="match"&&matchOpts(a).length)body=`<div class="tk-legend">${matchOpts(a).map(o=>`<span><b>${esc(o.k)}</b> ${esc(o.t)}</span>`).join("")}</div>`+body;
   return `<section class="card tk-act ${a.ty==="ref"?"ref":""}" data-akey="${a.key}"><div class="tk-ah"><span class="tag">${esc(a.n)}</span>${cuenta}${sug}<span class="sp"></span>${timer}</div>
     <h3 class="tk-title">${esc(a.title)}</h3>${a.ty==="mastery"?`<div class="muted small" style="margin-bottom:8px">Resuélvela sin ayuda: es para medir si dominas el tema.</div>`:""}${body}</section>`;
 }
-function totalMin(d,p){let ms=0,oms=0;for(const a of p.acts){if(a.ty==="ref")continue;const t=tEl(tTm(d,a.key));if(a.ty==="out")oms+=t;else ms+=t}
+function totalMin(d,p){let ms=0,oms=0;for(const a of p.acts){const t=tEl(tTm(d,a.key));if(a.ty==="out")oms+=t;else ms+=t}
   const app=Math.round(ms/60000),out=Math.round(oms/60000);return{app,out,total:Math.round((ms+oms)/60000)}}
 function hydrateFromEntrega(d){
   const last=entregasDe(d).pop();if(!last||Object.keys(T.ans[d]||{}).length)return;
@@ -1727,7 +1746,7 @@ function openTarea(d){tDate=d;view="tarea";renderTarea();fetchTareas(d);bSync()}
 /* ---------- entrega ---------- */
 function buildEntrega(d){
   const s=T.ses[d],p=parseSession(s.blocks),m=totalMin(d,p);let dudas=0;
-  const acts=p.acts.filter(a=>a.ty!=="ref").map(a=>{
+  const acts=p.acts.filter(a=>a.ty!=="ref"||tEl(tTm(d,a.key))>0).map(a=>{
     const items=a.blocks.filter(b=>isList(b.ty)&&!((letterOpts(a,b)||{}).skip)).map(b=>{
       const A=tAns(d,b.id);if(A.d)dudas++;
       if(a.ty==="out"){const o=tOut(d,b.id);return{id:b.id,p:rtPlain(b.r),done:!!o.done,d:A.d?1:0,nt:A.nt}}
@@ -1792,6 +1811,7 @@ document.addEventListener("click",e=>{
   if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null,true);return}
   if(k==="ref"){view="ref";renderRef();fetchTareas();return}
   if(k==="mat"){view="mat";renderMateria();fetchTareas();return}
+  if(k==="ref2mat"){matQ=refQ;view="mat";renderMateria();return}
   if(k==="tem"){view="tem";renderTemas();fetchTareas();return}
   if(k==="tab-estudio"||k==="sub-ses"){view="tareas";renderTareas();fetchTareas();return}
   if(k==="tab-juego"){view="home";render();return}
