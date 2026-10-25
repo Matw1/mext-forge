@@ -1836,7 +1836,7 @@ document.addEventListener("click",e=>{
     A.ch=A.ch===b.dataset.o?null:b.dataset.o;b.parentNode.querySelectorAll(".tk-opt").forEach(x=>x.classList.toggle("on",x.dataset.o===A.ch));
     const mr=document.querySelector(`[data-mres="${v}"]`);if(mr){const lg=[...b.closest(".tk-act").querySelectorAll(".tk-legend span")].find(x=>x.querySelector("b").textContent===A.ch);mr.textContent=A.ch&&lg?A.ch+" — "+lg.textContent.slice(A.ch.length).trim():""}tSave();updTimers()}
   else if(k==="help"){tAns(d,v).h=b.dataset.h;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));tSave()}
-  else if(k==="mark"){const A=tAns(d,v),o=b.dataset.o,l=A.mk||(A.mk=[]);const i=l.indexOf(o);if(i<0)l.push(o);else l.splice(i,1);b.classList.toggle("on",i<0);tSave()}
+  else if(k==="mark"){const bx=b.closest("[data-act-key]");if(bx)startTimer(d,bx.dataset.actKey),updTimers();const A=tAns(d,v),o=b.dataset.o,l=A.mk||(A.mk=[]);const i=l.indexOf(o);if(i<0)l.push(o);else l.splice(i,1);b.classList.toggle("on",i<0);tSave()}
   else if(k==="doubt"){const A=tAns(d,v);A.d=A.d?0:1;b.classList.toggle("on",!!A.d);b.closest(".tk-item").classList.toggle("doubt",!!A.d);tSave();updTotal()}
   else if(k==="timer"){const t=tTm(d,v);if(t.since){t.acc+=Date.now()-t.since;t.since=null}else startTimer(d,v);tSave();updTimers()}
   else if(k==="send"){addItemTime();sendEntrega()}
