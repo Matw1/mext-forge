@@ -1707,7 +1707,7 @@ function actHtml(d,a,locked){
   }
   const t=tTm(d,a.key),lim=a.ty==="mock"&&a.min?a.min*60000:0;
   const vs=(a.verd||[]).filter(Boolean),cuenta=vs.length?`<span class="tag tk-cnt">${vs.filter(v=>v.v==="ok").length}/${vs.length} ✓</span>`:"";
-  const timer=(isTask||a.ty==="ref")&&!locked?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
+  const timer=(isTask||(a.ty==="ref"&&a.min))&&!locked?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
   const sug=a.min?`<span class="muted small">${a.ty==="mock"?"límite":"sugerido"} ${a.min} min</span>`:"";
   if(a.ty==="match"&&matchOpts(a).length)body=`<div class="tk-legend">${matchOpts(a).map(o=>`<span><b>${esc(o.k)}</b> ${esc(o.t)}</span>`).join("")}</div>`+body;
   return `<section class="card tk-act ${a.ty==="ref"?"ref":""}" data-akey="${a.key}"><div class="tk-ah"><span class="tag">${esc(a.n)}</span>${cuenta}${sug}<span class="sp"></span>${timer}</div>
