@@ -1255,8 +1255,12 @@ function cVerd(b){const t=rtPlain(b.r).trim();
 // Reparte los grupos entre las tareas: por título y, si no coincide, por orden.
 function corrMap(p){
   const G=p.acts.filter(a=>a.ty!=="ref"&&a.ty!=="out"&&a.blocks.some(b=>isList(b.ty))),used=new Set();
-  const conItems=p.corr.map((c,j)=>c.items.length?j:-1).filter(j=>j>=0); // el respaldo por posición se salta los «### 📘 Consulta» sin ítems
-  G.forEach((a,i)=>{let g=p.corr.findIndex((c,j)=>!used.has(j)&&(cNorm(c.title)===cNorm(a.title)||cNorm(c.title)===cNorm(a.n)));
+  const conItems=p.corr.map((c,j)=>c.items.length?j:-1).filter(j=>j>=0); // los «### 📘 Consulta» sin ítems no cuentan: «Consulta: vocabulario nuevo» se llama igual que «Escritura: vocabulario nuevo»
+  const pick=f=>p.corr.findIndex((c,j)=>!used.has(j)&&c.items.length&&f(c));
+  // «A5 (there is / are / would be)» ↔ «A5»; «vocabulario nuevo» ↔ «vocabulario nuevo: sin evaluar»
+  const cKey=t=>cNorm(t).replace(/\([^)]*\)/g," ").replace(/\s+/g," ").trim();
+  G.forEach((a,i)=>{let g=pick(c=>cNorm(c.title)===cNorm(a.title)||cNorm(c.title)===cNorm(a.n));
+    if(g<0){const y=cKey(a.title);g=pick(c=>{const x=cKey(c.title);return !!x&&!!y&&(x===y||x.startsWith(y+" ")||x.startsWith(y+":")||y.startsWith(x+" "))})}
     if(g<0){const j=conItems[i];if(j!=null&&!used.has(j))g=j}if(g<0)return;used.add(g);a.verd=p.corr[g].items.map(cVerd)});
 }
 // Comparación por palabras (LCS): en la respuesta se subraya lo que sobra o está mal, ‸ marca lo que falta;
