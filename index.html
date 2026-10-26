@@ -1307,9 +1307,15 @@ function letterOpts(a,b){
   return ls.length>=2&&ls[0]==="A"?{r:b.r,opts:ls.sort()}:null}
 /* «Marca cuáles usaste»: si la consigna pide marcar y trae una lista entre paréntesis (a, b, c…),
    debajo del cuadro aparecen esas opciones para tocarlas (se pueden marcar varias) */
-function marcaOpts(txt){if(!/marca\s+(cu[aá]l|las que|lo que|qu[eé])/i.test(txt))return null;
-  const ps=[...txt.matchAll(/\(([^()]*,[^()]*)\)/g)].map(m=>m[1].split(",").map(x=>x.trim()).filter(Boolean)).filter(l=>l.length>=2);
-  return ps.length?ps[ps.length-1]:null}
+// La lista puede ir entre paréntesis «(rely on, give up)» o después de dos puntos «…estas palabras: rely on, give up, put off.»;
+// si hay varias, vale la más cercana antes de «Marca cuáles».
+function marcaOpts(txt){const mk=txt.search(/marca\s+(cu[aá]l|las que|lo que|qu[eé])/i);if(mk<0)return null;
+  const cand=[...txt.matchAll(/\(([^()]*,[^()]*)\)/g),...txt.matchAll(/:\s*([^.:;()\n]+,[^.:;()\n]+)/g)].map(m=>({i:m.index,l:m[1].split(/,|\s+(?:y|o|or|and)\s+/).map(x=>x.trim()).filter(Boolean)}))
+    .filter(c=>c.l.length>=2&&c.l.every(x=>x.split(/\s+/).length<=5));
+  if(!cand.length)return null;const antes=cand.filter(c=>c.i<mk).sort((a,b)=>b.i-a.i);return (antes[0]||cand[cand.length-1]).l}
+// «Marca cuáles usaste» en el texto de la actividad (no en una viñeta): las opciones van debajo de la última consigna
+function marcaAct(a,id){const items=a.blocks.filter(b=>isList(b.ty));if(!items.length||items[items.length-1].id!==id)return null;
+  return marcaOpts(a.blocks.filter(b=>!isList(b.ty)).map(b=>rtPlain(b.r)).join("\n"))}
 const matchTxt=(a,k)=>{const o=matchOpts(a).find(x=>x.k===k);return o?`${k} — ${o.t}`:k};
 // Bloques que solo se leen
 function blockHtml(b){
@@ -1784,7 +1790,7 @@ function itemHtml(d,a,b,locked,V){
   const L=letterOpts(a,b);if(L&&L.skip)return"";
   const{r,opts}=L||splitOpts(b.r||[]);
   const input=a.ty==="audio"?auHtml(id,A,locked):opts?`<div class="tk-opts${L?" tk-letras":""}">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>${L&&L.match?`<div class="tk-mres muted small" data-mres="${id}">${A.ch?esc(matchTxt(a,A.ch)):""}</div>`:""}`
-    :`<textarea class="tk-in" rows="${TLONG.has(a.ty)?3:1}" data-tk="text" data-v="${id}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false" ${locked?"readonly":""} placeholder="Escribe en inglés…">${esc(A.v)}</textarea>${(()=>{const mo=marcaOpts(rtPlain(r));return mo?`<div class="muted small" style="margin-top:6px">Marca las que usaste:</div><div class="tk-opts tk-marca">${mo.map(o=>`<button class="tk-opt ${(A.mk||[]).includes(o)?"on":""}" data-tk="mark" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`:""})()}`;
+    :`<textarea class="tk-in" rows="${TLONG.has(a.ty)?3:1}" data-tk="text" data-v="${id}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false" ${locked?"readonly":""} placeholder="Escribe en inglés…">${esc(A.v)}</textarea>${(()=>{const mo=marcaOpts(rtPlain(r))||marcaAct(a,id);return mo?`<div class="muted small" style="margin-top:6px">Marca las que usaste${marcaOpts(rtPlain(r))?"":" (en todo el párrafo)"}:</div><div class="tk-opts tk-marca">${mo.map(o=>`<button class="tk-opt ${(A.mk||[]).includes(o)?"on":""}" data-tk="mark" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`:""})()}`;
   const kids=b.k&&b.k.length?`<div class="tk-sub">${b.k.map(blockHtml).join("")}</div>`:"";
   if(locked){ // entregada: solo lectura, con la corrección del instructor si ya la dejó
     const ans=opts?(L&&L.match&&A.ch?matchTxt(a,A.ch):(A.ch||"")):(A.v||""),d2=V&&V.fix&&ans.trim().length>2?cDiffHtml(ans,V.fix):null;
