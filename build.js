@@ -17,7 +17,7 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   const hadSW = !!navigator.serviceWorker.controller;
   let pending = false, done = false;
   const focused = () => { const a = document.activeElement; return !!(a && a.closest && a.closest("input,textarea")); };
-  const busy = () => (typeof view !== "undefined" && (view === "drill" || view === "simu")) || focused();
+  const busy = () => false; // se aplica enseguida: antes de recargar se guardan las respuestas (tSave)
   const tryReload = () => {
     if (!pending || done || busy()) return;
     done = true;
