@@ -1346,6 +1346,7 @@ const tLocked=d=>entregasDe(d).length>0&&!T.edit[d];
    Sin conexión espera; en Android el service worker lo manda solo al volver la señal aunque la app esté cerrada. */
 const BK="mextforge.borr.v1";let BQ={bs:{},bt:{},bc:0};
 try{const o=JSON.parse(localStorage.getItem(BK));if(o)BQ=Object.assign(BQ,o)}catch(e){}
+if(BQ.v!==2){BQ.bc=0;BQ.v=2} // una vez: se vuelven a pedir los borradores que antes se descartaban por estar la sesión entregada
 const bqSave=()=>{try{localStorage.setItem(BK,JSON.stringify(BQ))}catch(e){}};
 const bTm=t=>({acc:Math.round(tEl(t)/1000)*1000});
 function bCampos(){const m={};
@@ -1382,7 +1383,9 @@ async function bSync(fondo){
 }
 function bAplicar(rows){const tocadas=new Set();
   for(const x of rows){const c=x.s+"|"+x.k,tipo=x.k[0],id=x.k.slice(2);
-    if(x.v==null||(BQ.bt[c]||0)>=x.t||tLocked(x.s))continue;
+    if(x.v==null||(BQ.bt[c]||0)>=x.t)continue;
+    // Sesión ya entregada: si el otro dispositivo la reabrió y siguió escribiendo después de la última entrega, se reabre aquí también
+    if(tLocked(x.s)){const ult=entregasDe(x.s).slice(-1)[0];if(!ult||x.t<=ult.t)continue;T.edit[x.s]=true}
     if(tipo==="a")(T.ans[x.s]||(T.ans[x.s]={}))[id]=Object.assign({v:"",ch:null,d:0,nt:"",h:"nada",s:0},x.v);
     else if(tipo==="o")(T.out[x.s]||(T.out[x.s]={}))[id]=Object.assign({done:false,min:""},x.v);
     else if(tipo==="t")(T.tm[x.s]||(T.tm[x.s]={}))[id]={acc:x.v.acc||0,since:null};
