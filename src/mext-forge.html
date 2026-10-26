@@ -1201,7 +1201,10 @@ const nfe=s=>String(s).replace(/️/g,"");
 const rtPlain=r=>(r||[]).map(x=>x.t).join("");
 function rtHtml(r){return (r||[]).map(x=>{let h=esc(x.t);if(x.c)h=`<code>${h}</code>`;if(x.b)h=`<b>${h}</b>`;if(x.i)h=`<i>${h}</i>`;if(x.s)h=`<s>${h}</s>`;if(x.u)h=`<u>${h}</u>`;
   if(x.h&&/^https?:/i.test(x.h))h=`<a href="${esc(x.h)}" target="_blank" rel="noopener">${h}</a>`;return h}).join("").replace(/___+/g,'<span class="gap">___</span>')}
-function markOf(text){const t=nfe(text).trim();for(const[e,ty,n]of TMARK)if(t.startsWith(nfe(e)))return{ty,n};return null}
+function markOf(text){const t=nfe(text).trim();for(const[e,ty,n]of TMARK)if(t.startsWith(nfe(e))){
+    // 🔍 solo es la corrección del instructor si dice «Corrección»; si no (p. ej. «🔍 Análisis de errores») es una actividad
+    if(ty==="corr"&&!/correcci[oó]n/i.test(t))return{ty:"fix",n:"Análisis"};
+    return{ty,n}}return null}
 const isList=ty=>ty==="bulleted_list_item"||ty==="numbered_list_item"||ty==="to_do";
 
 // Bloques de Notion → {intro, acts:[{key,ty,n,title,min,blocks}], retro:[], juego:[], corr:[{title,items}]}
