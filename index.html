@@ -324,7 +324,7 @@ details[open].card summary::after{content:"－"}
 .tk-in[readonly]{background:var(--surface2)}
 .tk-note{display:none;margin-top:8px;font-size:15px}
 .tk-item.doubt .tk-note{display:block}
-.tk-opts{display:flex;flex-wrap:wrap;gap:8px}
+.tk-opts{display:flex;flex-wrap:wrap;gap:8px}.au{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 4px}.au audio{width:100%;max-width:420px}.au .muted.small{flex-basis:100%}.au-on{color:var(--bad);font-weight:600}.au-dot{width:12px;height:12px;border-radius:50%;background:var(--bad);animation:aupl 1s infinite}@keyframes aupl{50%{opacity:.25}}.au-tx{flex-basis:100%;margin-top:2px}
 .tk-opt{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 14px;min-height:44px;font-size:1rem}
 .tk-opt.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);font-weight:700}
 .tk-letras .tk-opt{min-width:46px;padding:8px 0;justify-content:center;font-weight:800}
@@ -1196,7 +1196,7 @@ async function simSync(base,h){
 
 // Marcas que reconoce la app al inicio de un título del instructor (### o ##)
 const TMARK=[["📘","ref","Consulta"],["✍","write","Escritura"],["🔁","trans","Traducción"],["🛠","fix","Corrección"],["🧩","cloze","Completar"],
-  ["🔤","vocab","Vocabulario"],["📖","read","Lectura"],["🎧","dict","Dictado"],["🗣","oral","Producción oral"],["🎯","mastery","Prueba de dominio"],
+  ["🔤","vocab","Vocabulario"],["📖","read","Lectura"],["🎧","dict","Dictado"],["🗣","oral","Producción oral"],["🎙","audio","Speaking"],["🎤","audio","Speaking"],["🎯","mastery","Prueba de dominio"],
   ["⏱","mock","Simulacro"],["✅","out","Fuera de la app"],["🧑‍🏫","retro","Retroalimentación"],["📤","entrega","Entrega"],["🎮","juego","Juego"],["🔍","corr","Corrección por consigna"],["🔗","match","Unir"]];
 const TLONG=new Set(["write","trans","fix","read","dict","oral"]);
 const nfe=s=>String(s).replace(/️/g,"");
@@ -1708,6 +1708,72 @@ function renderRef(keep){
 }
 document.addEventListener("input",e=>{if(view==="ref"&&e.target.id==="refSearch"){refQ=e.target.value;const pos=e.target.selectionStart;renderRef(true);const el=$("#refSearch");el.focus();el.setSelectionRange(pos,pos)}});
 
+/* 🎙️ Consignas orales: se graba con el micrófono o se elige un audio (mp3, m4a…). El audio sube al Worker,
+   que lo transcribe (el instructor lee la página, no puede escuchar) y lo adjunta a Notion al entregar.
+   La respuesta queda como «[audio:<id>|<s>s] transcripción» y viaja al otro dispositivo como cualquier borrador. */
+const AU_MARCA=/^\[audio:([\w-]{6,64})\|(\d+)s\]\s*/,AU_MAX=5*1024*1024,AU_SEG=300;
+let auRec=null;const auUrl={},auEst={};
+function auIdb(){return new Promise((ok,no)=>{const r=indexedDB.open("mextforge-audio",1);r.onupgradeneeded=()=>r.result.createObjectStore("a");r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function auGet(id){try{const db=await auIdb();return await new Promise(ok=>{const q=db.transaction("a").objectStore("a").get(id);q.onsuccess=()=>ok(q.result||null);q.onerror=()=>ok(null)})}catch(e){return null}}
+async function auPut(id,v){try{const db=await auIdb();await new Promise(ok=>{const t=db.transaction("a","readwrite");t.objectStore("a").put(v,id);t.oncomplete=ok;t.onerror=ok})}catch(e){}}
+const auFmt=n=>`${Math.floor(n/60)}:${String(n%60).padStart(2,"0")}`;
+const auRepintar=()=>{if(view==="tarea")renderTarea(true)};
+function auVista(am,r){const id=am[1],tx=r.slice(am[0].length).trim();
+  return `${auUrl[id]?`<audio controls preload="none" src="${auUrl[id]}"></audio>`:`<button class="btn" data-tk="au-oir" data-v="${esc(id)}">▶ Escuchar (${am[2]} s)</button>`}
+    <div class="muted small au-tx">Transcripción automática: <span lang="en">${tx?esc(tx):"(no entendió nada)"}</span></div>`}
+function auHtml(id,A,locked){
+  const st=auEst[id],am=String(A.v||"").match(AU_MARCA);
+  if(auRec&&auRec.id===id)return `<div class="au au-on"><span class="au-dot"></span> Grabando <b id="auT">${auFmt(Math.round((Date.now()-auRec.t0)/1000))}</b><button class="btn" data-tk="au-stop">⏹ Detener</button></div>`;
+  if(st==="sub")return `<div class="au muted small">Subiendo y transcribiendo…</div>`;
+  if(am)return `<div class="au">${auVista(am,A.v)}${locked?"":`<button class="btn" data-tk="au-del" data-v="${id}">🗑 Borrar y grabar otra vez</button>`}</div>`;
+  if(locked)return `<div class="au muted small">(sin audio)</div>`;
+  const err=st&&st.err||(A.aup?"El audio quedó guardado aquí, pero falta subirlo.":"");
+  return `<div class="au">${err?`<div class="small" style="color:var(--bad,#c33)">${esc(err)} <button class="btn" data-tk="au-retry" data-v="${id}">Reintentar</button></div>`:""}
+    <button class="btn" data-tk="au-rec" data-v="${id}" ${auRec?"disabled":""}>🎙️ Grabar</button>
+    <label class="btn">📁 Subir audio<input type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac" data-au-file="${id}" hidden></label>
+    <div class="muted small">Máx. ${AU_SEG/60} min o 5 MB. El instructor recibe el audio y una transcripción automática.</div></div>`}
+function auMime(){if(!window.MediaRecorder)return null;for(const m of["audio/mp4;codecs=mp4a.40.2","audio/mp4","audio/webm;codecs=opus","audio/webm","audio/ogg;codecs=opus"])if(MediaRecorder.isTypeSupported(m))return m;return ""}
+function auTimer(el){const bx=el&&el.closest("[data-act-key]");if(bx){startTimer(tDate,bx.dataset.actKey);updTimers()}}
+async function auGrabar(btn){const id=btn.dataset.v,mime=auMime();
+  if(mime===null||!navigator.mediaDevices){toast("Este navegador no puede grabar: usa «Subir audio»");return}
+  let stream;try{stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}})}
+  catch(e){toast("Sin permiso para el micrófono");return}
+  auTimer(btn);
+  const mr=new MediaRecorder(stream,mime?{mimeType:mime,audioBitsPerSecond:64000}:{audioBitsPerSecond:64000}),ch=[];
+  auRec={id,d:tDate,mr,t0:Date.now()};
+  mr.ondataavailable=e=>{if(e.data&&e.data.size)ch.push(e.data)};
+  mr.onstop=()=>{const r=auRec;auRec=null;clearInterval(auGrabar.h);stream.getTracks().forEach(t=>t.stop());
+    auListo(r.d,id,new Blob(ch,{type:(mr.mimeType||mime||"audio/webm")}),Math.max(1,Math.round((Date.now()-r.t0)/1000)))};
+  mr.start(1000);auRepintar();
+  auGrabar.h=setInterval(()=>{if(!auRec)return;const s=Math.round((Date.now()-auRec.t0)/1000),el=document.getElementById("auT");if(el)el.textContent=auFmt(s);if(s>=AU_SEG)auRec.mr.stop()},500)}
+function auDur(blob){return new Promise(ok=>{const u=URL.createObjectURL(blob),x=new Audio();let hecho=false;const fin=v=>{if(hecho)return;hecho=true;URL.revokeObjectURL(u);ok(v)};
+  x.preload="metadata";x.onloadedmetadata=()=>fin(isFinite(x.duration)?Math.round(x.duration):0);x.onerror=()=>fin(0);setTimeout(()=>fin(0),4000);x.src=u})}
+async function auArchivo(id,f,el){
+  if(!/^audio\//.test(f.type)&&!/\.(mp3|m4a|wav|ogg|aac)$/i.test(f.name)){toast("Ese archivo no es un audio");return}
+  if(f.size>AU_MAX){toast("El audio pasa de 5 MB: grábalo más corto");return}
+  auTimer(el);auListo(tDate,id,f,Math.max(1,await auDur(f)))}
+async function auListo(d,id,blob,dur){
+  if(blob.size>AU_MAX){auEst[id]={err:"El audio pasa de 5 MB."};auRepintar();return}
+  const aid="a"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  await auPut(aid,{blob,dur});auUrl[aid]=URL.createObjectURL(blob);
+  tAns(d,id).aup=aid;tSave(true);auSubir(d,id)}
+async function auSubir(d,id){const A=tAns(d,id),aid=A.aup;if(!aid)return;
+  const x=await auGet(aid);if(!x){delete A.aup;auEst[id]={err:"Se perdió la grabación: vuelve a grabar."};tSave(true);auRepintar();return}
+  if(!syncConfigured()){auEst[id]={err:"Falta configurar la sincronización (Ajustes) para enviar audios."};auRepintar();return}
+  auEst[id]="sub";auRepintar();
+  try{const b64=await new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>ok(String(fr.result).split(",")[1]);fr.onerror=()=>no(fr.error);fr.readAsDataURL(x.blob)});
+    const r=await fetch(bBase()+"/audio/subir",{method:"POST",headers:bH(),body:JSON.stringify({id:aid,mime:x.blob.type||"audio/mpeg",dur:x.dur,b64})});
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||("HTTP "+r.status));
+    if(!tLocked(d)){A.v=`[audio:${aid}|${x.dur}s] ${j.texto||""}`.trim();delete A.aup;delete auEst[id];tSave(true)}}
+  catch(e){auEst[id]={err:navigator.onLine===false?"Sin conexión: el audio quedó guardado aquí.":"No se pudo subir ("+(e.message||e)+")."}}
+  auRepintar()}
+async function auOir(aid){const x=await auGet(aid);
+  if(x){auUrl[aid]=URL.createObjectURL(x.blob);auRepintar();return}
+  try{toast("Descargando audio…");const r=await fetch(bBase()+"/audio/bajar",{method:"POST",headers:bH(),body:JSON.stringify({id:aid})});const j=await r.json();if(!r.ok)throw 0;
+    const blob=new Blob([Uint8Array.from(atob(j.b64),c=>c.charCodeAt(0))],{type:j.mime});await auPut(aid,{blob,dur:0});auUrl[aid]=URL.createObjectURL(blob);auRepintar()}
+  catch(e){toast("No se pudo descargar el audio")}}
+document.addEventListener("change",e=>{const id=e.target.dataset&&e.target.dataset.auFile,f=e.target.files&&e.target.files[0];if(id&&f&&view==="tarea"){e.target.value="";auArchivo(id,f,e.target)}});
+
 /* ---------- sesión de un día ---------- */
 function itemHtml(d,a,b,locked,V){
   const id=b.id,A=tAns(d,id);
@@ -1717,14 +1783,14 @@ function itemHtml(d,a,b,locked,V){
       <textarea class="tk-note" rows="2" data-tk="note" data-v="${id}" placeholder="Nota para el instructor (en español)" ${locked?"readonly":""}>${esc(A.nt)}</textarea></div>`}
   const L=letterOpts(a,b);if(L&&L.skip)return"";
   const{r,opts}=L||splitOpts(b.r||[]);
-  const input=opts?`<div class="tk-opts${L?" tk-letras":""}">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>${L&&L.match?`<div class="tk-mres muted small" data-mres="${id}">${A.ch?esc(matchTxt(a,A.ch)):""}</div>`:""}`
+  const input=a.ty==="audio"?auHtml(id,A,locked):opts?`<div class="tk-opts${L?" tk-letras":""}">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>${L&&L.match?`<div class="tk-mres muted small" data-mres="${id}">${A.ch?esc(matchTxt(a,A.ch)):""}</div>`:""}`
     :`<textarea class="tk-in" rows="${TLONG.has(a.ty)?3:1}" data-tk="text" data-v="${id}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false" ${locked?"readonly":""} placeholder="Escribe en inglés…">${esc(A.v)}</textarea>${(()=>{const mo=marcaOpts(rtPlain(r));return mo?`<div class="muted small" style="margin-top:6px">Marca las que usaste:</div><div class="tk-opts tk-marca">${mo.map(o=>`<button class="tk-opt ${(A.mk||[]).includes(o)?"on":""}" data-tk="mark" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`:""})()}`;
   const kids=b.k&&b.k.length?`<div class="tk-sub">${b.k.map(blockHtml).join("")}</div>`:"";
   if(locked){ // entregada: solo lectura, con la corrección del instructor si ya la dejó
     const ans=opts?(L&&L.match&&A.ch?matchTxt(a,A.ch):(A.ch||"")):(A.v||""),d2=V&&V.fix&&ans.trim().length>2?cDiffHtml(ans,V.fix):null;
     return `<div class="tk-item ro ${V?"v-"+V.v:""}" data-item="${id}" data-act-key="${a.key}">
     <div class="tk-q">${b.ty==="numbered_list_item"?"":"• "}${rtHtml(r)}</div>${kids}
-    <div class="tk-ans">${ans.trim()?(d2?d2.a:esc(ans)):`<span class="muted">(sin respuesta)</span>`}</div>${(A.mk||[]).length?`<div class="muted small" style="margin-top:4px">✔ Marcó: ${esc(A.mk.join(", "))}</div>`:""}
+    <div class="tk-ans">${AU_MARCA.test(ans)?auVista(ans.match(AU_MARCA),ans):ans.trim()?(d2?d2.a:esc(ans)):`<span class="muted">(sin respuesta)</span>`}</div>${(A.mk||[]).length?`<div class="muted small" style="margin-top:4px">✔ Marcó: ${esc(A.mk.join(", "))}</div>`:""}
     ${verdHtml(V,ans)}
     ${A.d?`<div class="muted small" style="margin-top:6px">❓ ${esc(A.nt||"duda")}</div>`:""}</div>`}
   return `<div class="tk-item ${A.d?"doubt":""}" data-item="${id}" data-act-key="${a.key}">
@@ -1851,7 +1917,7 @@ function entregaMd(e){
   for(const a of e.acts){L.push("",`### ${a.title} · ${a.sec!=null?fmtMS(a.sec*1000):a.min+" min"}${a.lim?" / límite "+a.lim+" min":""}`);
     a.items.forEach((it,i)=>{
       if(a.out){L.push(`- [${it.done?"x":" "}] ${it.p} — ${it.done?"hecho":"no hecho"}`);if(it.d)L.push(`   ❓ Duda: ${it.nt||"(sin nota)"}`);return}
-      const ans=it.ch?`[${it.ch}]${it.v?" "+it.v:""}`:(it.v||"(sin respuesta)");
+      const am=String(it.v||"").match(AU_MARCA),ans=am?`🎙️ audio de ${am[2]} s (se escucha en Notion) · transcripción automática: ${it.v.slice(am[0].length).trim()||"(no entendió nada)"}`:it.ch?`[${it.ch}]${it.v?" "+it.v:""}`:(it.v||"(sin respuesta)");
       L.push(`${i+1}. ${it.p}`,...ans.split("\n").map(x=>"   > "+x),`   _⏱ ${it.s} s_`);
       if(it.d)L.push(`   ❓ Duda: ${it.nt||"(sin nota)"}`);
     })}
@@ -1921,6 +1987,11 @@ document.addEventListener("click",e=>{
   else if(k==="mark"){const bx=b.closest("[data-act-key]");if(bx)startTimer(d,bx.dataset.actKey),updTimers();const A=tAns(d,v),o=b.dataset.o,l=A.mk||(A.mk=[]);const i=l.indexOf(o);if(i<0)l.push(o);else l.splice(i,1);b.classList.toggle("on",i<0);tSave()}
   else if(k==="doubt"){const A=tAns(d,v);A.d=A.d?0:1;b.classList.toggle("on",!!A.d);b.closest(".tk-item").classList.toggle("doubt",!!A.d);tSave();updTotal()}
   else if(k==="timer"){const t=tTm(d,v);if(t.since){t.acc+=Date.now()-t.since;t.since=null}else startTimer(d,v);tSave();updTimers()}
+  else if(k==="au-rec")auGrabar(b);
+  else if(k==="au-stop"){if(auRec)auRec.mr.stop()}
+  else if(k==="au-retry"){delete auEst[v];auSubir(d,v)}
+  else if(k==="au-oir")auOir(v);
+  else if(k==="au-del"){if(tLocked(d)||!confirm("¿Borrar esta grabación?"))return;tAns(d,v).v="";tSave(true);renderTarea(true)}
   else if(k==="send"){addItemTime();sendEntrega()}
   else if(k==="unlock"){T.edit[d]=true;tSave(true);renderTarea(true)}
   else if(k==="copy"){addItemTime();const e2=buildEntrega(d);if(entregasDe(d).length&&tLocked(d))e2.n=entregasDe(d).length;
