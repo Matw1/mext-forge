@@ -1875,7 +1875,7 @@ document.addEventListener("click",e=>{
   if(k==="lupa"){lupaAbrir(v);return}
   if(k==="list"){lupaCerrar();if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas();return}
   if(k==="date"){openTarea(v);return}
-  if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null,true);return}
+  if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null,true);try{navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{})}catch(e){}return}
   if(k==="ref"){view="ref";renderRef();fetchTareas();return}
   if(k==="mat"){view="mat";renderMateria();fetchTareas();return}
   if(k==="ref2mat"){matQ=refQ;view="mat";renderMateria();return}

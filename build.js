@@ -32,6 +32,10 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {});
   });
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+  // versión nueva: se revisa cada minuto mientras la app está a la vista (antes solo al volver a abrirla)
+  const check = () => navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {});
+  setInterval(() => { if (!document.hidden) check(); }, 60000);
+  window.addEventListener("online", check);
 }
 </script>`;
 

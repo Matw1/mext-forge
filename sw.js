@@ -1,6 +1,6 @@
 // MEXT Forge — service worker: guarda la app en el teléfono para que funcione sin internet.
 // Al publicar una versión nueva, build.js sube VERSION automáticamente para que el teléfono la descargue.
-const VERSION = 'mext-forge-202610260034';
+const VERSION = 'mext-forge-202610260107';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
 // cache:'reload' evita guardar una copia vieja que venga de la caché HTTP de GitHub Pages (max-age 600).
