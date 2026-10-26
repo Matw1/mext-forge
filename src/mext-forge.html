@@ -1234,8 +1234,12 @@ function parseSession(blocks){
 }
 /* ---------- corrección por consigna (la escribe el instructor; la app solo la muestra) ---------- */
 // Título de tarea normalizado: sin emoji, sin «Escritura:», sin «· N min» ni «: 2/4».
-const cNorm=t=>{let x=nfe(t).replace(/^[^\p{L}\p{N}]+/u,"").replace(/\s*:\s*\d+\s*\/\s*\d+\s*$/,"").replace(/\s*[·—–-]\s*\d+\s*min\b.*$/i,"");
-  if(x.includes(":"))x=x.slice(x.indexOf(":")+1);return x.toLowerCase().replace(/\s+/g," ").trim()};
+// Título normalizado para emparejar cada actividad con su «### …» de la corrección: sin emoji, sin «Tipo:», sin «: 6/6»,
+// sin «(6)» ni lo que va después de « · » (tiempo, «10 ítems», ⏱…)
+const cNorm=t=>{let x=nfe(t).replace(/^[^\p{L}\p{N}]+/u,"").replace(/\s*:\s*\d+(?:[.,]\d+)?\s*\/\s*\d+\s*$/,"");
+  x=x.replace(/\s+[·—–]\s.*$/,"").replace(/\s-\s*\d+\s*min\b.*$/i,"").replace(/⏱\S*\s*\d+\s*min\b.*$/i,"");
+  if(x.includes(":")&&x.slice(x.indexOf(":")+1).trim())x=x.slice(x.indexOf(":")+1);
+  return x.replace(/\(\s*\d+\s*\)/g,"").toLowerCase().replace(/\s+/g," ").trim()};
 function cVerd(b){const t=rtPlain(b.r).trim(),m=t.match(/^(✓|✔️?|✅|◐|✗|✘|❌|×)\s*/u);if(!m)return null;
   const v=/^[✓✔✅]/u.test(m[1])?"ok":m[1]==="◐"?"mid":"bad";let rest=t.slice(m[0].length).trim(),fix="";
   if(v!=="ok"){const k=rest.search(/\s[—–]\s/);if(k>0){fix=rest.slice(0,k).trim();rest=rest.slice(k+3).trim()}}
@@ -1243,8 +1247,9 @@ function cVerd(b){const t=rtPlain(b.r).trim(),m=t.match(/^(✓|✔️?|✅|◐|�
 // Reparte los grupos entre las tareas: por título y, si no coincide, por orden.
 function corrMap(p){
   const G=p.acts.filter(a=>a.ty!=="ref"&&a.ty!=="out"&&a.blocks.some(b=>isList(b.ty))),used=new Set();
+  const conItems=p.corr.map((c,j)=>c.items.length?j:-1).filter(j=>j>=0); // el respaldo por posición se salta los «### 📘 Consulta» sin ítems
   G.forEach((a,i)=>{let g=p.corr.findIndex((c,j)=>!used.has(j)&&(cNorm(c.title)===cNorm(a.title)||cNorm(c.title)===cNorm(a.n)));
-    if(g<0&&p.corr[i]&&!used.has(i))g=i;if(g<0)return;used.add(g);a.verd=p.corr[g].items.map(cVerd)});
+    if(g<0){const j=conItems[i];if(j!=null&&!used.has(j))g=j}if(g<0)return;used.add(g);a.verd=p.corr[g].items.map(cVerd)});
 }
 // Comparación por palabras (LCS): en la respuesta se subraya lo que sobra o está mal, ‸ marca lo que falta;
 // en la forma correcta se pinta de verde lo que cambió.
