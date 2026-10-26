@@ -1240,9 +1240,15 @@ const cNorm=t=>{let x=nfe(t).replace(/^[^\p{L}\p{N}]+/u,"").replace(/\s*:\s*\d+(
   x=x.replace(/\s+[·—–]\s.*$/,"").replace(/\s-\s*\d+\s*min\b.*$/i,"").replace(/⏱\S*\s*\d+\s*min\b.*$/i,"");
   if(x.includes(":")&&x.slice(x.indexOf(":")+1).trim())x=x.slice(x.indexOf(":")+1);
   return x.replace(/\(\s*\d+\s*\)/g,"").toLowerCase().replace(/\s+/g," ").trim()};
-function cVerd(b){const t=rtPlain(b.r).trim(),m=t.match(/^(✓|✔️?|✅|◐|✗|✘|❌|×)\s*/u);if(!m)return null;
-  const v=/^[✓✔✅]/u.test(m[1])?"ok":m[1]==="◐"?"mid":"bad";let rest=t.slice(m[0].length).trim(),fix="";
-  if(v!=="ok"){const k=rest.search(/\s[—–]\s/);if(k>0){fix=rest.slice(0,k).trim();rest=rest.slice(k+3).trim()}}
+function cVerd(b){const t=rtPlain(b.r).trim();
+  // La marca puede ir al inicio («✗ …») o después de una etiqueta («There was / There were · ✗ …»)
+  let m=t.match(/^(✓|✔️?|✅|◐|✗|✘|❌|×)\s*/u),rest;
+  if(m)rest=t.slice(m[0].length).trim();
+  else{const k=t.match(/\s[·:]\s*(✓|✔️?|✅|◐|✗|✘|❌|×)\s*/u);if(!k||k.index>160)return null;m=[k[0],k[1]];rest=t.slice(k.index+k[0].length).trim()}
+  const v=/^[✓✔✅]/u.test(m[1])?"ok":m[1]==="◐"?"mid":"bad";let fix="";
+  if(v!=="ok"){const k=rest.search(/\s[—–]\s/);
+    if(k>0){fix=rest.slice(0,k).trim();rest=rest.slice(k+3).trim()}
+    else{const a=rest.indexOf("→");if(a>=0){const tras=rest.slice(a+1).trim(),q=tras.match(/^«([^»]+)»/);if(q){fix=q[1];rest=tras.slice(q[0].length).replace(/^[\s.,;:]+/,"")}}}}
   return{v,fix,com:rest,k:b.k||[]}}
 // Reparte los grupos entre las tareas: por título y, si no coincide, por orden.
 function corrMap(p){
