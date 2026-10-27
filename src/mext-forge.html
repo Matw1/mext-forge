@@ -1284,10 +1284,14 @@ function verdHtml(V,ans){
   if(!V)return"";const mk={ok:"✓",mid:"◐",bad:"✗"}[V.v];
   let fx="";if(V.fix){const d=ans&&ans.trim().length>2?cDiffHtml(ans,V.fix):null;fx=`<div class="tk-fix">✏️ ${d?d.f:esc(V.fix)}</div>`}
   return `${fx}<div class="tk-com"><span class="tk-v">${mk}</span>🧑‍🏫 ${esc(V.com)||{ok:"Bien.",mid:"Casi.",bad:"Revisa esta."}[V.v]}</div>${V.k.length?`<div class="tk-sub">${V.k.map(blockHtml).join("")}</div>`:""}`}
-function splitOpts(r){const s=rtPlain(r),m=s.match(/\{([^{}]*\|[^{}]*)\}\s*$/);
+// Opciones para tocar: «… {a | b | c}» al final, o un hueco ___ con las opciones entre paréntesis y separadas por «/»
+// al final («___ three books. (There were / They were)»). Si ya había respuesta escrita (A.v), sigue como texto.
+function splitOpts(r,A){const s=rtPlain(r);let m=s.match(/\{([^{}]*\|[^{}]*)\}\s*$/),sep="|";
+  if(!m&&/_{2,}/.test(s)&&!(A&&A.v&&!A.ch)){m=s.match(/\(([^()]*\/[^()]*)\)\s*\.?\s*$/);sep="/";
+    if(m){const o=m[1].split("/").map(x=>x.trim());if(o.length<2||o.length>5||o.some(x=>!x||x.split(/\s+/).length>6))m=null}}
   if(!m)return{r,opts:null};const cut=s.length-m[0].length;let n=0;const r2=[];
   for(const x of r){if(n>=cut)break;r2.push(Object.assign({},x,{t:x.t.slice(0,cut-n)}));n+=x.t.length}
-  return{r:r2,opts:m[1].split("|").map(o=>o.trim()).filter(Boolean)}}
+  return{r:r2,opts:m[1].split(sep).map(o=>o.trim()).filter(Boolean)}}
 /* Respuestas con letra:
    - «🔗 Unir con una línea»: los ítems son las palabras y las líneas «A. …», «B. …» (en el último ítem o en ítems
      aparte) son las opciones. Cada palabra se responde tocando una letra; la leyenda queda arriba.
@@ -1786,7 +1790,7 @@ function itemHtml(d,a,b,locked,V){
       <div class="tk-meta" style="margin-left:32px"><button class="tk-doubt ${A.d?"on":""}" data-tk="doubt" data-v="${id}" ${locked?"disabled":""}>❓ Tengo duda</button></div>
       <textarea class="tk-note" rows="2" data-tk="note" data-v="${id}" placeholder="Nota para el instructor (en español)" ${locked?"readonly":""}>${esc(A.nt)}</textarea></div>`}
   const L=letterOpts(a,b);if(L&&L.skip)return"";
-  const{r,opts}=L||splitOpts(b.r||[]);
+  const{r,opts}=L||splitOpts(b.r||[],A);
   const input=a.ty==="audio"?auHtml(id,A,locked):opts?`<div class="tk-opts${L?" tk-letras":""}">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>${L&&L.match?`<div class="tk-mres muted small" data-mres="${id}">${A.ch?esc(matchTxt(a,A.ch)):""}</div>`:""}`
     :`<textarea class="tk-in" rows="${TLONG.has(a.ty)?3:1}" data-tk="text" data-v="${id}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false" ${locked?"readonly":""} placeholder="Escribe en inglés…">${esc(A.v)}</textarea>${(()=>{const mo=marcaOpts(rtPlain(r))||marcaAct(a,id);return mo?`<div class="muted small" style="margin-top:6px">Marca las que usaste${marcaOpts(rtPlain(r))?"":" (en todo el párrafo)"}:</div><div class="tk-opts tk-marca">${mo.map(o=>`<button class="tk-opt ${(A.mk||[]).includes(o)?"on":""}" data-tk="mark" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`:""})()}`;
   const kids=b.k&&b.k.length?`<div class="tk-sub">${b.k.map(blockHtml).join("")}</div>`:"";
@@ -1906,7 +1910,7 @@ function buildEntrega(d){
     const items=a.blocks.filter(b=>isList(b.ty)&&!((letterOpts(a,b)||{}).skip)).map(b=>{
       const A=tAns(d,b.id);if(A.d)dudas++;
       if(a.ty==="out"){const o=tOut(d,b.id);return{id:b.id,p:rtPlain(b.r),done:!!o.done,d:A.d?1:0,nt:A.nt}}
-      const L=letterOpts(a,b),{r,opts}=L||splitOpts(b.r||[]);
+      const L=letterOpts(a,b),{r,opts}=L||splitOpts(b.r||[],A);
       return{id:b.id,p:rtPlain(r)+(opts&&!L?` {${opts.join(" | ")}}`:""),v:(A.v||"")+((A.mk||[]).length?`${A.v?"\n":""}[Marcó: ${A.mk.join(", ")}]`:""),ch:L&&L.match&&A.ch?matchTxt(a,A.ch):A.ch,s:Math.round(A.s),d:A.d?1:0,nt:A.nt,h:A.h};
     });
     const sec=Math.round(tEl(tTm(d,a.key))/1000);
