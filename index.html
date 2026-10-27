@@ -327,7 +327,7 @@ details[open].card summary::after{content:"－"}
 .tk-opts{display:flex;flex-wrap:wrap;gap:8px}.au{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 4px}.au audio{width:100%;max-width:420px}.au .muted.small{flex-basis:100%}.au-on{color:var(--bad);font-weight:600}.au-dot{width:12px;height:12px;border-radius:50%;background:var(--bad);animation:aupl 1s infinite}@keyframes aupl{50%{opacity:.25}}.au-tx{flex-basis:100%;margin-top:2px}
 .tk-opt{border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:9px 14px;min-height:44px;font-size:1rem}
 .tk-opt.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);font-weight:700}
-.tk-letras .tk-opt{min-width:46px;padding:8px 0;justify-content:center;font-weight:800}
+.tk-inl{flex-direction:column;align-items:stretch}.tk-inl .tk-opt{text-align:left;justify-content:flex-start}.tk-letras .tk-opt{min-width:46px;padding:8px 0;justify-content:center;font-weight:800}
 .tk-legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;padding:10px 12px;margin:0 0 10px;border-radius:12px;background:var(--surface2,var(--surface));border:1px solid var(--line);font-size:.92rem}
 .tk-legend b{color:var(--accent);margin-right:4px}.tk-mres{margin-top:6px;min-height:1em}
 .tk-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
@@ -1302,13 +1302,22 @@ const OPT_RE=/^\s*\(?([A-Z])[.)]\s+(.+?)\s*$/;
 function matchOpts(a){if(a._mo)return a._mo;const o=[];
   for(const b of a.blocks)if(isList(b.ty))for(const l of rtPlain(b.r).split("\n")){const m=l.match(OPT_RE);if(m)o.push({k:m[1],t:m[2]})}
   return a._mo=o}
-function letterOpts(a,b){
+// Opciones dentro del ítem: «There was a lot of noise. A) Había mucho ruido. B) Eran muchos ruidos. C) …» → botones con el texto.
+// La respuesta queda como «A) Había mucho ruido.». Si ya había respuesta escrita, sigue como texto.
+function inlineOpts(txt){const m=txt.match(/(?:^|\s)([Aa])\)\s+\S/);if(!m)return null;const i=m.index+(m[0][0]===m[1]?0:1);
+  const parts=txt.slice(i).split(/(?:^|\s+)([A-Fa-f])\)\s+/).filter(x=>x!=="");const o=[];
+  for(let j=0;j+1<parts.length;j+=2)o.push({k:parts[j],t:parts[j+1].trim()});
+  const ab="abcdef",up=o.length&&o[0].k===o[0].k.toUpperCase();
+  if(o.length<2||o.some((x,n)=>x.k.toLowerCase()!==ab[n]||(x.k===x.k.toUpperCase())!==up||!x.t))return null;
+  return{q:txt.slice(0,i).trim(),opts:o.map(x=>`${x.k}) ${x.t}`)}}
+function letterOpts(a,b,A){
   const txt=rtPlain(b.r||[]);
   if(a.ty==="match"){const pr=txt.split("\n").filter(l=>l.trim()&&!OPT_RE.test(l)).join(" ").trim();
     if(!pr)return{skip:true};return{r:[{t:pr}],opts:matchOpts(a).map(o=>o.k),match:true}}
   if(/\{[^{}]*\|[^{}]*\}\s*$/.test(txt))return null;
   const ls=[...new Set([...txt.matchAll(/\(([A-H])\)/g)].map(m=>m[1]))];
-  return ls.length>=2&&ls[0]==="A"?{r:b.r,opts:ls.sort()}:null}
+  if(ls.length>=2&&ls[0]==="A")return{r:b.r,opts:ls.sort()};
+  const io=!(A&&A.v&&!A.ch)&&inlineOpts(txt);return io&&io.q?{r:[{t:io.q}],opts:io.opts,inl:true}:null}
 /* «Marca cuáles usaste»: si la consigna pide marcar y trae una lista entre paréntesis (a, b, c…),
    debajo del cuadro aparecen esas opciones para tocarlas (se pueden marcar varias) */
 // La lista puede ir entre paréntesis «(rely on, give up)» o después de dos puntos «…estas palabras: rely on, give up, put off.»;
@@ -1791,9 +1800,9 @@ function itemHtml(d,a,b,locked,V){
     return `<div class="tk-item ${A.d?"doubt":""}" data-item="${id}" data-act-key="${a.key}"><label class="tk-check"><input type="checkbox" data-tk="outdone" data-v="${id}" ${o.done?"checked":""} ${locked?"disabled":""}> <span>${rtHtml(b.r)}</span></label>
       <div class="tk-meta" style="margin-left:32px"><button class="tk-doubt ${A.d?"on":""}" data-tk="doubt" data-v="${id}" ${locked?"disabled":""}>❓ Tengo duda</button></div>
       <textarea class="tk-note" rows="2" data-tk="note" data-v="${id}" placeholder="Nota para el instructor (en español)" ${locked?"readonly":""}>${esc(A.nt)}</textarea></div>`}
-  const L=letterOpts(a,b);if(L&&L.skip)return"";
+  const L=letterOpts(a,b,A);if(L&&L.skip)return"";
   const{r,opts}=L||splitOpts(b.r||[],A);
-  const input=a.ty==="audio"?auHtml(id,A,locked):opts?`<div class="tk-opts${L?" tk-letras":""}">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>${L&&L.match?`<div class="tk-mres muted small" data-mres="${id}">${A.ch?esc(matchTxt(a,A.ch)):""}</div>`:""}`
+  const input=a.ty==="audio"?auHtml(id,A,locked):opts?`<div class="tk-opts${L&&!L.inl?" tk-letras":""}${L&&L.inl?" tk-inl":""}">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>${L&&L.match?`<div class="tk-mres muted small" data-mres="${id}">${A.ch?esc(matchTxt(a,A.ch)):""}</div>`:""}`
     :`<textarea class="tk-in" rows="${TLONG.has(a.ty)?3:1}" data-tk="text" data-v="${id}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false" ${locked?"readonly":""} placeholder="Escribe en inglés…">${esc(A.v)}</textarea>${(()=>{const mo=marcaOpts(rtPlain(r))||marcaAct(a,id);return mo?`<div class="muted small" style="margin-top:6px">Marca las que usaste${marcaOpts(rtPlain(r))?"":" (en todo el párrafo)"}:</div><div class="tk-opts tk-marca">${mo.map(o=>`<button class="tk-opt ${(A.mk||[]).includes(o)?"on":""}" data-tk="mark" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`:""})()}`;
   const kids=b.k&&b.k.length?`<div class="tk-sub">${b.k.map(blockHtml).join("")}</div>`:"";
   if(locked){ // entregada: solo lectura, con la corrección del instructor si ya la dejó
@@ -1912,7 +1921,7 @@ function buildEntrega(d){
     const items=a.blocks.filter(b=>isList(b.ty)&&!((letterOpts(a,b)||{}).skip)).map(b=>{
       const A=tAns(d,b.id);if(A.d)dudas++;
       if(a.ty==="out"){const o=tOut(d,b.id);return{id:b.id,p:rtPlain(b.r),done:!!o.done,d:A.d?1:0,nt:A.nt}}
-      const L=letterOpts(a,b),{r,opts}=L||splitOpts(b.r||[],A);
+      const L=letterOpts(a,b,A),{r,opts}=L||splitOpts(b.r||[],A);
       return{id:b.id,p:rtPlain(r)+(opts&&!L?` {${opts.join(" | ")}}`:""),v:(A.v||"")+((A.mk||[]).length?`${A.v?"\n":""}[Marcó: ${A.mk.join(", ")}]`:""),ch:L&&L.match&&A.ch?matchTxt(a,A.ch):A.ch,s:Math.round(A.s),d:A.d?1:0,nt:A.nt,h:A.h};
     });
     const sec=Math.round(tEl(tTm(d,a.key))/1000);
