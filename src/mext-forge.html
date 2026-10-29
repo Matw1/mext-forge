@@ -352,6 +352,72 @@ details[open].card summary::after{content:"－"}
 .foot{margin-top:22px;text-align:center;font-size:.78rem;color:var(--muted);line-height:2}
 
 @media (max-width:420px){.prompt{font-size:1.22rem}.opt{font-size:1.05rem}.ring{width:92px;height:92px}.ring .in b{font-size:1.6rem}.hero{gap:12px;padding:14px}}
+.epinw{position:relative;padding-top:34px}.epin{position:absolute;top:0;right:0;width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:.95rem;opacity:.55;z-index:1}.epin:hover,.epin.on{opacity:1}.epin.on{background:color-mix(in srgb,var(--accent) 16%,var(--surface));border-color:var(--accent)}
+#lado{position:fixed;left:0;top:0;bottom:0;width:min(380px,92vw);overflow-y:auto;background:var(--bg);border-right:1px solid var(--line);box-shadow:8px 0 30px rgba(0,0,0,.12);z-index:55;padding:10px 12px 24px}
+#lado .ld-it{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:10px}
+#lado .ld-h{display:flex;align-items:center;gap:8px;justify-content:space-between;font-size:.9rem}
+#lado .ld-x{width:28px;height:28px;flex:none;border-radius:8px;border:1px solid var(--line);background:var(--bg);cursor:pointer;font-size:.8rem}
+#lado table{font-size:.86rem}
+@media (min-width:1100px){body.lado-on #app{margin-left:400px}}
+@media (max-width:1099px){#lado{top:auto;width:100vw;max-height:36vh;border-right:0;border-top:1px solid var(--line);border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.14)}body.lado-on #app{padding-bottom:38vh}}
+.lp-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px}.lp-chip{font:inherit;font-size:.85rem;padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer}.lp-chip.on{background:var(--text);color:var(--bg)}
+.dchips{display:flex;gap:6px;align-items:center;overflow-x:auto;padding:6px 0 4px;-webkit-overflow-scrolling:touch}.dchips .lp-chip,.dchips>span{flex:none}
+.evolver{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;margin:8px 0;border-left:4px solid var(--accent);cursor:pointer}
+.pleg{margin-bottom:10px}.pleg-h{cursor:pointer}.lchev{transition:transform .3s ease}.pleg.on .lchev{transform:rotate(180deg)}
+.pleg-b{display:grid;grid-template-rows:0fr;opacity:0;transform:translateY(-6px);transition:grid-template-rows .35s ease,opacity .3s ease,transform .35s ease}
+.pleg.on .pleg-b{grid-template-rows:1fr;opacity:1;transform:none}.pleg-in{overflow:hidden;min-height:0}.pleg.on .pleg-in{padding-top:10px}
+.pleg-in .lessons,.pleg-in>.card{margin:0}
+#etoc{position:fixed;top:84px;right:14px;z-index:58;display:flex;flex-direction:column;align-items:flex-end;gap:2px;transition:right .2s ease}
+#etoc button{position:relative;display:flex;align-items:center;justify-content:flex-end;width:34px;height:16px;padding:0;border:0;background:none;cursor:pointer;color:var(--muted)}
+#etoc button i{display:block;width:16px;height:3px;border-radius:2px;background:var(--line);transition:width .15s,background .15s}
+#etoc button.on i{width:26px;background:var(--accent)}#etoc button:hover i{width:30px;background:var(--text)}
+#etoc .toc-top{height:24px;font-size:1rem;font-weight:700;margin-bottom:4px}
+#etoc .toc-l{position:absolute;right:38px;white-space:nowrap;background:var(--text);color:var(--bg);font-size:.78rem;padding:3px 8px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .12s}
+#etoc button:hover .toc-l,#etoc button:focus-visible .toc-l{opacity:1}
+@media (min-width:760px){body.lupa-on #etoc{right:min(434px,calc(100vw - 40px))}}
+@media (max-width:759px){#etoc{right:4px;top:72px}}
+/* ===== Animaciones (con «reducir movimiento» del sistema se apagan todas) ===== */
+@keyframes aIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes aFade{from{opacity:0}to{opacity:1}}
+@keyframes aGrow{from{width:0}}
+@keyframes aPop{0%{transform:scale(.9)}55%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes aRing{from{transform:rotate(-260deg);opacity:0}to{transform:rotate(-90deg);opacity:1}}
+@keyframes aSlideL{from{transform:translateX(-104%)}to{transform:none}}
+@keyframes aSlideUp{from{transform:translateY(104%)}to{transform:none}}
+@keyframes aGlow{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 0%,transparent)}50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 22%,transparent)}}
+@keyframes aShine{from{background-position:-200% 0}to{background-position:200% 0}}
+#app.enter>*,#app.enter .stack>*,#app.enter .modes>*,#app.enter .tk-item{animation:aIn .5s cubic-bezier(.2,.8,.2,1) both}
+#app.enter>*:nth-child(2),#app.enter .stack>*:nth-child(2),#app.enter .modes>*:nth-child(2){animation-delay:.05s}
+#app.enter>*:nth-child(3),#app.enter .stack>*:nth-child(3),#app.enter .modes>*:nth-child(3){animation-delay:.1s}
+#app.enter>*:nth-child(4),#app.enter .stack>*:nth-child(4),#app.enter .modes>*:nth-child(4){animation-delay:.15s}
+#app.enter>*:nth-child(5),#app.enter .stack>*:nth-child(5),#app.enter .modes>*:nth-child(5){animation-delay:.2s}
+#app.enter>*:nth-child(6),#app.enter .stack>*:nth-child(6),#app.enter .modes>*:nth-child(6){animation-delay:.25s}
+#app.enter>*:nth-child(7),#app.enter .stack>*:nth-child(7),#app.enter .modes>*:nth-child(7){animation-delay:.3s}
+#app.enter>*:nth-child(n+8),#app.enter .stack>*:nth-child(n+8),#app.enter .modes>*:nth-child(n+8){animation-delay:.35s}
+#app.enter .ring svg{animation:aRing .9s cubic-bezier(.2,.8,.2,1) both}
+#app.enter .mb{animation:aGrow 1s .25s cubic-bezier(.2,.8,.2,1) both}
+.pleg.on .pleg-in .lesson,.pleg.on .pleg-in .catrow{animation:aIn .4s cubic-bezier(.2,.8,.2,1) both}
+.pleg.on .pleg-in .lrow:nth-child(2) .lesson,.pleg.on .pleg-in .catrow:nth-child(2){animation-delay:.04s}
+.pleg.on .pleg-in .lrow:nth-child(3) .lesson,.pleg.on .pleg-in .catrow:nth-child(3){animation-delay:.08s}
+.pleg.on .pleg-in .lrow:nth-child(n+4) .lesson,.pleg.on .pleg-in .catrow:nth-child(n+4){animation-delay:.12s}
+button,.btn,.card,.lesson,.mode,.tk-opt,.lp-chip{transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .2s,background-color .2s,border-color .2s,opacity .2s}
+button:active:not(:disabled),.lesson:active,.mode:active{transform:scale(.97)}
+.tk-opt.on,.lp-chip.on,.epin.on{animation:aPop .32s cubic-bezier(.2,.8,.2,1)}
+.tk-timer.run{animation:aGlow 1.8s ease-in-out infinite}
+.lp-it,#lado .ld-it{animation:aIn .4s cubic-bezier(.2,.8,.2,1) both}
+#lado{animation:aSlideL .35s cubic-bezier(.2,.8,.2,1)}
+#etoc{animation:aFade .5s .2s both}
+.evolver{background:linear-gradient(100deg,var(--surface) 40%,color-mix(in srgb,var(--accent) 14%,var(--surface)) 50%,var(--surface) 60%) 0 0/200% 100%;animation:aIn .5s both,aShine 2.6s 1s ease-in-out 2}
+@media (hover:hover) and (pointer:fine){
+  .lesson:hover,.mode:hover,.tk-act:hover,.evolver:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.10)}
+  .tk-act:hover{transform:translateY(-1px)}
+  .btn:hover,.icon-btn:hover,.tk-opt:hover,.lp-chip:hover,.tk-timer:hover,.elupa:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+  .icon-btn:hover{transform:translateY(-1px) rotate(-4deg)}
+  .start:hover{transform:translateY(-3px) scale(1.01);box-shadow:0 14px 34px color-mix(in srgb,var(--accent) 30%,transparent)}
+  .start:hover .play{animation:aPop .5s}
+  .tk-table tr{transition:background-color .15s}.tk-table tr:hover td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+}
+@media (max-width:1099px){#lado{animation:aSlideUp .35s cubic-bezier(.2,.8,.2,1)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
 #matSearch{margin-bottom:2px}#matCuenta{margin:0 2px 6px}.mtab{margin-top:6px}td.hit,th.hit{background:color-mix(in srgb,var(--amar) 35%,transparent)}
@@ -950,6 +1016,7 @@ function renderHome(){
   $("#app").innerHTML=`${tabsHtml("juego")}
     <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge${nivelBadge()}</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
       <button class="icon-btn" data-act="prog" aria-label="Panel de progreso" title="Panel de progreso (P)">📈</button><button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
+    ${volverHtml()}
     <section class="hero">
       <div class="ring" aria-label="${exam} días para el examen">
         <svg viewBox="0 0 100 100"><defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffb3cd"/><stop offset="1" stop-color="var(--accent)"/></linearGradient></defs>
@@ -981,8 +1048,7 @@ function renderHome(){
       return `<button class="mode" data-mode="${k}" style="--c:${cv(k)}">
         <span class="glyph">${m.g}</span><span class="mn">${m.n}</span><span class="ms">${m.s}</span>
         ${DB.bestMode[k]?`<span class="acc">🏆 ${DB.bestMode[k]}</span>`:k==="fossil"?`<span class="badge">${fosN}</span>`:""}</button>`}).join("")}</div>
-    <h3>Precisión por debilidad</h3>
-    <div class="card">${catRows()}</div>
+    ${plegHtml("prec",`<span class="glyph" style="--c:var(--accent)">🎯</span><span class="lt"><b>Precisión por debilidad</b><span class="muted small">${catResumen()}</span></span>`,`<div class="card">${catRows()}</div>`)}
     <h3>Ajustes</h3>
     <details class="card"><summary>⚙️ Tiempo, sonido, tema, nube y respaldo</summary><div class="stack" style="margin-top:14px">
       <div class="set"><span>Tiempo por pregunta</span><span class="seg">${Object.entries(SPEEDS).map(([k,v])=>`<button data-speed="${k}" class="${DB.settings.speed===k?"on":""}">${v.n}</button>`).join("")}</span></div>
@@ -1165,7 +1231,7 @@ function simStart(id){
   if(T.sim&&!confirm("Ya tienes un simulacro empezado. ¿Descartarlo y empezar otro?"))return;
   T.sim={ex:id,examen:ex.examen,titulo:ex.titulo,secs:ex.secs.map(x=>[x,10]),lim:ex.lim||null,resp:{},start:null};tSave(true);view="simu";renderSimHoja();
 }
-function simSec(i,d){const x=T.sim.secs[i];x[1]=Math.max(1,Math.min(40,x[1]+d));tSave(true);renderSimHoja()}
+function simSec(i,d){const x=T.sim.secs[i];x[1]=Math.max(0,Math.min(40,x[1]+d));tSave(true);renderSimHoja()} // 0 = esa sección no entra
 function simMarcar(q,r){if(!T.sim||!T.sim.start)return;T.sim.resp[q]=T.sim.resp[q]===r?undefined:r;tSave();
   document.querySelectorAll(`[data-q="${q}"]`).forEach(b=>b.classList.toggle("on",b.dataset.r===T.sim.resp[q]));
   const el=document.getElementById("simN");if(el)el.textContent=simCuenta()}
@@ -1341,7 +1407,7 @@ function blockHtml(b){
     case "bulleted_list_item":case "numbered_list_item":return `<ul><li>${rtHtml(b.r)}${k}</li></ul>`;
     case "to_do":return `<ul><li>${b.ck?"☑":"☐"} ${rtHtml(b.r)}${k}</li></ul>`;
     case "toggle":return `<details><summary>${rtHtml(b.r)}</summary>${k}</details>`;
-    case "table":return `<div class="tk-table"><table>${(b.k||[]).map((row,i)=>`<tr>${(row.cells||[]).map(c=>i===0&&b.hr?`<th>${rtHtml(c)}</th>`:`<td>${rtHtml(c)}</td>`).join("")}</tr>`).join("")}</table></div>`;
+    case "table":{const pin=b.id&&!blockHtml.sinPin,on=pin&&ladoOn(b.id);return `<div class="tk-table${pin?" epinw":""}">${pin?`<button class="epin${on?" on":""}" data-tk="lado" data-v="${esc(b.id)}" title="${on?"Quitar del lado izquierdo":"Fijar a la izquierda de la pantalla"}" aria-label="Fijar tabla">📌</button>`:""}<table>${(b.k||[]).map((row,i)=>`<tr>${(row.cells||[]).map(c=>i===0&&b.hr?`<th>${rtHtml(c)}</th>`:`<td>${rtHtml(c)}</td>`).join("")}</tr>`).join("")}</table></div>`}
     default:return b.r?`<p>${rtHtml(b.r)}</p>${k}`:"";
   }
 }
@@ -1556,11 +1622,11 @@ function lessonsHtml(f){
       <span class="glyph" style="--c:var(--dia)">Día</span><span class="lt"><b>${esc(title)}</b><span class="muted small">${sub}${isNew?' · <span class="lnew">nueva</span>':""}</span></span>
       <span class="pct">${p==null?"▶":Math.round(p*100)+"%"}</span>${p!=null?`<span class="mb" style="width:${p*100}%;background:var(--dia)"></span>`:""}</button>${n?`<button class="lprod" data-mode="prod:${esc(pk)}" title="Escribir las respuestas" aria-label="Producción: escribir">✏️<small>${n}</small></button>`:""}</div>`};
   const all=LESSONS.map(x=>x.id);
-  return `<h3>📅 Lecciones de días estudiados</h3><div class="lessons">
+  return plegHtml("lec",`<span class="glyph" style="--c:var(--dia)">📅</span><span class="lt"><b>Lecciones de días estudiados</b><span class="muted small">${days.length} día${days.length>1?"s":""} · ${all.length} preguntas${PROD.length?` · ✏️ ${PROD.length} para escribir`:""}</span></span>`,`<div class="lessons">
     ${days.length>1?card("days","Todas las lecciones",`${days.length} días · ${all.length} preguntas`,all):""}
     ${prodCard}
     ${days.map(d=>{const ids=LESSONS.filter(x=>x.L===d).map(x=>x.id);return card("day:"+d,tituloSes(d),`${esc(fechaCorta(sDate(d)))} · ${ids.length} preguntas`,ids,!ids.some(id=>DB.items[id]),d)}).join("")}
-  </div>`;
+  </div>`);
 }
 
 /* ---------- Materia: solo las tablas de cada clase, por día (de 📘 Consulta y de la introducción) ---------- */
@@ -1601,18 +1667,12 @@ function renderTemas(){
   </div>`;
 }
 function renderMateria(){
-  const dias=[];
-  for(const d of porFecha(Object.keys(T.ses))){
-    const p=parseSession(T.ses[d].blocks),tablas=[];
-    eTables(p.intro,[]).forEach(t=>tablas.push({tema:"",t}));
-    for(const a of p.acts)if(a.ty==="ref")eTables(a.blocks,[]).forEach(t=>tablas.push({tema:a.title,t}));
-    if(tablas.length)dias.push({d,tablas});
-  }
+  const dias=matDias();
   $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
     <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
     <div class="estat" id="tkState">${esc(tkLabel())}</div>
     ${subTabs("mat")}
-    ${dias.length?`<input class="tk-in" id="matSearch" type="search" placeholder="🔍 Buscar en las tablas (ej. much, while, advice…)" value="${esc(matQ)}" autocomplete="off" spellcheck="false" autocapitalize="off"><div class="muted small" id="matCuenta"></div>`:""}
+    ${dias.length?`<input class="tk-in" id="matSearch" type="search" placeholder="🔍 Buscar en las tablas (ej. much, while, día 27, 29 oct)" value="${esc(matQ)}" autocomplete="off" spellcheck="false" autocapitalize="off">${diasChips('data-tk="matdia" data-matdia',matQ.trim())}<div class="muted small" id="matCuenta"></div>`:""}
     ${dias.length?dias.map((x,i)=>`<details class="card emat" data-mat="${esc(x.d)}" ${matAbiertos.has(x.d)?"open":""}><summary><span class="ek">${esc(fechaLarga(sDate(x.d)))} · ${x.tablas.length} tabla${x.tablas.length>1?"s":""}</span><b>${esc(tituloSes(x.d))}</b></summary>
       <div>${x.tablas.map((y,j)=>`<div class="mtab" data-q="${esc((y.tema+" "+tituloSes(x.d)+" "+tablaTxt(y.t)).toLowerCase())}">${y.tema?`<div class="emtema">${esc(y.tema)}</div>`:""}${blockHtml(y.t)}</div>`).join("")}</div></details>`).join("")
     :`<div class="ecard eempty"><b>Aún no hay tablas.</b><span class="muted small">Aquí aparecerán, por día, las tablas que el instructor ponga en tus clases.</span></div>`}
@@ -1624,7 +1684,11 @@ function renderMateria(){
 let matQ="";
 const tablaTxt=t=>(t.k||[]).map(r=>(r.cells||[]).map(rtPlain).join(" ")).join(" ");
 function matFiltrar(){
-  const q=matQ.trim().toLowerCase();let n=0;
+  const q=matQ.trim().toLowerCase();let n=0;const dm=diaDe(q);
+  document.querySelectorAll("[data-matdia]").forEach(b=>b.classList.toggle("on",b.dataset.matdia.toLowerCase()===q));
+  if(dm){document.querySelectorAll("details.emat").forEach(d=>{const ok=dm(d.dataset.mat);d.style.display=ok?"":"none";d.open=ok;
+      d.querySelectorAll(".mtab").forEach(t=>{t.style.display="";if(ok)n++;t.querySelectorAll("td,th").forEach(c=>c.classList.remove("hit"))})});
+    const c=document.getElementById("matCuenta");if(c)c.textContent=n?`${n} tabla${n>1?"s":""} de ${matQ.trim()} (toca otra vez el día para quitar)`:`No hay tablas de ${matQ.trim()}`;return}
   document.querySelectorAll("details.emat").forEach(d=>{let hay=0;
     d.querySelectorAll(".mtab").forEach(t=>{const ok=!q||t.dataset.q.includes(q);t.style.display=ok?"":"none";if(ok&&q){hay++;n++}
       t.querySelectorAll("td,th").forEach(c=>c.classList.toggle("hit",!!q&&ok&&c.textContent.toLowerCase().includes(q)))});
@@ -1659,7 +1723,7 @@ function renderSimHoja(){
   if(!x.start){ // preparación: confirmar cuántas preguntas tiene cada sección en el PDF
     $("#app").innerHTML=`<div class="stack tk"><div class="row"><button class="icon-btn" data-tk="simback" aria-label="Volver">←</button><b style="font-size:1.05rem">${esc(x.titulo)}</b></div>
       <section class="card"><b>Antes de empezar</b><p class="muted small">Revisa en el PDF cuántas preguntas tiene cada sección y ajústalo aquí. La cuenta regresiva (${simLim(x)} min) empieza al tocar «Empezar».</p>
-      ${x.secs.map(([sec,n],i)=>`<div class="set"><span>Sección ${sec}</span><span class="seg"><button data-tk="simsec" data-i="${i}" data-d="-1" aria-label="Menos">−</button><button class="on" disabled>${n}</button><button data-tk="simsec" data-i="${i}" data-d="1" aria-label="Más">+</button></span></div>`).join("")}</section>
+      ${x.secs.map(([sec,n],i)=>`<div class="set"${n?"":' style="opacity:.55"'}><span>Sección ${sec}${n?"":" · no entra"}</span><span class="seg"><button data-tk="simsec" data-i="${i}" data-d="-1" aria-label="Menos">−</button><button class="on" disabled>${n}</button><button data-tk="simsec" data-i="${i}" data-d="1" aria-label="Más">+</button></span></div>`).join("")}</section>
       <div class="row" style="flex-wrap:wrap"><button class="btn tk-send" data-tk="simgo">Empezar (${simTot()} preguntas · ${simLim(x)} min)</button><button class="btn" data-tk="simcancel">Cancelar</button></div></div>`;
     window.scrollTo(0,0);return;
   }
@@ -1791,6 +1855,79 @@ async function auOir(aid){const x=await auGet(aid);
   catch(e){toast("No se pudo descargar el audio")}}
 document.addEventListener("change",e=>{const id=e.target.dataset&&e.target.dataset.auFile,f=e.target.files&&e.target.files[0];if(id&&f&&view==="tarea"){e.target.value="";auArchivo(id,f,e.target)}});
 
+/* ===== Después de pintar cualquier pantalla: tablas al lado, índice de la sesión y animación de entrada ===== */
+/* 📌 Tablas al lado: el 📌 de cualquier tabla la deja fija a la izquierda de la pantalla mientras estudias
+   (aparte de la 🔍 Consulta, que va a la derecha). Se quita con su ✕ o tocando otra vez el 📌. Solo en este dispositivo. */
+const ladoOn=id=>(T.lado||[]).some(x=>x.id===id);
+function ladoBuscar(id){for(const d of Object.keys(T.ses)){const p=parseSession(T.ses[d].blocks);
+    for(const a of p.acts){const t=eTables(a.blocks,[]).find(x=>x.id===id);if(t)return{b:t,tit:a.title||tituloSes(d),f:sDate(d)}}
+    const t=eTables(p.intro,[]).find(x=>x.id===id);if(t)return{b:t,tit:tituloSes(d),f:sDate(d)}}
+  return null}
+function ladoToggle(id){T.lado=T.lado||[];const i=T.lado.findIndex(x=>x.id===id);
+  if(i>=0)T.lado.splice(i,1);else{const x=ladoBuscar(id);if(!x){toast("No encontré esa tabla");return}T.lado.push({id,...x})}
+  tSave(true);document.querySelectorAll(".epin").forEach(b=>{const on=ladoOn(b.dataset.v);b.classList.toggle("on",on);b.title=on?"Quitar del lado izquierdo":"Fijar a la izquierda de la pantalla"});ladoPintar()}
+function ladoPintar(){let el=document.getElementById("lado");const ver=(T.lado||[]).length&&["tarea","tareas","ref","mat","tem","sim","simu"].includes(view);
+  document.body.classList.toggle("lado-on",!!ver);
+  if(!ver){if(el)el.remove();return}
+  if(!el){el=document.createElement("aside");el.id="lado";document.body.appendChild(el)}
+  blockHtml.sinPin=true;
+  try{el.innerHTML=T.lado.map(x=>`<div class="ld-it"><div class="ld-h"><span>📌 <b>${esc(x.tit)}</b> <span class="muted small">${esc(fechaCorta(x.f||""))}</span></span><button class="ld-x" data-tk="lado" data-v="${esc(x.id)}" aria-label="Quitar">✕</button></div>${blockHtml(x.b)}</div>`).join("")}
+  finally{blockHtml.sinPin=false}}
+/* Índice de la sesión: rayitas arriba a la derecha (junto a la barra de desplazamiento), una por actividad.
+   Al pasar el mouse muestran el nombre; al tocar llevan a esa actividad. ⤒ sube al inicio. Con la 🔍 abierta se corren a su borde. */
+function tocPintar(){let el=document.getElementById("etoc");
+  const secs=view==="tarea"?[...document.querySelectorAll("#app .tk-act")]:[];
+  if(!secs.length){if(el)el.remove();return}
+  if(!el){el=document.createElement("nav");el.id="etoc";el.setAttribute("aria-label","Índice de la sesión");document.body.appendChild(el);
+    el.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
+      if(b.dataset.toc==="top")return window.scrollTo({top:0,behavior:"smooth"});
+      const t=document.querySelectorAll("#app .tk-act")[+b.dataset.toc];if(t)window.scrollTo({top:t.getBoundingClientRect().top+window.scrollY-12,behavior:"smooth"})})}
+  el.innerHTML=`<button data-toc="top" class="toc-top" title="Volver al inicio"><span class="toc-l">Volver al inicio</span>⤒</button>`+secs.map((x,i)=>{
+    const k=x.querySelector(".tag"),b=x.querySelector(".tk-title"),kt=k?k.textContent.trim():"",bt=b?b.textContent.trim():"";
+    const t=(kt&&bt?kt+" · "+bt:kt||bt).slice(0,70);
+    return `<button data-toc="${i}" title="${esc(t)}"><span class="toc-l">${esc(t)}</span><i></i></button>`}).join("");
+  tocActual()}
+function tocActual(){const el=document.getElementById("etoc");if(!el)return;let cur=0;
+  document.querySelectorAll("#app .tk-act").forEach((x,i)=>{if(x.getBoundingClientRect().top<160)cur=i});
+  el.querySelectorAll("[data-toc]").forEach(b=>b.classList.toggle("on",b.dataset.toc===String(cur)))}
+/* ↩ Volver a la tarea: se recuerda la sesión sin entregar y el punto donde ibas; en el inicio un botón te lleva de vuelta ahí */
+function volverHtml(){const u=T.ultimo;if(!u||!T.ses[u.d]||tLocked(u.d)||entregasDe(u.d).length)return"";
+  return `<button class="card evolver" data-tk="volver"><span class="muted small">↩ Volver a la tarea${u.sec?` · ${esc(u.sec)}`:""}</span><b>${esc(tituloSes(u.d))}</b></button>`}
+let volverT=null;
+window.addEventListener("scroll",()=>{if(view!=="tarea"||!tDate)return;tocActual();clearTimeout(volverT);volverT=setTimeout(()=>{
+  let sec="";for(const el of document.querySelectorAll("#app .tk-act")){if(el.getBoundingClientRect().top>140)break;const b=el.querySelector(".tk-title");if(b)sec=b.textContent.trim()}
+  T.ultimo={d:tDate,y:Math.round(window.scrollY),sec:sec.slice(0,60),t:Date.now()};tSave()},400)},{passive:true});
+// La entrada se anima solo al cambiar de pantalla (no al repintar por un toque)
+let postVista="";
+function trasPintar(){ladoPintar();tocPintar();
+  const v=view+"|"+(view==="tarea"?tDate:""),a=document.getElementById("app");
+  if(v!==postVista&&view!=="drill"&&a){a.classList.remove("enter");void a.offsetWidth;a.classList.add("enter");clearTimeout(trasPintar.t);trasPintar.t=setTimeout(()=>a.classList.remove("enter"),1400)}
+  postVista=v}
+new MutationObserver(()=>{cancelAnimationFrame(trasPintar.r);trasPintar.r=requestAnimationFrame(trasPintar)}).observe(document.getElementById("app"),{childList:true});
+/* Plegable: una sola fila; al tocarla se despliega deslizando (sin volver a pintar la pantalla) */
+var PLEG={};
+function plegHtml(k,head,body){return `<div class="pleg${PLEG[k]?" on":""}"><button class="lesson pleg-h" data-tk="pleg" data-v="${k}" aria-expanded="${!!PLEG[k]}">${head}<span class="pct lchev">▾</span></button><div class="pleg-b"><div class="pleg-in">${body}</div></div></div>`}
+function catResumen(){const ps=Object.keys(CATS).filter(k=>k!=="DIA"&&k!=="ESC").map(c=>[c,catAcc(c)]).filter(x=>x[1]!=null);if(!ps.length)return "Aún sin datos";
+  const prom=ps.reduce((a,x)=>a+x[1],0)/ps.length,peor=ps.slice().sort((a,b)=>a[1]-b[1])[0];
+  return `Promedio ${Math.round(prom*100)}% · más débil: ${CATS[peor[0]].n} ${Math.round(peor[1]*100)}%`}
+/* Buscar por día: «día 34», «dia34», «34», «29 oct», «29/10» o «2026-10-29» → función que dice si una sesión (clave) es de ese día */
+const MESES={ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,set:9,oct:10,nov:11,dic:12};
+function diaDe(q){q=String(q||"").trim().toLowerCase();if(!q)return null;let m;
+  if(m=q.match(/^(?:d[ií]a|d)\s*(\d{1,3})$/)||q.match(/^(\d{1,3})$/)){const re=new RegExp("^d[ií]a\\s*"+m[1]+"(?!\\d)","i");return d=>re.test(tituloSes(d)||"")}
+  if(/^\d{4}-\d\d-\d\d$/.test(q))return d=>sDate(d)===q;
+  if(m=q.match(/^(\d{1,2})\s*(?:\/|-|\s|\s+de\s+)\s*(\d{1,2}|[a-z]{3})[a-z]*$/)){const mes=/^\d/.test(m[2])?+m[2]:MESES[m[2]];if(!mes)return null;
+    const fin="-"+String(mes).padStart(2,"0")+"-"+m[1].padStart(2,"0");return d=>(sDate(d)||"").endsWith(fin)}
+  return null}
+const diaCorto=d=>{const m=(tituloSes(d)||"").match(/^d[ií]a\s*\d+/i);return m?m[0].replace(/^d[ií]a\s*/i,"Día "):fechaCorta(sDate(d))};
+function matDias(){const dias=[];
+  for(const d of porFecha(Object.keys(T.ses))){const p=parseSession(T.ses[d].blocks),tablas=[];
+    eTables(p.intro,[]).forEach(t=>tablas.push({tema:"",t}));
+    for(const a of p.acts)if(a.ty==="ref")eTables(a.blocks,[]).forEach(t=>tablas.push({tema:a.title,t}));
+    if(tablas.length)dias.push({d,tablas})}
+  return dias}
+function diasChips(attr,activo){const ds=matDias();if(!ds.length)return"";
+  const vistos=new Set();return `<div class="dchips"><span class="muted small">Por día:</span>${ds.map(x=>{const l=diaCorto(x.d);if(vistos.has(l))return"";vistos.add(l);return `<button class="lp-chip${activo&&activo.toLowerCase()===l.toLowerCase()?" on":""}" ${attr}="${esc(l)}">${esc(l)}</button>`}).join("")}</div>`}
+
 /* ---------- sesión de un día ---------- */
 function itemHtml(d,a,b,locked,V){
   const id=b.id,A=tAns(d,id);
@@ -1822,7 +1959,7 @@ function itemHtml(d,a,b,locked,V){
 function lupaOk(a){if(a.ty==="mastery"||a.ty==="mock")return false;
   const t=(a.title+" "+a.blocks.filter(b=>!isList(b.ty)).map(b=>rtPlain(b.r)).join(" ")).toLowerCase();
   return !/sin apuntes|sin tablas|sin mirar|sin consultar|en fr[ií]o|sin ayuda|minisimulacro|simulacro/.test(t)}
-let lupaTab="mat",lupaQ="",lupaTodo=false,lupaCtx="";
+let lupaTab="mat",lupaQ="",lupaModo="ses",lupaCtx="",lupaChip="",lupaChipL="";
 /* «Relacionado»: material de cualquier clase que trata lo mismo que la tarea. Los términos de cada tabla son
    su primera columna y lo que va en negrita (p. ej. much / many, while, rely on); en la teoría, lo que va en negrita.
    Se muestran los que aparecen en el texto de la tarea, ordenados por cuántos coinciden. */
@@ -1838,24 +1975,37 @@ function lpTermsRef(a){const out=new Set();const walk=bl=>{for(const b of bl||[]
     if(b.ty==="table"&&b.k)lpTermsTabla(b).forEach(x=>out.add(x));if(b.k&&b.ty!=="table")walk(b.k)}};walk(a.blocks);return out}
 function lpScore(terms,ctx){const hit=[];for(const t of terms){const re=new RegExp("(^|[^a-z])"+t.replace(/[.*+?^${}()|[\]\\]/g,"\\$&").replace(/ /g,"\\s+")+"($|[^a-z])");if(re.test(ctx))hit.push(t)}
   return hit.filter(h=>!hit.some(o=>o!==h&&o.includes(h)))}
-function lupaAbrir(akey){lupaTodo=false;lupaCtx="";
+function lupaAbrir(akey){lupaCtx="";lupaChip="";lupaModo=matDias().some(x=>x.d===tDate)?"ses":"rel";
   if(tDate&&T.ses[tDate]){const a=parseSession(T.ses[tDate].blocks).acts.find(x=>x.key===akey);
     if(a)lupaCtx=(a.title+" "+a.blocks.map(b=>rtPlain(b.r)+" "+(b.k||[]).map(c=>rtPlain(c.r)).join(" ")).join(" ")).toLowerCase()}
   let el=document.getElementById("lupa");
   if(!el){el=document.createElement("aside");el.id="lupa";document.body.appendChild(el);
-    el.innerHTML=`<div class="lp-head"><b>🔍 Consulta</b><div class="seg lp-tabs"><button data-lp="mat">📊 Materia</button><button data-lp="ref">📘 Referencia</button></div><div class="seg lp-tabs"><button data-lp="rel">Relacionado</button><button data-lp="todo">Todo</button></div><button class="lp-x" data-lp="x" aria-label="Cerrar">✕</button></div>
-      <input type="search" id="lpQ" class="tk-in" placeholder="Palabra clave (ej. much, while, advice)" autocomplete="off" spellcheck="false" autocapitalize="off"><div class="muted small" id="lpN"></div><div id="lpRes"></div>`;
-    el.addEventListener("click",e=>{const b=e.target.closest("[data-lp]");if(!b)return;if(b.dataset.lp==="x")return lupaCerrar();if(b.dataset.lp==="rel"||b.dataset.lp==="todo")lupaTodo=b.dataset.lp==="todo";else lupaTab=b.dataset.lp;lupaPintar()});
-    el.querySelector("#lpQ").addEventListener("input",e=>{lupaQ=e.target.value;lupaPintar()});}
+    el.innerHTML=`<div class="lp-head"><b>🔍 Consulta</b><div class="seg lp-tabs"><button data-lp="mat">📊 Materia</button><button data-lp="ref">📘 Referencia</button></div><div class="seg lp-tabs"><button data-lp="ses">Esta sesión</button><button data-lp="rel">Relacionado</button><button data-lp="todo">Todo</button></div><button class="lp-x" data-lp="x" aria-label="Cerrar">✕</button></div>
+      <input type="search" id="lpQ" class="tk-in" placeholder="Palabra clave (ej. much, while, advice)" autocomplete="off" spellcheck="false" autocapitalize="off"><div class="lp-chips" id="lpChips"></div><div id="lpDias"></div><div class="muted small" id="lpN"></div><div id="lpRes"></div>`;
+    el.addEventListener("click",e=>{const dd=e.target.closest("[data-lpdia]");if(dd){const v=dd.dataset.lpdia;lupaQ=lupaQ.trim().toLowerCase()===v.toLowerCase()?"":v;lupaChip="";el.querySelector("#lpQ").value=lupaQ;return lupaPintar()}
+      const b=e.target.closest("[data-lp]");if(!b)return;if(b.dataset.lp==="x")return lupaCerrar();
+      if(b.dataset.lp==="chip"){const k=b.dataset.k;lupaChip=lupaChip===k?"":k;lupaChipL=b.textContent;lupaQ="";el.querySelector("#lpQ").value="";return lupaPintar()}
+      if(["ses","rel","todo"].includes(b.dataset.lp)){lupaModo=b.dataset.lp;lupaChip=""}else lupaTab=b.dataset.lp;lupaPintar()});
+    el.querySelector("#lpQ").addEventListener("input",e=>{lupaQ=e.target.value;lupaChip="";lupaPintar()});}
   lupaQ="";el.classList.add("on");document.body.classList.add("lupa-on");el.querySelector("#lpQ").value="";lupaPintar();
 }
 function lupaCerrar(){const el=document.getElementById("lupa");if(el)el.classList.remove("on");document.body.classList.remove("lupa-on")}
 function lupaPintar(){const el=document.getElementById("lupa");if(!el)return;
   el.querySelectorAll('[data-lp="mat"],[data-lp="ref"]').forEach(b=>b.classList.toggle("on",b.dataset.lp===lupaTab));
-  el.querySelectorAll('[data-lp="rel"],[data-lp="todo"]').forEach(b=>b.classList.toggle("on",(b.dataset.lp==="todo")===lupaTodo));
-  const q=lupaQ.trim().toLowerCase(),rel=!lupaTodo&&lupaCtx,res=[];
+  el.querySelectorAll('[data-lp="ses"],[data-lp="rel"],[data-lp="todo"]').forEach(b=>b.classList.toggle("on",b.dataset.lp===lupaModo));
+  // Accesos rápidos: términos de tus tablas y teoría que también están en esta tarea (los que más material tienen primero). Tocar uno filtra sin escribir.
+  const chipsEl=el.querySelector("#lpChips");
+  if(chipsEl){const cnt=new Map();
+    if(lupaCtx)for(const d of Object.keys(T.ses)){const p=parseSession(T.ses[d].blocks);
+      const ts=eTables(p.intro,[]);for(const a of p.acts)if(a.ty==="ref"){eTables(a.blocks,[]).forEach(t=>ts.push(t));for(const t of lpScore(lpTermsRef(a),lupaCtx))cnt.set(t,(cnt.get(t)||0)+1)}
+      for(const t of ts)for(const h of lpScore(lpTermsTabla(t),lupaCtx))cnt.set(h,(cnt.get(h)||0)+1)}
+    const top=[...cnt].sort((a,b)=>b[1]-a[1]).slice(0,10);
+    chipsEl.innerHTML=top.length?`<span class="muted small">Accesos rápidos:</span>`+top.map(([t])=>`<button class="lp-chip${lupaChip===t?" on":""}" data-lp="chip" data-k="${esc(t)}">${esc(t)}</button>`).join(""):""}
+  const dEl=el.querySelector("#lpDias");if(dEl)dEl.innerHTML=diasChips("data-lpdia",lupaQ.trim());
+  const dm=!lupaChip&&diaDe(lupaQ);
+  const q=dm?"":(lupaChip||lupaQ).trim().toLowerCase(),modo=lupaChip||dm?"todo":lupaModo,rel=modo==="rel"&&lupaCtx,ses=modo==="ses",res=[];
   const chips=h=>h.length?`<div class="lp-hit">coincide: ${h.slice(0,6).map(x=>`<span>${esc(x)}</span>`).join("")}</div>`:"";
-  for(const d of Object.keys(T.ses)){const p=parseSession(T.ses[d].blocks),f=sDate(d);
+  for(const d of Object.keys(T.ses)){if(ses&&d!==tDate||dm&&!dm(d))continue;const p=parseSession(T.ses[d].blocks),f=sDate(d);
     if(lupaTab==="mat"){const ts=eTables(p.intro,[]).map(t=>({tema:"",t}));for(const a of p.acts)if(a.ty==="ref")eTables(a.blocks,[]).forEach(t=>ts.push({tema:a.title,t}));
       for(const x of ts){if(q&&!((x.tema||"")+" "+tablaTxt(x.t)).toLowerCase().includes(q))continue;const h=rel?lpScore(lpTermsTabla(x.t),lupaCtx):[];if(rel&&!h.length)continue;
         res.push({sc:h.length,f,html:`<div class="lp-it"><div class="muted small">${esc(fechaCorta(f))} · ${esc(x.tema||tituloSes(d))}</div>${chips(h)}${blockHtml(x.t)}</div>`})}}
@@ -1863,8 +2013,8 @@ function lupaPintar(){const el=document.getElementById("lupa");if(!el)return;
       if(q&&!t.includes(q))continue;const h=rel?lpScore(lpTermsRef(a),lupaCtx):[];if(rel&&!h.length)continue;
       res.push({sc:h.length,f,html:`<details class="lp-it" ${q||rel?"open":""}><summary><span class="muted small">${esc(fechaCorta(f))}</span> <b>${esc(a.title)}</b></summary>${chips(h)}${sinTablas(a.blocks).map(blockHtml).join("")}</details>`})}}
   res.sort((a,b)=>b.sc-a.sc||(b.f>a.f?1:b.f<a.f?-1:0));const n=res.length;
-  el.querySelector("#lpRes").innerHTML=res.map(r=>r.html).join("")||`<div class="muted small" style="padding:10px 2px">${rel?"No encontré material relacionado con esta tarea. Prueba con «Todo».":q?"Nada con «"+esc(lupaQ.trim())+"».":"Aún no hay material."}</div>`;
-  el.querySelector("#lpN").textContent=rel?`${n} relacionado${n===1?"":"s"} con esta tarea`:q?`${n} resultado${n===1?"":"s"}`:"";
+  el.querySelector("#lpRes").innerHTML=res.map(r=>r.html).join("")||`<div class="muted small" style="padding:10px 2px">${ses?(lupaTab==="mat"?"Esta sesión no trae tablas. Prueba con «Relacionado».":"Esta sesión no trae teoría. Prueba con «Relacionado»."):rel?"No encontré material relacionado con esta tarea. Prueba con «Todo».":q?"Nada con «"+esc(lupaChip||lupaQ.trim())+"».":"Aún no hay material."}</div>`;
+  el.querySelector("#lpN").textContent=dm?`${n} de ${lupaQ.trim()}`:ses?`${n} de esta sesión`:lupaChip?`${n} con «${lupaChipL||lupaChip}» (toca otra vez para quitar)`:rel?`${n} relacionado${n===1?"":"s"} con esta tarea`:q?`${n} resultado${n===1?"":"s"}`:"";
   if(q)el.querySelectorAll("#lpRes td,#lpRes th").forEach(c=>c.classList.toggle("hit",c.textContent.toLowerCase().includes(q)));
 }
 function actHtml(d,a,locked){
@@ -1910,7 +2060,7 @@ function renderTarea(keepScroll){
   </div>`;
   if(keepScroll)window.scrollTo(0,y);else window.scrollTo(0,0);
 }
-function openTarea(d){tDate=d;view="tarea";renderTarea();fetchTareas(d);bSync()}
+function openTarea(d){tDate=d;view="tarea";renderTarea();fetchTareas(d);bSync();if(!T.ultimo||T.ultimo.d!==d){T.ultimo={d,y:0,sec:"",t:Date.now()};tSave()}}
 
 /* ---------- entrega ---------- */
 function buildEntrega(d){
@@ -1976,6 +2126,10 @@ document.addEventListener("click",e=>{
   const k=b.dataset.tk,v=b.dataset.v;
   if(k==="open"){if(v)openTarea(v);else{view="tareas";renderTareas();fetchTareas()}return}
   if(k==="lupa"){lupaAbrir(v);return}
+  if(k==="lado"){ladoToggle(v);return}
+  if(k==="pleg"){const w=b.closest(".pleg");PLEG[v]=!PLEG[v];w.classList.toggle("on",PLEG[v]);b.setAttribute("aria-expanded",PLEG[v]);return}
+  if(k==="volver"){const u=T.ultimo;if(!u||!T.ses[u.d])return;openTarea(u.d);setTimeout(()=>window.scrollTo(0,u.y||0),60);return}
+  if(k==="matdia"){const val=b.dataset.matdia;matQ=matQ.trim().toLowerCase()===val.toLowerCase()?"":val;const i=document.getElementById("matSearch");if(i)i.value=matQ;matFiltrar();return}
   if(k==="list"){lupaCerrar();if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas();return}
   if(k==="date"){openTarea(v);return}
   if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null,true);try{navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{})}catch(e){}return}
@@ -1990,7 +2144,7 @@ document.addEventListener("click",e=>{
   if(k==="simopen"){view="simu";renderSimHoja();return}
   if(k==="simback"){view="sim";renderSimLista();return}
   if(k==="simsec"){simSec(+b.dataset.i,+b.dataset.d);return}
-  if(k==="simgo"){T.sim.start=Date.now();tSave(true);renderSimHoja();return}
+  if(k==="simgo"){T.sim.secs=T.sim.secs.filter(x=>x[1]>0);if(!T.sim.secs.length){toast("Pon al menos una pregunta");return}T.sim.start=Date.now();tSave(true);renderSimHoja();return}
   if(k==="simr"){simMarcar(b.dataset.q,b.dataset.r);return}
   if(k==="simentregar"){simEntregar();return}
   if(k==="simcancel"){if(confirm("¿Descartar este simulacro? Se borran las respuestas marcadas.")){T.sim=null;tSave(true);view="sim";renderSimLista()}return}
