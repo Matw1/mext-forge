@@ -1105,8 +1105,8 @@ function faseActual(){
 function dominioFase(){
   const fase=faseActual(),ts=(T.temas||[]).filter(t=>t.fase===fase);
   if(!fase||!ts.length)return null;
-  const dom=ts.filter(t=>temaPct(t)===100).length;let fecha="";
-  for(const t of ts){const x=temaDeSesion(t),f=(x&&x.edited)||t.edited||"";if(f>fecha)fecha=f}
+  const dom=ts.filter(t=>temaCuenta(t)).length;let fecha="";
+  for(const t of ts){const x=temaDeSesion(t),f=(x&&x.edited)||t.edited||"";if(f>fecha)fecha=f;if(t.f100&&t.f100>fecha.slice(0,10))fecha=t.f100}
   return{fase,pct:Math.round(1000*dom/ts.length)/10,dom,n:ts.length,fecha:fecha.slice(0,10)};
 }
 function instructorPills(){
@@ -1766,6 +1766,9 @@ function temaDeSesion(t,hasta){
   }
   return best&&(!t.edited||(best.edited||"")>t.edited||hasta&&t.edited.slice(0,10)>hasta)?best:null;
 }
+// ¿El tema cuenta como dominado ese día? Con «Fecha 100%» manda esa fecha (el día que se pasó en frío);
+// si la fase ya usa fechas, un tema sin fecha no cuenta; sin fechas en la fase, el % del tema tiene que estar en 100.
+function temaCuenta(t,dia){if(t.f100)return t.f100<=(dia||today());if((T.temas||[]).some(x=>x.fase===t.fase&&x.f100))return false;return temaPct(t,dia)===100}
 function temaPct(t,hasta){const x=temaDeSesion(t,hasta),fila=!hasta||(t.edited||"").slice(0,10)<=hasta;let v=x?x.props.domTema:fila?t.dom:null;if(typeof v!=="number")return null;if(v>0&&v<1)v*=100;return Math.max(0,Math.min(100,Math.round(v)))}
 function renderTemas(){
   const ts=T.temas||[],fases=[...new Set(ts.map(t=>t.fase))],actual=faseActual();
@@ -1773,7 +1776,7 @@ function renderTemas(){
     <div class="etop"><h1 class="ehead1"><span class="ejp">DAILY STUDY</span>Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">↻ Actualizar</button></div>
     <div class="estat" id="tkState">${esc(tkLabel())}</div>
     ${subTabs("tem")}
-    ${fases.length?fases.map((f,i)=>{const l=ts.filter(t=>t.fase===f),ps=l.map(temaPct),dom=ps.filter(v=>v===100).length;
+    ${fases.length?fases.map((f,i)=>{const l=ts.filter(t=>t.fase===f),ps=l.map(t=>temaCuenta(t)?100:temaPct(t)),dom=ps.filter(v=>v===100).length;
       return `<details class="card etf" ${(actual&&fases.includes(actual)?f===actual:i===0)?"open":""}><summary><b>${esc(f)} (Temas)</b><span class="muted small">${dom}/${l.length} dominados · ${String(Math.round(1000*dom/l.length)/10).replace(".",",")}%</span></summary>
         ${l.map((t,j)=>{const v=ps[j],cls=v===100?"ok":v===0?"cero":v==null?"sin":"";
           return `<div class="etema"><span class="en">${t.codigo?`<span class="ec">${esc(t.codigo)}</span>`:""}${esc(t.tema)}</span><span class="ep ${cls}">${v==null?"sin medir":v===100?"✅ 100%":v+"%"}</span>
@@ -2383,7 +2386,7 @@ function renderProg(){
     // el cambio a temas = el primer día con «Dominio tema %» en una sesión
     const ini=T.list.filter(x=>x.props&&x.props.domTema!=null).map(x=>String(x.date||"").slice(0,10)).sort()[0]||"",ult=ini;
     const dias=[...new Set(deF.map(s=>s.fecha).concat(today()))].filter(f=>f<=today()&&f>=ini).sort();
-    fase=fn;dom=dias.map(f=>({fecha:f,fase:fn,v:100*tsF.filter(t=>temaPct(t,f)===100).length/tsF.length}));dv=x=>x.v;
+    fase=fn;dom=dias.map(f=>({fecha:f,fase:fn,v:100*tsF.filter(t=>temaCuenta(t,f)).length/tsF.length}));dv=x=>x.v;
     subDom=`Temas en 100% ÷ ${tsF.length} temas de la fase (los % los pone el instructor)${ult?" · desde el cambio a temas":""} · punteada = 50%`}
   html+=card(`Dominio de la Fase ${esc(fase||"")}`,subDom,dom.length?lineas(dom.map(s=>({t:dms(s.fecha),v:dv(s),tip:`${fechaCorta(s.fecha)} · ${Math.round(dv(s))}%`})),{max:100,paso:25,fmt:v=>Math.round(v)+"%",x0:dms(dom[0].fecha)-864e5,x1:Math.max(dms(dom[dom.length-1].fecha)+864e5,dms(dom[0].fecha)+6*864e5),refV:50,refTxt:"50%",color:"var(--dia)"})
     +tabla(["Fecha","Fase","Dominio"],dom.map(s=>[s.fecha,s.fase||"",Math.round(dv(s))+"%"])):vacio("Aparecerá cuando el instructor ponga «Dominio %» en tus sesiones."));
