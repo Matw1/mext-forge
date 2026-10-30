@@ -2379,9 +2379,10 @@ function renderProg(){
   let conDom=ses.filter(s=>typeof s.dom==="number"),fase=conDom.length?conDom[conDom.length-1].fase:null,dom=conDom.filter(s=>s.fase===fase);
   let dv=s=>s.dom>0&&s.dom<1?s.dom*100:s.dom,subDom="Lo estima el instructor · línea punteada = 50%";
   const fA=faseActual(),tsF=(T.temas||[]).filter(t=>t.fase===fA);
-  if(fA&&tsF.length){const fn=String(fA).replace(/\D/g,""),deF=ses.filter(s=>String(s.fase||"")===fn);
-    const ult=deF.filter(s=>typeof s.dom==="number"&&s.dom>0).map(s=>s.fecha).sort().pop()||"";
-    const dias=[...new Set(deF.map(s=>s.fecha).concat(today()))].filter(f=>f<=today()&&f>ult).sort();
+  if(fA&&tsF.length){const fn=String(fA).replace(/\D/g,""),deF=ses.filter(s=>String(s.fase||"").replace(/\D/g,"")===fn);
+    // el cambio a temas = el primer día con «Dominio tema %» en una sesión
+    const ini=T.list.filter(x=>x.props&&x.props.domTema!=null).map(x=>String(x.date||"").slice(0,10)).sort()[0]||"",ult=ini;
+    const dias=[...new Set(deF.map(s=>s.fecha).concat(today()))].filter(f=>f<=today()&&f>=ini).sort();
     fase=fn;dom=dias.map(f=>({fecha:f,fase:fn,v:100*tsF.filter(t=>temaPct(t,f)===100).length/tsF.length}));dv=x=>x.v;
     subDom=`Temas en 100% ÷ ${tsF.length} temas de la fase (los % los pone el instructor)${ult?" · desde el cambio a temas":""} · punteada = 50%`}
   html+=card(`Dominio de la Fase ${esc(fase||"")}`,subDom,dom.length?lineas(dom.map(s=>({t:dms(s.fecha),v:dv(s),tip:`${fechaCorta(s.fecha)} · ${Math.round(dv(s))}%`})),{max:100,paso:25,fmt:v=>Math.round(v)+"%",x0:dms(dom[0].fecha)-864e5,x1:Math.max(dms(dom[dom.length-1].fecha)+864e5,dms(dom[0].fecha)+6*864e5),refV:50,refTxt:"50%",color:"var(--dia)"})
