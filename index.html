@@ -367,7 +367,19 @@ details[open].card summary::after{content:"－"}
 .lp-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px}.lp-chip{font:inherit;font-size:.85rem;padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer}.lp-chip.on{background:var(--text);color:var(--bg)}
 .dchips{display:flex;gap:6px;align-items:center;overflow-x:auto;padding:6px 0 4px;-webkit-overflow-scrolling:touch}.dchips .lp-chip,.dchips>span{flex:none}
 .evolver{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;margin:8px 0;border-left:4px solid var(--accent);cursor:pointer}
-.pleg{margin-bottom:10px}.pleg-h{cursor:pointer}.lchev{transition:transform .3s ease}.pleg.on .lchev{transform:rotate(180deg)}
+.pleg{margin-bottom:10px}
+/* Lecciones y Precisión: dos cuadros a la par; lo que se abre baja a lo ancho debajo de ambos */
+.duo{display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:0;margin:20px 0 4px}
+.duo>.pleg{display:contents}
+.duo .pleg-h{order:0;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:10px;min-height:132px;height:100%;padding:16px;border-radius:18px}
+.duo .pleg-h .glyph{width:44px;height:44px;font-size:1.3rem;border-radius:13px}
+.duo .pleg-h .lt{gap:3px}.duo .pleg-h .lt b{white-space:normal;font-size:1rem;line-height:1.25}
+.duo .pleg-h .lchev{position:absolute;top:14px;right:14px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--surface2);font-size:.8rem}
+.duo .pleg.on .pleg-h{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%,transparent),var(--shadow)}
+.duo .pleg-b{order:1;grid-column:1/-1}.duo .pleg.on .pleg-in{padding-top:12px}
+.duo .lempty{cursor:default}
+@media (max-width:420px){.duo .pleg-h{min-height:150px;padding:14px}}
+.pleg-h{cursor:pointer}.lchev{transition:transform .3s ease}.pleg.on .lchev{transform:rotate(180deg)}
 .pleg-b{display:grid;grid-template-rows:0fr;opacity:0;transform:translateY(-6px);transition:grid-template-rows .35s ease,opacity .3s ease,transform .35s ease}
 .pleg.on .pleg-b{grid-template-rows:1fr;opacity:1;transform:none}.pleg-in{overflow:hidden;min-height:0}.pleg.on .pleg-in{padding-top:10px}
 .pleg-in .lessons,.pleg-in>.card{margin:0}
@@ -1132,7 +1144,9 @@ function renderHome(){
       </div>
     </section>
     <button class="start" data-act="go"><span class="play">▶</span><span><b>${String(f).startsWith("day")?"Lección":String(f).startsWith("prod")?"Producción":"Ronda de "+ROUND}</b><small>${esc(modeLabel(f).replace(/^Lección · /,""))} · Enter</small></span></button>
-    ${lessonsHtml(f)}
+    <div class="duo">${lessonsHtml(f)}
+    ${plegHtml("prec",`<span class="glyph" style="--c:var(--accent)">🎯</span><span class="lt"><b>Precisión por debilidad</b><span class="muted small">${catResumen()}</span></span>`,`<div class="card">${catRows()}</div>`)}
+    </div>
     <h3>Otros</h3>
     <div class="modes">${FOCI.map(k=>{
       const p=CATS[k]?catAcc(k):null;
@@ -1149,7 +1163,6 @@ function renderHome(){
       return `<button class="mode" data-mode="${k}" style="--c:${cv(k)}">
         <span class="glyph">${m.g}</span><span class="mn">${m.n}</span><span class="ms">${m.s}</span>
         ${DB.bestMode[k]?`<span class="acc">🏆 ${DB.bestMode[k]}</span>`:k==="fossil"?`<span class="badge">${fosN}</span>`:""}</button>`}).join("")}</div>
-    ${plegHtml("prec",`<span class="glyph" style="--c:var(--accent)">🎯</span><span class="lt"><b>Precisión por debilidad</b><span class="muted small">${catResumen()}</span></span>`,`<div class="card">${catRows()}</div>`)}
     <h3>Ajustes</h3>
     <details class="card" data-aj ${ajAbierto?"open":""}><summary>⚙️ Tiempo, sonido, tema, nube y respaldo</summary><div class="stack" style="margin-top:14px">
       <div class="set"><span>Tiempo por pregunta</span><span class="seg">${Object.entries(SPEEDS).map(([k,v])=>`<button data-speed="${k}" class="${DB.settings.speed===k?"on":""}">${v.n}</button>`).join("")}</span></div>
@@ -1718,7 +1731,8 @@ function modeLabel(m){
 function lessonsHtml(f){
   const days=lessonDays(),pn=k=>PROD.filter(x=>x.L===k).length;
   const prodCard=PROD.length?`<button class="lesson lp" data-mode="prod"><span class="glyph" style="--c:var(--esc)">✎</span><span class="lt"><b>✏️ Producción: escribir</b><span class="muted small">${PROD.length} tarjetas · tus errores corregidos y las preguntas del juego</span></span><span class="pct">▶</span></button>`:"";
-  if(!days.length)return prodCard?`<h3>📅 Lecciones de días estudiados</h3><div class="lessons">${prodCard}</div>`: `<h3>📅 Lecciones de días estudiados</h3><div class="card lempty"><b>Aún no hay lecciones.</b><div class="muted small">Cada vez que el instructor corrija un día y agregue la sección «🎮 Juego», aparecerá aquí una lección nueva para jugar.</div></div>`;
+  if(!days.length)return prodCard?plegHtml("lec",`<span class="glyph" style="--c:var(--dia)">📅</span><span class="lt"><b>Lecciones de días estudiados</b><span class="muted small">Aún sin días · ✏️ ${PROD.length} para escribir</span></span>`,`<div class="lessons">${prodCard}</div>`)
+    :`<div class="pleg"><div class="lesson pleg-h lempty"><span class="glyph" style="--c:var(--dia)">📅</span><span class="lt"><b>Aún no hay lecciones</b><span class="muted small">Aparecen cuando el instructor corrige un día con la sección «🎮 Juego».</span></span></div></div>`;
   const acc=ids=>{let n=0,ok=0;for(const id of ids){const it=DB.items[id];if(it&&it.n){n+=it.n;ok+=it.ok||0}}return n?ok/n:null};
   const card=(mode,title,sub,ids,isNew,pk)=>{const p=acc(ids),n=pk?pn(pk):0;return `<div class="lrow"><button class="lesson ${f===mode?"on":""}" data-focus="${esc(mode)}">
       <span class="glyph" style="--c:var(--dia)">Día</span><span class="lt"><b>${esc(title)}</b><span class="muted small">${sub}${isNew?' · <span class="lnew">nueva</span>':""}</span></span>
