@@ -7,6 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>MEXT Forge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400..900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap">
 <link rel="icon" type="image/png" href="icon-192.png?v=mv63w3m5">
 <link rel="manifest" href="manifest.webmanifest?v=mv63w3m5">
 <link rel="apple-touch-icon" href="icon-192.png?v=mv63w3m5">
@@ -28,7 +30,7 @@
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;color:var(--text);background-color:var(--bg)}
-body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;min-height:100dvh;
+body{font-family:"Nunito","Zen Maru Gothic",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45;min-height:100dvh;
   background-image:radial-gradient(900px 420px at 50% -120px,var(--glow),transparent 70%),var(--pat,none);background-attachment:fixed}
 #app{max-width:780px;margin:0 auto;padding:14px 16px calc(28px + env(safe-area-inset-bottom))}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -378,6 +380,42 @@ details[open].card summary::after{content:"－"}
 #etoc button:hover .toc-l,#etoc button:focus-visible .toc-l{opacity:1}
 @media (min-width:760px){body.lupa-on #etoc{right:min(434px,calc(100vw - 40px))}}
 @media (max-width:759px){#etoc{right:4px;top:72px}}
+.etop{display:flex;align-items:center;gap:12px;margin:4px 0 2px}
+.etop h1{margin:0;font-family:"Zen Maru Gothic","Nunito",sans-serif;font-weight:900;font-size:1.65rem;letter-spacing:-.01em;line-height:1.1}
+.etop h1 .ejp{display:block;font-size:.72rem;font-weight:700;letter-spacing:.35em;color:var(--accent);margin-bottom:2px}
+.etop .btn{border-radius:99px;padding:8px 16px;min-height:40px;font-weight:700;display:inline-flex;align-items:center;gap:6px}
+.tk h1,.brand b,.start b,.ecard.eses .etit{font-family:"Zen Maru Gothic","Nunito",sans-serif}
+.tabs button{font-weight:800;letter-spacing:.01em}
+.ecard.eses{flex-direction:row;align-items:center;gap:14px;padding:12px 14px;border-radius:16px;box-shadow:var(--shadow)}
+.edia{flex:none;width:56px;height:56px;border-radius:14px;display:grid;place-content:center;text-align:center;line-height:1;background:var(--surface2);color:var(--text)}
+.edia small{font-size:.6rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.edia b{font-family:"Nunito",sans-serif;font-size:1.55rem;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
+.ecuerpo{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.efecha{font-size:.74rem;font-weight:700;letter-spacing:.03em;color:var(--muted)}.efecha::first-letter{text-transform:uppercase}
+.ecard.eses .etit{font-size:1.04rem;font-weight:700;line-height:1.35;overflow-wrap:anywhere}
+.ecard.eses .echips{margin-top:3px}
+.echev{flex:none;font-size:1.4rem;color:var(--muted);transition:transform .2s}
+@media (hover:hover) and (pointer:fine){.ecard.eses:hover .echev{transform:translateX(4px);color:var(--text)}}
+.ecard.eses.ehoy{border-left:1px solid var(--line);position:relative;overflow:hidden;padding:16px;background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 13%,var(--surface)),var(--surface) 60%)}
+.ecard.eses.ehoy::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--accent)}
+.ehoy .edia{width:64px;height:64px;background:linear-gradient(140deg,var(--accent),color-mix(in srgb,var(--accent) 62%,#0a1a3a));color:#fff;box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 35%,transparent)}
+.ehoy .edia small{color:rgba(255,255,255,.85)}.ehoy .edia b{font-size:1.8rem}
+.ehoy .efecha{color:var(--accent)}.ecard.eses.ehoy .etit{font-size:1.16rem}
+.echip,.enota{font-family:"Nunito",sans-serif;font-weight:800}
+/* ===== Fondo propio (imagen de este dispositivo; la paleta sale de la imagen) ===== */
+#fondo{position:fixed;top:0;left:0;width:100%;height:100vh;height:100lvh;z-index:-1;background:var(--bg) center/cover no-repeat;pointer-events:none;animation:aFade .6s both}
+#fondo::after{content:"";position:absolute;inset:0;background:var(--bg);opacity:var(--fvel,.35);transition:opacity .2s}
+html.fondo body{background:transparent}
+html.fondo .card,html.fondo .ecard,html.fondo .lesson,html.fondo .mode,html.fondo .icon-btn,html.fondo .pill{-webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3)}
+html.fondo .start{background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 62%,#000),color-mix(in srgb,var(--accent) 45%,#000) 55%,color-mix(in srgb,var(--accent2) 38%,#000))}
+html.fondo h3,html.fondo .foot{text-shadow:0 0 6px var(--bg),0 0 2px var(--bg)}
+.fgal{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.fgal .fth{position:relative;width:78px;height:54px;border-radius:10px;border:2px solid var(--line);background:var(--surface2) center/cover;padding:0}
+.fgal .fth.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow)}
+.fgal .fx{position:absolute;top:-8px;right:-8px;width:22px;height:22px;border-radius:50%;background:var(--surface);border:1px solid var(--line);font-size:.7rem;display:grid;place-items:center;color:var(--muted)}
+.fgal .fadd{width:78px;height:54px;border-radius:10px;border:2px dashed var(--line);background:none;font-size:1.4rem;color:var(--muted)}
+.fpal{display:flex;gap:4px;align-items:center}.fpal i{width:16px;height:16px;border-radius:5px;border:1px solid var(--line)}
+#fVel{width:min(220px,50vw);accent-color:var(--accent)}
 /* ===== Animaciones (con «reducir movimiento» del sistema se apagan todas) ===== */
 @keyframes aIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes aFade{from{opacity:0}to{opacity:1}}
@@ -398,18 +436,19 @@ details[open].card summary::after{content:"－"}
 #app.enter>*:nth-child(n+8),#app.enter .stack>*:nth-child(n+8),#app.enter .modes>*:nth-child(n+8){animation-delay:.35s}
 #app.enter .ring svg{animation:aRing .9s cubic-bezier(.2,.8,.2,1) both}
 #app.enter .mb{animation:aGrow 1s .25s cubic-bezier(.2,.8,.2,1) both}
-.pleg.on .pleg-in .lesson,.pleg.on .pleg-in .catrow{animation:aIn .4s cubic-bezier(.2,.8,.2,1) both}
-.pleg.on .pleg-in .lrow:nth-child(2) .lesson,.pleg.on .pleg-in .catrow:nth-child(2){animation-delay:.04s}
-.pleg.on .pleg-in .lrow:nth-child(3) .lesson,.pleg.on .pleg-in .catrow:nth-child(3){animation-delay:.08s}
-.pleg.on .pleg-in .lrow:nth-child(n+4) .lesson,.pleg.on .pleg-in .catrow:nth-child(n+4){animation-delay:.12s}
+.pleg.abre .pleg-in .lesson,.pleg.abre .pleg-in .catrow{animation:aIn .4s cubic-bezier(.2,.8,.2,1) both}
+.pleg.abre .pleg-in .lrow:nth-child(2) .lesson,.pleg.abre .pleg-in .catrow:nth-child(2){animation-delay:.04s}
+.pleg.abre .pleg-in .lrow:nth-child(3) .lesson,.pleg.abre .pleg-in .catrow:nth-child(3){animation-delay:.08s}
+.pleg.abre .pleg-in .lrow:nth-child(n+4) .lesson,.pleg.abre .pleg-in .catrow:nth-child(n+4){animation-delay:.12s}
 button,.btn,.card,.lesson,.mode,.tk-opt,.lp-chip{transition:transform .16s cubic-bezier(.2,.8,.2,1),box-shadow .2s,background-color .2s,border-color .2s,opacity .2s}
 button:active:not(:disabled),.lesson:active,.mode:active{transform:scale(.97)}
-.tk-opt.on,.lp-chip.on,.epin.on{animation:aPop .32s cubic-bezier(.2,.8,.2,1)}
+.pop{animation:aPop .32s cubic-bezier(.2,.8,.2,1)}
 .tk-timer.run{animation:aGlow 1.8s ease-in-out infinite}
-.lp-it,#lado .ld-it{animation:aIn .4s cubic-bezier(.2,.8,.2,1) both}
+.lp-it{animation:aIn .4s cubic-bezier(.2,.8,.2,1) both}
 #lado{animation:aSlideL .35s cubic-bezier(.2,.8,.2,1)}
 #etoc{animation:aFade .5s .2s both}
-.evolver{background:linear-gradient(100deg,var(--surface) 40%,color-mix(in srgb,var(--accent) 14%,var(--surface)) 50%,var(--surface) 60%) 0 0/200% 100%;animation:aIn .5s both,aShine 2.6s 1s ease-in-out 2}
+.evolver{background:linear-gradient(100deg,var(--surface) 40%,color-mix(in srgb,var(--accent) 14%,var(--surface)) 50%,var(--surface) 60%) 0 0/200% 100%}
+#app.enter .evolver{animation:aIn .5s both,aShine 2.6s 1s ease-in-out 2}
 @media (hover:hover) and (pointer:fine){
   .lesson:hover,.mode:hover,.tk-act:hover,.evolver:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.10)}
   .tk-act:hover{transform:translateY(-1px)}
@@ -788,11 +827,71 @@ function seigaiha(bg,st){
   return `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='20'><g fill='${bg}' stroke='${st}' stroke-width='1'>${c(20,0)}${c(0,10)}${c(40,10)}${c(20,20)}</g></svg>`)}")`;
 }
 function applyTheme(){
-  const r=document.documentElement;
-  if(DB.settings.theme==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",DB.settings.theme);
+  const r=document.documentElement,f=fondoActual(),th=DB.settings.theme==="auto"&&f?f.pal.modo:DB.settings.theme;
+  if(th==="auto")r.removeAttribute("data-theme");else r.setAttribute("data-theme",th);
+  fondoPintar(f,th);
   if(!applyTheme.done){applyTheme.done=1;const L=seigaiha("#f6f0e4","#ece1cd"),D=seigaiha("#0c0e1b","#151a31"),st=document.createElement("style");
     st.textContent=`:root{--pat:${L}}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pat:${D}}}:root[data-theme="dark"]{--pat:${D}}`;document.head.appendChild(st)}
 }
+
+/* ---------- Fondo propio: imágenes elegidas en este dispositivo (IndexedDB; no se sincronizan) ----------
+   De cada imagen se saca el color medio (decide claro/oscuro y el tinte de las tarjetas) y los dos
+   tonos más vivos (acento y acento 2). Las tarjetas quedan translúcidas para que se vea la imagen. */
+const FONDO={lista:[],cargado:false,act:null,pal0:null,url:'',urlId:'',vel:35};
+try{const a=JSON.parse(localStorage.getItem('forge-fondo-act')||'null');if(a){FONDO.act=a.id;FONDO.pal0=a.pal}FONDO.vel=+(localStorage.getItem('forge-fondo-vel')||35)}catch(e){}
+function fondoIdb(){return new Promise((ok,no)=>{const r=indexedDB.open('mextforge-fondo',1);r.onupgradeneeded=()=>r.result.createObjectStore('f',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function fondoTx(modo,fn){const db=await fondoIdb();return await new Promise((ok,no)=>{const t=db.transaction('f',modo),q=fn(t.objectStore('f'));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>no(t.error)})}
+async function fondoInit(){try{FONDO.lista=(await fondoTx('readonly',st=>st.getAll()))||[];FONDO.lista.sort((a,b)=>a.t-b.t)}catch(e){FONDO.lista=[]}
+  FONDO.cargado=true;if(FONDO.act&&!FONDO.lista.some(x=>x.id===FONDO.act))fondoUsar(null);applyTheme();if(view==='home')render()}
+function fondoActual(){if(!FONDO.act)return null;return FONDO.lista.find(x=>x.id===FONDO.act)||(!FONDO.cargado&&FONDO.pal0?{id:FONDO.act,pal:FONDO.pal0}:null)}
+function fondoUsar(id){FONDO.act=id;const f=id&&FONDO.lista.find(x=>x.id===id);
+  try{if(f)localStorage.setItem('forge-fondo-act',JSON.stringify({id,pal:f.pal}));else localStorage.removeItem('forge-fondo-act')}catch(e){}}
+function rgb2hsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;let h=0,s=0;
+  if(d){s=d/(1-Math.abs(2*l-1));h=mx===r?((g-b)/d)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;if(h<0)h+=360}return[h,s,l]}
+function fondoLienzo(img,max){const k=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');
+  c.width=Math.max(1,Math.round(img.width*k));c.height=Math.max(1,Math.round(img.height*k));c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c}
+function fondoPaleta(c){const g=c.getContext('2d').getImageData(0,0,c.width,c.height).data,bins=Array.from({length:12},(_,k)=>({k,w:0,r:0,g:0,b:0}));
+  let R=0,G=0,B=0,n=0;
+  for(let i=0;i<g.length;i+=4){const r=g[i],gg=g[i+1],b=g[i+2];R+=r;G+=gg;B+=b;n++;
+    const[h,s,l]=rgb2hsl(r,gg,b),w=s*(1-Math.abs(2*l-1));if(w<.1)continue;const x=bins[Math.floor(h/30)%12];x.w+=w;x.r+=r*w;x.g+=gg*w;x.b+=b*w}
+  const avg=[R/n,G/n,B/n],lum=(.2126*avg[0]+.7152*avg[1]+.0722*avg[2])/255,m=rgb2hsl(...avg);
+  const ord=bins.filter(x=>x.w>0).sort((a,b)=>b.w-a.w),col=x=>rgb2hsl(x.r/x.w,x.g/x.w,x.b/x.w);
+  const a1=ord[0]?col(ord[0]):[m[0],.55,.5];
+  const o2=ord[0]&&ord.find(x=>Math.min(Math.abs(x.k-ord[0].k),12-Math.abs(x.k-ord[0].k))>=2&&x.w>ord[0].w*.08);
+  const a2=o2?col(o2):[(a1[0]+35)%360,a1[1],a1[2]];
+  return{h:Math.round(a1[0]),s:+a1[1].toFixed(2),h2:Math.round(a2[0]),s2:+a2[1].toFixed(2),bh:Math.round(m[0]),bs:+m[1].toFixed(2),modo:lum<.5?'dark':'light'}}
+function fondoVars(p,modo){const cl=(v,a,b)=>Math.max(a,Math.min(b,v)),hs=(h,s,l,a)=>`hsl(${h} ${Math.round(s*100)}% ${l}%${a!=null?' / '+a:''})`;
+  const s1=cl(p.s,.5,.9),s2=cl(p.s2,.45,.85),bs=cl(p.bs,0,.35);
+  if(modo==='dark')return{'--bg':hs(p.bh,bs,8),'--surface':hs(p.bh,bs*.8,12,.74),'--surface2':hs(p.bh,bs*.8,19,.8),'--line':hs(p.bh,.2,62,.22),'--text':hs(p.bh,.15,95),'--muted':hs(p.bh,.12,74),
+    '--accent':hs(p.h,s1,64),'--accent2':hs(p.h2,s2,68),'--accent-t':hs(p.h,.6,8),'--glow':hs(p.h,s1,55,.26),'--focus':hs(p.h2,s2,72)};
+  return{'--bg':hs(p.bh,bs,93),'--surface':hs(p.bh,bs*.6,99,.76),'--surface2':hs(p.bh,bs*.7,94,.82),'--line':hs(p.bh,.2,40,.2),'--text':hs(p.bh,.25,11),'--muted':hs(p.bh,.12,35),
+    '--accent':hs(p.h,s1,44),'--accent2':hs(p.h2,s2,36),'--accent-t':'#fff','--glow':hs(p.h,s1,50,.22),'--focus':hs(p.h2,s2,40)}}
+function fondoPintar(f,th){const r=document.documentElement,modo=th==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):th;
+  const k=f?[f.id,!!f.blob,modo,FONDO.vel].join('|'):'';if(fondoPintar.k===k)return;fondoPintar.k=k;
+  for(const v of fondoPintar.vars||[])r.style.removeProperty(v);fondoPintar.vars=[];
+  let el=document.getElementById('fondo');
+  if(!f){r.classList.remove('fondo');if(el)el.remove();if(FONDO.url){URL.revokeObjectURL(FONDO.url);FONDO.url=FONDO.urlId=''}return}
+  const vs=fondoVars(f.pal,modo);vs['--fvel']=(FONDO.vel/100).toFixed(2);for(const v in vs){r.style.setProperty(v,vs[v]);fondoPintar.vars.push(v)}
+  r.classList.add('fondo');if(!f.blob)return;
+  if(!el){el=document.createElement('div');el.id='fondo';document.body.prepend(el)}
+  if(FONDO.urlId!==f.id){if(FONDO.url)URL.revokeObjectURL(FONDO.url);FONDO.url=URL.createObjectURL(f.blob);FONDO.urlId=f.id}
+  el.style.backgroundImage=`url("${FONDO.url}")`}
+function fondoCargarImg(file){return new Promise((ok,no)=>{const u=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{URL.revokeObjectURL(u);ok(im)};im.onerror=()=>{URL.revokeObjectURL(u);no(new Error('img'))};im.src=u})}
+const fondoBlob=c=>new Promise(ok=>c.toBlob(b=>ok(b),'image/webp',.95)).then(b=>b&&b.type==='image/webp'?b:new Promise(ok=>c.toBlob(ok,'image/jpeg',.95)));
+async function fondoAgregar(files){let ult=null,mal=0;
+  for(const [i,file] of files.entries()){if(FONDO.lista.length>=12){toast('Máximo 12 fondos: quita alguno primero');break}
+    try{const im=await fondoCargarImg(file),blob=/^image\/(jpeg|webp)$/.test(file.type)&&Math.max(im.width,im.height)<=3840?file:await fondoBlob(fondoLienzo(im,3840)),thumb=fondoLienzo(im,180).toDataURL('image/jpeg',.8);
+      const rec={id:'f'+Date.now().toString(36)+i,t:Date.now(),blob,thumb,pal:fondoPaleta(fondoLienzo(im,64))};
+      await fondoTx('readwrite',st=>st.put(rec));FONDO.lista.push(rec);ult=rec.id}catch(e){mal++}}
+  if(mal)toast(mal===1?'No se pudo abrir esa imagen (usa JPG, PNG o WebP)':`No se pudieron abrir ${mal} imágenes (usa JPG, PNG o WebP)`);
+  if(ult){fondoUsar(ult);toast('Fondo aplicado · los colores salen de la imagen')}render()}
+async function fondoQuitar(id){try{await fondoTx('readwrite',st=>st.delete(id))}catch(e){}
+  FONDO.lista=FONDO.lista.filter(x=>x.id!==id);if(FONDO.act===id)fondoUsar(null);render()}
+function fondoAjustes(){const f=fondoActual(),p=f&&f.pal;
+  return `<div class="set"><span>Fondo <span class="muted small">· imágenes de este dispositivo</span></span>${p?`<span class="fpal" title="Colores sacados de la imagen"><i style="background:hsl(${p.h} ${Math.round(p.s*100)}% 50%)"></i><i style="background:hsl(${p.h2} ${Math.round(p.s2*100)}% 50%)"></i><i style="background:hsl(${p.bh} ${Math.round(p.bs*100)}% ${p.modo==='dark'?15:88}%)"></i></span>`:''}</div>
+      <div class="fgal">${FONDO.lista.map(x=>`<button class="fth${FONDO.act===x.id?' on':''}" data-fondo="${x.id}" style="background-image:url(${x.thumb})" title="Usar este fondo" aria-pressed="${FONDO.act===x.id}"><span class="fx" title="Quitar esta imagen">✕</span></button>`).join('')}<button class="fadd" data-act="fondoadd" title="Agregar imágenes de la compu">＋</button>${FONDO.act?'<button class="btn" data-fondo="none">Sin fondo</button>':''}<input type="file" id="fImg" accept="image/*" multiple hidden></div>
+      ${FONDO.act?`<div class="set"><span>Atenuar imagen</span><input type="range" id="fVel" min="0" max="85" step="5" value="${FONDO.vel}" aria-label="Atenuar imagen"></div>`:''}`}
 
 /* ================= AUDIO ================= */
 let AC=null;
@@ -1023,7 +1122,7 @@ function renderHome(){
       <div class="ring" aria-label="${exam} días para el examen">
         <svg viewBox="0 0 100 100"><defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffb3cd"/><stop offset="1" stop-color="var(--accent)"/></linearGradient></defs>
           <circle cx="50" cy="50" r="44" fill="none" stroke="var(--surface2)" stroke-width="9"/>
-          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#g1)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-prog)}"/></svg>
+          <circle cx="50" cy="50" r="44" fill="none" stroke="url(#g1)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${(C*(1-prog)).toFixed(1)}"/></svg>
         <div class="in"><div><b>${exam}</b><small>días</small></div></div>
       </div>
       <div>
@@ -1052,10 +1151,11 @@ function renderHome(){
         ${DB.bestMode[k]?`<span class="acc">🏆 ${DB.bestMode[k]}</span>`:k==="fossil"?`<span class="badge">${fosN}</span>`:""}</button>`}).join("")}</div>
     ${plegHtml("prec",`<span class="glyph" style="--c:var(--accent)">🎯</span><span class="lt"><b>Precisión por debilidad</b><span class="muted small">${catResumen()}</span></span>`,`<div class="card">${catRows()}</div>`)}
     <h3>Ajustes</h3>
-    <details class="card"><summary>⚙️ Tiempo, sonido, tema, nube y respaldo</summary><div class="stack" style="margin-top:14px">
+    <details class="card" data-aj ${ajAbierto?"open":""}><summary>⚙️ Tiempo, sonido, tema, nube y respaldo</summary><div class="stack" style="margin-top:14px">
       <div class="set"><span>Tiempo por pregunta</span><span class="seg">${Object.entries(SPEEDS).map(([k,v])=>`<button data-speed="${k}" class="${DB.settings.speed===k?"on":""}">${v.n}</button>`).join("")}</span></div>
       <div class="set"><span>Sonido y alerta</span><span class="seg"><button data-mute="0" class="${!DB.settings.mute?"on":""}">Sí</button><button data-mute="1" class="${DB.settings.mute?"on":""}">No</button></span></div>
       <div class="set"><span>Tema</span><span class="seg">${[["auto","Auto"],["light","和紙"],["dark","夜"]].map(([k,n])=>`<button data-theme="${k}" class="${DB.settings.theme===k?"on":""}">${n}</button>`).join("")}</span></div>
+      ${fondoAjustes()}
       <p class="muted small" style="margin:0">Empieza en 8 s. Cuando la barra de una categoría pase el 85 %, baja a 5 s (ritmo de examen).</p>
       <div class="syncbox"><b>☁ Sincronización y Notion</b>
         <div class="muted small">Comparte el progreso entre teléfono y PC y envía cada ronda a tu página de Notion de inglés. Sin conexión todo sigue funcionando y se envía después.</div>
@@ -1655,7 +1755,7 @@ function temaPct(t){const x=temaDeSesion(t);let v=x?x.props.domTema:t.dom;if(typ
 function renderTemas(){
   const ts=T.temas||[],fases=[...new Set(ts.map(t=>t.fase))],actual=faseActual();
   $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
-    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    <div class="etop"><h1 class="ehead1"><span class="ejp">DAILY STUDY</span>Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">↻ Actualizar</button></div>
     <div class="estat" id="tkState">${esc(tkLabel())}</div>
     ${subTabs("tem")}
     ${fases.length?fases.map((f,i)=>{const l=ts.filter(t=>t.fase===f),ps=l.map(temaPct),dom=ps.filter(v=>v===100).length;
@@ -1671,7 +1771,7 @@ function renderTemas(){
 function renderMateria(){
   const dias=matDias();
   $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
-    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    <div class="etop"><h1 class="ehead1"><span class="ejp">DAILY STUDY</span>Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">↻ Actualizar</button></div>
     <div class="estat" id="tkState">${esc(tkLabel())}</div>
     ${subTabs("mat")}
     ${dias.length?`<input class="tk-in" id="matSearch" type="search" placeholder="🔍 Buscar en las tablas (ej. much, while, día 27, 29 oct)" value="${esc(matQ)}" autocomplete="off" spellcheck="false" autocapitalize="off">${diasChips('data-tk="matdia" data-matdia',matQ.trim())}<div class="muted small" id="matCuenta"></div>`:""}
@@ -1705,7 +1805,7 @@ const subTabs=on=>`<div class="seg esub"><button data-tk="sub-ses" class="${on==
 function renderSimLista(){
   const hoyF=today(),hechos=new Set((T.sims||[]).map(x=>x.examen)),fmtP=v=>typeof v==="number"?Math.round(v)+"%":"—";
   $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
-    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    <div class="etop"><h1 class="ehead1"><span class="ejp">DAILY STUDY</span>Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">↻ Actualizar</button></div>
     <div class="estat" id="tkState">${esc(tkLabel())}${T.simOut.length?` · ${T.simOut.length} simulacro(s) en cola`:""}</div>
     ${subTabs("sim")}
     ${T.sim?`<button class="ecard ehoy" data-tk="simopen"><span class="muted small">Simulacro en curso</span><b>${esc(T.sim.titulo)}</b><span class="muted small">Toca para continuar</span></button>`:""}
@@ -1749,6 +1849,11 @@ function notaDe(d){
 // Colores de la nota (reglas de Matías): rojo < 7 · amarillo 7–7,9 · celeste 8–8,5 · verde > 8,5
 const notaNivel=v=>v>8.5?"ok":v>=8?"cel":v>=7?"warn":"bad";
 const notaPill=d=>{const n=notaDe(d);return n==null?"":`<span class="enota" data-n="${{ok:"alta",cel:"cel",warn:"media",bad:"baja"}[notaNivel(n)]}" title="Calificación del instructor (solo referencia)">${String(n).replace(".",",")}/10</span>`};
+/* Tarjeta de sesión: «Día 27 — Título» → número grande a la izquierda y el título limpio */
+function sesCard(d,hoy){const t=tituloSes(d),m=/^\s*D[ií]a\s*(\d+)\s*[—–:-]+\s*(.*)$/i.exec(t),f=new Date(sDate(d)+"T12:00:00");
+  const num=m?m[1]:String(f.getDate()),pre=m?"Día":f.toLocaleDateString("es",{month:"short"}).replace(".",""),tit=m?m[2]:t;
+  const fe=hoy?`${sDate(d)===today()?"Hoy":"Pendiente"} · ${fechaLarga(sDate(d))}`:fechaLarga(sDate(d));
+  return `<button class="ecard eses${hoy?" ehoy":""}" data-tk="date" data-v="${d}"><span class="edia"><small>${esc(pre)}</small><b>${esc(num)}</b></span><span class="ecuerpo"><span class="efecha">${esc(fe)}</span><span class="etit">${esc(tit)}</span>${chip(d)}</span><span class="echev" aria-hidden="true">›</span></button>`}
 const chip=d=>{const[st]=sesStatus(d);return `<span class="echips"><span class="echip" data-st="${st.replace(/ ×\d+/,"")}">${st}</span>${notaPill(d)}</span>`};
 
 /* ---------- lista de fechas ---------- */
@@ -1757,12 +1862,12 @@ function renderTareas(){
   const hoy=dates.find(d=>sDate(d)===today()&&T.ses[d]&&sesStatus(d)[0]==="Por hacer")||dates.find(d=>sDate(d)===today())||dates.find(d=>T.ses[d]&&!entregasDe(d).length);
   const rest=dates.filter(d=>d!==hoy);
   $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
-    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    <div class="etop"><h1 class="ehead1"><span class="ejp">DAILY STUDY</span>Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">↻ Actualizar</button></div>
     <div class="estat" id="tkState">${esc(tkLabel())}</div>
     ${subTabs("ses")}
-    ${hoy?`<button class="ecard ehoy" data-tk="date" data-v="${hoy}"><span class="muted small">${sDate(hoy)===today()?"Hoy":"Pendiente"} · ${fechaLarga(sDate(hoy))}</span><b>${esc(tituloSes(hoy))}</b>${chip(hoy)}</button>`
+    ${hoy?sesCard(hoy,true)
       :`<div class="ecard eempty"><b>Todavía no hay sesión para hoy.</b><span class="muted small">Cuando el instructor la publique en Notion, toca «Actualizar».</span></div>`}
-    ${rest.length?`<h3>Sesiones anteriores</h3>${rest.map(d=>`<button class="ecard" data-tk="date" data-v="${d}"><span class="muted small">${fechaLarga(sDate(d))}</span><b>${esc(tituloSes(d))}</b>${chip(d)}</button>`).join("")}`:""}
+    ${rest.length?`<h3>Sesiones anteriores</h3>${rest.map(d=>sesCard(d,false)).join("")}`:""}
   </div>`;
   window.scrollTo(0,0);
 }
@@ -1779,7 +1884,7 @@ function renderRef(keep){
   const pend=T.list.filter(x=>!T.ses[x.k]).length;
   $("#app").innerHTML=`<div class="stack tk">
     ${tabsHtml("estudio")}
-    <div class="row"><h1 class="ehead1">Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">Actualizar</button></div>
+    <div class="etop"><h1 class="ehead1"><span class="ejp">DAILY STUDY</span>Estudio diario</h1><span class="sp"></span><button class="btn" data-tk="refresh">↻ Actualizar</button></div>
     ${subTabs("ref")}
     <input class="tk-in" id="refSearch" type="search" placeholder="Buscar (ej. no longer, uncountable…)" value="${esc(refQ)}" autocomplete="off" spellcheck="false" autocapitalize="off">
     ${q?(()=>{const nt=matCuentaQ(q);return nt?`<button class="btn" data-tk="ref2mat" style="justify-self:start">📊 Ver ${nt} tabla${nt>1?"s":""} con «${esc(refQ.trim())}» en Materia</button>`:""})():""}
@@ -1899,6 +2004,16 @@ let volverT=null;
 window.addEventListener("scroll",()=>{if(view!=="tarea"||!tDate)return;tocActual();clearTimeout(volverT);volverT=setTimeout(()=>{
   let sec="";for(const el of document.querySelectorAll("#app .tk-act")){if(el.getBoundingClientRect().top>140)break;const b=el.querySelector(".tk-title");if(b)sec=b.textContent.trim()}
   T.ultimo={d:tDate,y:Math.round(window.scrollY),sec:sec.slice(0,60),t:Date.now()};tSave()},400)},{passive:true});
+/* Sin parpadeos: la sincronización de fondo vuelve a pintar la pantalla cada poco. Si el resultado es idéntico
+   y no acabas de tocar nada, no se toca el DOM; y el rebote de selección va solo en el botón que tocaste. */
+let ultToque=0,popSel='';
+['pointerdown','keydown','input'].forEach(t=>document.addEventListener(t,()=>{ultToque=Date.now()},true));
+document.addEventListener('click',e=>{ultToque=Date.now();popSel='';const b=e.target.closest&&e.target.closest('button');if(!b)return;
+  const at=[...b.attributes].filter(a=>a.name.startsWith('data-')).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('');if(at){popSel='button'+at;setTimeout(popAplicar,0)}},true);
+function popAplicar(){const b=popSel&&document.querySelector(popSel);popSel='';if(!b||!b.classList.contains('on'))return;
+  b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');b.addEventListener('animationend',()=>b.classList.remove('pop'),{once:true})}
+(function(){const app=document.getElementById('app'),d=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');let ult=null;
+  Object.defineProperty(app,'innerHTML',{configurable:true,get(){return d.get.call(this)},set(v){if(v===ult&&Date.now()-ultToque>1500)return;ult=v;d.set.call(this,v)}})})();
 // La entrada se anima solo al cambiar de pantalla (no al repintar por un toque)
 let postVista="";
 function trasPintar(){ladoPintar();tocPintar();
@@ -2129,7 +2244,7 @@ document.addEventListener("click",e=>{
   if(k==="open"){if(v)openTarea(v);else{view="tareas";renderTareas();fetchTareas()}return}
   if(k==="lupa"){lupaAbrir(v);return}
   if(k==="lado"){ladoToggle(v);return}
-  if(k==="pleg"){const w=b.closest(".pleg");PLEG[v]=!PLEG[v];w.classList.toggle("on",PLEG[v]);b.setAttribute("aria-expanded",PLEG[v]);return}
+  if(k==="pleg"){const w=b.closest(".pleg");PLEG[v]=!PLEG[v];w.classList.toggle("on",PLEG[v]);if(PLEG[v]){w.classList.add("abre");setTimeout(()=>w.classList.remove("abre"),900)}b.setAttribute("aria-expanded",PLEG[v]);return}
   if(k==="volver"){const u=T.ultimo;if(!u||!T.ses[u.d])return;openTarea(u.d);setTimeout(()=>window.scrollTo(0,u.y||0),60);return}
   if(k==="matdia"){const val=b.dataset.matdia;matQ=matQ.trim().toLowerCase()===val.toLowerCase()?"":val;const i=document.getElementById("matSearch");if(i)i.value=matQ;matFiltrar();return}
   if(k==="list"){lupaCerrar();if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas();return}
@@ -2307,6 +2422,7 @@ document.addEventListener("click",e=>{
   if(d.speed){DB.settings.speed=d.speed;save();render();return}
   if(d.mute){DB.settings.mute=d.mute==="1";save();render();return}
   if(d.theme){DB.settings.theme=d.theme;save();render();return}
+  if(d.fondo){if(e.target.closest(".fx"))fondoQuitar(d.fondo);else{fondoUsar(d.fondo==="none"?null:d.fondo);render()}return}
   if(d.dev){DB.dev.name=d.dev;save();render();return}
   switch(d.act){
     case "go":start(DB.settings.focus);break;
@@ -2321,6 +2437,7 @@ document.addEventListener("click",e=>{
     case "prodbad":answer(0,{ok:false,typed:G.typed});break;
     case "prodok":answer(0,{ok:true,exact:false,typed:G.typed});break;
     case "export":exportData();break;
+    case "fondoadd":{const i=document.getElementById("fImg");if(i)i.click();break}
     case "import":$("#imp").click();break;
     case "reset":if(confirm(syncConfigured()?"¿Borrar el progreso de ESTE dispositivo? Lo que ya está en la nube se volverá a descargar al sincronizar.":"¿Borrar todo el progreso, buffer y estadísticas? Exporta un respaldo antes si lo quieres conservar.")){const keep=DB.settings;DB=fresh();DB.settings=keep;derivedReset(DB);save();render();toast("Progreso borrado");syncNow()}break;
     case "syncpill":{const det=document.querySelector("details.card");if(!syncConfigured()&&det){det.open=true;det.scrollIntoView({behavior:"smooth"})}else syncNow(true);break}
@@ -2359,6 +2476,11 @@ document.addEventListener("visibilitychange",()=>{
 setInterval(()=>{if(!document.hidden&&view!=="drill")bSync()},15000);
 // Las sesiones del instructor se revisan solas cada 3 min mientras la app está a la vista (nunca en medio de una ronda).
 setInterval(()=>{if(!document.hidden&&view!=="drill")fetchTareas()},180000);
+var ajAbierto=false; // Ajustes sigue abierto al volver a pintar (p. ej. al elegir un fondo)
+document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.matches&&d.matches("details[data-aj]"))ajAbierto=d.open},true);
+document.addEventListener("change",e=>{if(e.target.id==="fImg"&&e.target.files.length){const fs=[...e.target.files];e.target.value="";fondoAgregar(fs)}});
+document.addEventListener("input",e=>{if(e.target.id!=="fVel")return;FONDO.vel=+e.target.value;try{localStorage.setItem("forge-fondo-vel",FONDO.vel)}catch(_){}applyTheme()});
+fondoInit();
 registerLessons();
 render();
 syncNow();
