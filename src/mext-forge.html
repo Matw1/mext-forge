@@ -1751,20 +1751,19 @@ function sinTablas(list){return (list||[]).map(b=>b.ty==="table"?{ty:"paragraph"
    Si una sesión más reciente trae el mismo tema en «Tema» (por código, p. ej. «B4», o por nombre)
    con «Dominio tema %», se usa ese valor: así el tema del día está al día aunque la fila no se haya tocado. */
 const tNorm=s=>String(s||"").toLowerCase().normalize("NFKC").replace(/\s+/g," ").trim();
-// hasta (AAAA-MM-DD, opcional): el valor que tenía el tema ese día, para la curva histórica
-function temaDeSesion(t,hasta){
+function temaDeSesion(t){
   let best=null;
   for(const x of T.list){
-    const p=x.props;if(!p||p.domTema==null||!p.tema||hasta&&String(x.date||"").slice(0,10)>hasta)continue;
+    const p=x.props;if(!p||p.domTema==null||!p.tema)continue;
     const st=tNorm(p.tema),cod=tNorm(t.codigo);
     // por código: «B1» al inicio, sin confundirlo con «B10»
     const ok=!!cod&&st.startsWith(cod)&&!/^[\w.]/.test(st.slice(cod.length));
     if(!ok&&!(st===tNorm(t.tema)||st.includes(tNorm(t.tema))))continue;
     if(!best||(x.edited||x.date)>(best.edited||best.date))best=x;
   }
-  return best&&(!t.edited||(best.edited||"")>t.edited||hasta&&t.edited.slice(0,10)>hasta)?best:null;
+  return best&&(!t.edited||(best.edited||"")>t.edited)?best:null;
 }
-function temaPct(t,hasta){const x=temaDeSesion(t,hasta),fila=!hasta||(t.edited||"").slice(0,10)<=hasta;let v=x?x.props.domTema:fila?t.dom:null;if(typeof v!=="number")return null;if(v>0&&v<1)v*=100;return Math.max(0,Math.min(100,Math.round(v)))}
+function temaPct(t){const x=temaDeSesion(t);let v=x?x.props.domTema:t.dom;if(typeof v!=="number")return null;if(v>0&&v<1)v*=100;return Math.max(0,Math.min(100,Math.round(v)))}
 function renderTemas(){
   const ts=T.temas||[],fases=[...new Set(ts.map(t=>t.fase))],actual=faseActual();
   $("#app").innerHTML=`<div class="stack tk">${tabsHtml("estudio")}
@@ -2372,14 +2371,9 @@ function renderProg(){
     notas.length?barras(notas.map(s=>({v:Math.min(10,s.nota),color:cN(s.nota),label:fechaCorta(s.fecha),tip:`${fechaCorta(s.fecha)} · ${s.titulo} · ${coma(s.nota)}/10`})),{max:10,paso:2,fmt:coma,color:"var(--accent)",refV:prom,refTxt:"Prom. "+coma(prom),refColor:"var(--inf)"})
     +tabla(["Fecha","Sesión","Nota"],todasN.map(s=>[s.fecha,s.titulo,coma(s.nota)]).concat([["Promedio",`${todasN.length} ${todasN.length===1?"sesión":"sesiones"}`,coma(prom)]])):vacio("Aparecerá cuando el instructor ponga la Calificación en tus sesiones."));
   // 2) Dominio de la fase actual (el eje x cubre solo el rango de los datos)
-  // 2) Dominio de la fase: el «Dominio %» que pone el instructor en cada sesión, desde el cambio a 🗺️ Temas
-  // (el primer día con «Dominio tema %»); las estimaciones de antes eran otra medida y no se dibujan.
-  const conDom=ses.filter(s=>typeof s.dom==="number"),fase=conDom.length?conDom[conDom.length-1].fase:null;
-  const ini=T.list.filter(x=>x.props&&x.props.domTema!=null).map(x=>String(x.date||"").slice(0,10)).sort()[0]||"";
-  const dom=conDom.filter(s=>s.fase===fase&&s.fecha>=ini);
+  const conDom=ses.filter(s=>typeof s.dom==="number"),fase=conDom.length?conDom[conDom.length-1].fase:null,dom=conDom.filter(s=>s.fase===fase);
   const dv=s=>s.dom>0&&s.dom<1?s.dom*100:s.dom;
-  const subDom=`Lo pone el instructor en cada sesión${ini?" · desde el cambio a temas":""} · línea punteada = 50%`;
-  html+=card(`Dominio de la Fase ${esc(fase||"")}`,subDom,dom.length?lineas(dom.map(s=>({t:dms(s.fecha),v:dv(s),tip:`${fechaCorta(s.fecha)} · ${Math.round(dv(s))}%`})),{max:100,paso:25,fmt:v=>Math.round(v)+"%",x0:dms(dom[0].fecha)-864e5,x1:Math.max(dms(dom[dom.length-1].fecha)+864e5,dms(dom[0].fecha)+6*864e5),refV:50,refTxt:"50%",color:"var(--dia)"})
+  html+=card(`Dominio de la Fase ${esc(fase||"")}`,"Lo estima el instructor · línea punteada = 50%",dom.length?lineas(dom.map(s=>({t:dms(s.fecha),v:dv(s),tip:`${fechaCorta(s.fecha)} · ${Math.round(dv(s))}%`})),{max:100,paso:25,fmt:v=>Math.round(v)+"%",x0:dms(dom[0].fecha)-864e5,x1:Math.max(dms(dom[dom.length-1].fecha)+864e5,dms(dom[0].fecha)+6*864e5),refV:50,refTxt:"50%",color:"var(--dia)"})
     +tabla(["Fecha","Fase","Dominio"],dom.map(s=>[s.fecha,s.fase||"",Math.round(dv(s))+"%"])):vacio("Aparecerá cuando el instructor ponga «Dominio %» en tus sesiones."));
   // 3) Horas reales vs ritmo necesario desde el PRIMER registro de horas (no desde el día 1: las pausas solo desaniman)
   const hs=ses.filter(s=>typeof s.horas==="number");
