@@ -1,5 +1,6 @@
 {
   "name": "MEXT Forge",
+  "id": "/mext-forge/",
   "short_name": "Forge",
   "description": "Micro-drills de inglés para el examen MEXT: errores, estructuras y puntos ciegos.",
   "lang": "es",
