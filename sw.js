@@ -1,6 +1,6 @@
 // MEXT Forge — service worker: guarda la app en el teléfono para que funcione sin internet.
 // Al publicar una versión nueva, build.js sube VERSION automáticamente para que el teléfono la descargue.
-const VERSION = 'mext-forge-202610310435';
+const VERSION = 'mext-forge-202610310518';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png'];
 
 // cache:'reload' evita guardar una copia vieja que venga de la caché HTTP de GitHub Pages (max-age 600).
@@ -13,7 +13,8 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      // Solo las cachés viejas de ESTA app: el dominio matw1.github.io lo comparten varias apps y sus cachés no se tocan
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('mext-forge-') && k !== VERSION).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
