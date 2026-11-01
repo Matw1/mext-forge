@@ -1,6 +1,10 @@
-// Genera pwa/index.html a partir de src/mext-forge.html (código fuente de la app; no lo borres) y sube la versión del service worker.
-// Uso (después de editar src/mext-forge.html):  node build.js
+// Genera la app en ../sitio/dist a partir de src/mext-forge.html y src/sw.js (código fuente; no lo borres) y sube la versión del service worker.
+// Uso (después de editar src/mext-forge.html):  node build.js   y luego, en ../sitio:  npx wrangler deploy
+// Forge vive en https://mext-forge.mext-rafaga-sync.workers.dev. La raíz de este repo (matw1.github.io/mext-forge/)
+// es solo una página fija de mudanza (index.html + sw.js que se da de baja): la app ya no se publica aquí.
 const fs = require("fs"), path = require("path");
+const dist = path.join(__dirname, "..", "sitio", "dist");
+fs.rmSync(dist, { recursive: true, force: true }); fs.mkdirSync(dist, { recursive: true });
 const src = fs.readFileSync(path.join(__dirname, "src", "mext-forge.html"), "utf8");
 
 // ?v= en los íconos: el navegador guarda el ícono de la pestaña mucho tiempo; con la versión lo vuelve a pedir
@@ -9,7 +13,8 @@ const head = `<link rel="manifest" href="manifest.webmanifest?v=${iv}">
 <link rel="apple-touch-icon" href="icon-192.png?v=${iv}">`;
 const mfPath = path.join(__dirname, "manifest.webmanifest"), mf = JSON.parse(fs.readFileSync(mfPath, "utf8"));
 mf.icons = mf.icons.map(i => ({ ...i, src: i.src.replace(/\?v=.*$/, "") + "?v=" + iv }));
-fs.writeFileSync(mfPath, JSON.stringify(mf, null, 2) + "\n");
+fs.writeFileSync(path.join(dist, "manifest.webmanifest"), JSON.stringify(mf, null, 2) + "\n");
+for (const f of ["icon-192.png", "icon-512.png", "icon-maskable-512.png"]) fs.copyFileSync(path.join(__dirname, f), path.join(dist, f));
 // Registro del service worker + recarga automática cuando hay versión nueva
 // (nunca en medio de una ronda ni con un campo de texto activo; antes guarda las respuestas).
 const reg = `<script>
@@ -43,11 +48,10 @@ let out = src
   .replace(/<link rel="icon"[^>]*>/, `<link rel="icon" type="image/png" href="icon-192.png?v=${iv}">\n${head}`)
   .replace("</body>", `${reg}\n</body>`);
 if (!out.includes("manifest.webmanifest") || !out.includes("serviceWorker")) throw new Error("No se pudo inyectar el manifiesto o el service worker");
-fs.writeFileSync(path.join(__dirname, "index.html"), out);
+fs.writeFileSync(path.join(dist, "index.html"), out);
 
 // Versión nueva del caché: así el teléfono descarga la app actualizada.
-const swPath = path.join(__dirname, "sw.js");
-const sw = fs.readFileSync(swPath, "utf8");
+const sw = fs.readFileSync(path.join(__dirname, "src", "sw.js"), "utf8");
 const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
-fs.writeFileSync(swPath, sw.replace(/const VERSION = '[^']*';/, `const VERSION = 'mext-forge-${stamp}';`));
-console.log("index.html listo · caché mext-forge-" + stamp);
+fs.writeFileSync(path.join(dist, "sw.js"), sw.replace(/const VERSION = '[^']*';/, `const VERSION = 'mext-forge-${stamp}';`));
+console.log("listo en ../sitio/dist · caché mext-forge-" + stamp + " · ahora: cd ../sitio && npx wrangler deploy");
