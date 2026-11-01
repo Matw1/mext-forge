@@ -365,6 +365,7 @@ details[open].card summary::after{content:"－"}
 .lp-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 2px}.lp-chip{font:inherit;font-size:.85rem;padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer}.lp-chip.on{background:var(--text);color:var(--bg)}
 .dchips{display:flex;gap:6px;align-items:center;overflow-x:auto;padding:6px 0 4px;-webkit-overflow-scrolling:touch}.dchips .lp-chip,.dchips>span{flex:none}
 .evolver{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;margin:8px 0;border-left:4px solid var(--accent);cursor:pointer}
+.mudanza{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;border:2px solid var(--accent);color:inherit;text-decoration:none}
 .pleg{margin-bottom:10px}
 /* Lecciones y Precisión: dos cuadros a la par; lo que se abre baja a lo ancho debajo de ambos */
 .duo{display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:0;margin:20px 0 4px}
@@ -489,6 +490,30 @@ button:active:not(:disabled),.lesson:active,.mode:active{transform:scale(.97)}
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <input id="imp" type="file" accept="application/json" class="hide">
 <script>
+/* ---------- Mudanza: Forge vive ahora en su propia dirección ----------
+   En matw1.github.io comparte dominio con Ráfaga y Android solo deja instalar una app por dominio.
+   La app nueva trae los datos de la vieja: abre la vieja en otra pestaña y esta se los pasa con
+   postMessage, solo a la dirección nueva (nada pasa por un servidor). Los fondos no se traspasan. */
+const MUDA_NUEVA="https://mext-forge.mext-rafaga-sync.workers.dev",MUDA_VIEJA="https://matw1.github.io";
+const MUDA_ES_VIEJA=location.origin===MUDA_VIEJA,MUDA_ES_NUEVA=location.origin===MUDA_NUEVA;
+if(MUDA_ES_VIEJA&&new URLSearchParams(location.search).get("exportar")==="1"&&window.opener){
+  const d={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith("mextforge."))d[k]=localStorage.getItem(k)}
+  window.opener.postMessage({forgeMudanza:d},MUDA_NUEVA);
+  addEventListener("DOMContentLoaded",()=>{document.body.innerHTML='<p style="font:17px system-ui;padding:24px">✅ Datos enviados a la app nueva. Puedes cerrar esta pestaña.</p>'});
+  setTimeout(()=>window.close(),1800);
+  throw new Error("mudanza: exportado");
+}
+if(MUDA_ES_NUEVA)addEventListener("message",e=>{
+  if(e.origin!==MUDA_VIEJA||!e.data||!e.data.forgeMudanza)return;
+  const d=e.data.forgeMudanza;let n=0;for(const k in d)if(k.startsWith("mextforge.")){localStorage.setItem(k,d[k]);n++}
+  localStorage.setItem("mextforge.mudado","1");
+  alert(n?"Listo: tus datos de inglés ya están en esta app. Se va a recargar.":"No encontré datos en la dirección anterior.");location.reload();
+});
+function mudanzaHtml(){
+  if(MUDA_ES_VIEJA)return `<a class="card mudanza" href="${MUDA_NUEVA}/" target="_blank" rel="noopener"><b>📦 Forge se mudó</b><span class="muted small">Ábrela en su dirección nueva, toca «Traer mis datos» e instálala desde ahí. Así puedes tener Ráfaga y Forge instaladas a la vez.</span></a>`;
+  if(MUDA_ES_NUEVA&&!localStorage.getItem("mextforge.mudado"))return `<div class="card mudanza"><b>📦 Trae tus datos de la dirección anterior</b><span class="muted small">Abre esta página en Chrome (no en la app instalada) y toca el botón: se abre un momento la Forge vieja y te pasa todo (progreso, tareas, ajustes y clave). Los fondos hay que volver a ponerlos.</span><div class="row" style="flex-wrap:wrap"><button class="btn" data-act="mudanza">Traer mis datos</button><button class="btn" data-act="mudanza-no">No hace falta</button></div></div>`;
+  return "";
+}
 "use strict";
 let view="home";
 /* ================= DATA ================= */
@@ -1126,6 +1151,7 @@ function renderHome(){
   const {ph,pct,days}=phaseInfo();
   const keys=Object.keys(CATS).filter(k=>k!=="DIA"&&k!=="ESC"),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
   $("#app").innerHTML=`${tabsHtml("juego")}
+    ${mudanzaHtml()}
     <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge${nivelBadge()}</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
       <button class="icon-btn" data-act="prog" aria-label="Panel de progreso" title="Panel de progreso (P)">📈</button><button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
     ${volverHtml()}
@@ -2464,6 +2490,8 @@ document.addEventListener("click",e=>{
     case "prodbad":answer(0,{ok:false,typed:G.typed});break;
     case "prodok":answer(0,{ok:true,exact:false,typed:G.typed});break;
     case "export":exportData();break;
+    case "mudanza":window.open(MUDA_VIEJA+"/mext-forge/?exportar=1","_blank");break;
+    case "mudanza-no":localStorage.setItem("mextforge.mudado","1");render();break;
     case "fondoadd":{const i=document.getElementById("fImg");if(i)i.click();break}
     case "import":$("#imp").click();break;
     case "reset":if(confirm(syncConfigured()?"¿Borrar el progreso de ESTE dispositivo? Lo que ya está en la nube se volverá a descargar al sincronizar.":"¿Borrar todo el progreso, buffer y estadísticas? Exporta un respaldo antes si lo quieres conservar.")){const keep=DB.settings;DB=fresh();DB.settings=keep;derivedReset(DB);save();render();toast("Progreso borrado");syncNow()}break;
