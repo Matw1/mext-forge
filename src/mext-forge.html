@@ -2219,11 +2219,11 @@ function renderTarea(keepScroll){
   $("#app").innerHTML=`<div class="stack tk">
     <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><div style="min-width:0"><b style="font-size:1.05rem">${sDate(d)===today()?"Hoy · ":""}${sDate(d)}</b><div class="muted small">${esc(s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""))}</div></div><span class="sp"></span><button class="btn" data-tk="refresh" title="Actualizar">↻</button></div>
     <div class="muted small" id="tkState">${esc(tkLabel())}</div>
-    ${p.retro.length?`<section class="card tk-retro"><div class="row" style="justify-content:space-between"><h3 style="margin:0">🧑‍🏫 Retroalimentación del instructor</h3>${notaPill(d)}</div>${p.retro.map(blockHtml).join("")}</section>`:""}
     ${ents.length?`<div class="card tk-sent"><b>📤 ${ents.length>1?ents.length+" entregas":"Entregada"}</b> · ${ents.map(e=>`Entrega ${e.n}: ${new Date(e.t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"})}${DB.outbox.includes(e.i)?" (en cola, se enviará con conexión)":""}`).join(" · ")}
       ${locked?`<div style="margin-top:8px"><button class="btn" data-tk="unlock">Corregir algo y entregar de nuevo</button></div>`:`<div class="muted small" style="margin-top:6px">Editando para una nueva entrega. La anterior no se borra.</div>`}</div>`:""}
     ${p.intro.length?`<section class="card">${p.intro.map(blockHtml).join("")}</section>`:""}
     ${p.acts.map(a=>actHtml(d,a,locked)).join("")||`<div class="card muted">El instructor todavía no agregó actividades a esta sesión.</div>`}
+    ${p.retro.length?`<section class="card tk-retro"><div class="row" style="justify-content:space-between"><h3 style="margin:0">🧑‍🏫 Resumen del instructor</h3>${notaPill(d)}</div>${p.retro.map(blockHtml).join("")}</section>`:""}
     ${p.acts.some(a=>a.ty!=="ref")?`<section class="card tk-end"><div class="row" style="flex-wrap:wrap"><span><b id="tkTotal">${m.total} min</b> <span class="muted small" id="tkSub">(app ${m.app} + fuera ${m.out}) · ${dudas} ${dudas===1?"duda":"dudas"}</span></span><span class="sp"></span>
       <button class="btn" data-tk="copy">📋 Copiar respuestas</button>${locked?"":`<button class="btn tk-send" data-tk="send">📤 Entregar</button>`}</div>
       <div class="muted small" style="margin-top:8px">La app no corrige: el instructor revisa tu entrega en el chat y deja su retroalimentación aquí.</div></section>`:""}
