@@ -15,6 +15,8 @@ const mfPath = path.join(__dirname, "manifest.webmanifest"), mf = JSON.parse(fs.
 mf.icons = mf.icons.map(i => ({ ...i, src: i.src.replace(/\?v=.*$/, "") + "?v=" + iv }));
 fs.writeFileSync(path.join(dist, "manifest.webmanifest"), JSON.stringify(mf, null, 2) + "\n");
 for (const f of ["icon-192.png", "icon-512.png", "icon-maskable-512.png"]) fs.copyFileSync(path.join(__dirname, f), path.join(dist, f));
+fs.mkdirSync(path.join(dist, "vendor"));
+for (const f of ["pdf.min.js", "pdf.worker.min.js"]) fs.copyFileSync(path.join(__dirname, "vendor", f), path.join(dist, "vendor", f)); // lector de PDF del simulacro
 // Registro del service worker + recarga automática cuando hay versión nueva
 // (nunca en medio de una ronda ni con un campo de texto activo; antes guarda las respuestas).
 const reg = `<script>

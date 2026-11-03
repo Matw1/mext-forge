@@ -366,6 +366,7 @@ details[open].card summary::after{content:"－"}
 .dchips{display:flex;gap:6px;align-items:center;overflow-x:auto;padding:6px 0 4px;-webkit-overflow-scrolling:touch}.dchips .lp-chip,.dchips>span{flex:none}
 .evolver{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;margin:8px 0;border-left:4px solid var(--accent);cursor:pointer}
 .mudanza{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;border:2px solid var(--accent);color:inherit;text-decoration:none}
+.simpdf{max-height:70vh;overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;margin:4px 0 8px;-webkit-overflow-scrolling:touch}.simpdf img{display:block;width:100%;height:auto}.simpdf img+img{border-top:1px solid #ddd}
 .pleg{margin-bottom:10px}
 /* Lecciones y Precisión: dos cuadros a la par; lo que se abre baja a lo ancho debajo de ambos */
 .duo{display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:0;margin:20px 0 4px}
@@ -1859,18 +1860,47 @@ function renderSimLista(){
   </div>`;
   window.scrollTo(0,0);
 }
+/* 📄 PDF del examen dentro del simulacro: lo eliges una vez y se guarda solo en este dispositivo (IndexedDB).
+   Se guarda por año (el 2014 sirve para la práctica y el checkpoint). Las páginas se dibujan con pdf.js. */
+let simPdfVer=false;const simPdfImgs={};
+const simPdfId=x=>((x.examen||"").match(/\d{4}/)||[x.ex])[0];
+function pdfIdb(){return new Promise((ok,no)=>{const r=indexedDB.open("mextforge-pdf",1);r.onupgradeneeded=()=>r.result.createObjectStore("f");r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}
+async function pdfGet(id){try{const db=await pdfIdb();return await new Promise(ok=>{const q=db.transaction("f").objectStore("f").get(id);q.onsuccess=()=>ok(q.result||null);q.onerror=()=>ok(null)})}catch(e){return null}}
+async function pdfPut(id,blob){const db=await pdfIdb();await new Promise((ok,no)=>{const t=db.transaction("f","readwrite");t.objectStore("f").put(blob,id);t.oncomplete=ok;t.onerror=()=>no(t.error)})}
+let pdfLib=null;
+function pdfCargarLib(){if(pdfLib)return pdfLib;
+  pdfLib=new Promise((ok,no)=>{const sc=document.createElement("script");sc.src="vendor/pdf.min.js";
+    sc.onload=()=>{window.pdfjsLib.GlobalWorkerOptions.workerSrc="vendor/pdf.worker.min.js";ok(window.pdfjsLib)};
+    sc.onerror=()=>{pdfLib=null;no(new Error("no se pudo cargar el lector de PDF"))};document.head.appendChild(sc)});
+  return pdfLib}
+const simPdfElegir=id=>`<div style="padding:10px"><p class="muted small">Elige el PDF del examen ${esc(id)}. Se guarda solo en este dispositivo; la próxima vez se abre solo.</p><label class="btn">Elegir PDF<input type="file" accept="application/pdf,.pdf" data-simpdf="${esc(id)}" hidden></label></div>`;
+function simPdfHtml(x){const id=simPdfId(x);
+  if(simPdfImgs[id])return simPdfImgs[id].map((u,i)=>`<img src="${u}" alt="Página ${i+1} del examen">`).join("");
+  setTimeout(()=>simPdfCargar(id),0);return '<div class="muted small" style="padding:10px">Cargando el examen…</div>'}
+async function simPdfCargar(id,file){const el=document.getElementById("simPdf");if(!el)return;
+  try{const blob=file||await pdfGet(id);if(!blob){el.innerHTML=simPdfElegir(id);return}
+    const lib=await pdfCargarLib(),doc=await lib.getDocument({data:new Uint8Array(await blob.arrayBuffer())}).promise,urls=[];
+    for(let n=1;n<=doc.numPages;n++){const pg=await doc.getPage(n),v0=pg.getViewport({scale:1}),v=pg.getViewport({scale:1600/v0.width});
+      const c=document.createElement("canvas");c.width=v.width;c.height=v.height;await pg.render({canvasContext:c.getContext("2d"),viewport:v}).promise;
+      urls.push(await new Promise(ok=>c.toBlob(b=>ok(URL.createObjectURL(b)),"image/jpeg",.85)))}
+    if(file)await pdfPut(id,file);
+    simPdfImgs[id]=urls;const el2=document.getElementById("simPdf");if(el2&&T.sim)el2.innerHTML=simPdfHtml(T.sim);
+  }catch(err){const el2=document.getElementById("simPdf");if(el2)el2.innerHTML=`<div class="muted small" style="padding:10px">No pude abrir el PDF: ${esc(err.message||String(err))}. Prueba con «Cambiar PDF».</div>`}}
+const simPdfBarra=x=>`<div class="row" style="gap:8px;flex-wrap:wrap"><button class="btn" data-tk="simpdf">${simPdfVer?"Ocultar examen":"📄 Ver examen"}</button>${simPdfVer?'<button class="btn" data-tk="simpdfotro">Cambiar PDF</button>':""}</div>${simPdfVer?`<div class="simpdf" id="simPdf">${simPdfHtml(x)}</div>`:""}`;
 function renderSimHoja(){
   const x=T.sim;if(!x){view="sim";return renderSimLista()}
   if(!x.start){ // preparación: confirmar cuántas preguntas tiene cada sección en el PDF
     $("#app").innerHTML=`<div class="stack tk"><div class="row"><button class="icon-btn" data-tk="simback" aria-label="Volver">←</button><b style="font-size:1.05rem">${esc(x.titulo)}</b></div>
       <section class="card"><b>Antes de empezar</b><p class="muted small">Revisa en el PDF cuántas preguntas tiene cada sección y ajústalo aquí. La cuenta regresiva (${simLim(x)} min) empieza al tocar «Empezar».</p>
       ${x.secs.map(([sec,n],i)=>`<div class="set"${n?"":' style="opacity:.55"'}><span>Sección ${sec}${n?"":" · no entra"}</span><span class="seg"><button data-tk="simsec" data-i="${i}" data-d="-1" aria-label="Menos">−</button><button class="on" disabled>${n}</button><button data-tk="simsec" data-i="${i}" data-d="1" aria-label="Más">+</button></span></div>`).join("")}</section>
+      ${simPdfBarra(x)}
       <div class="row" style="flex-wrap:wrap"><button class="btn tk-send" data-tk="simgo">Empezar (${simTot()} preguntas · ${simLim(x)} min)</button><button class="btn" data-tk="simcancel">Cancelar</button></div></div>`;
     window.scrollTo(0,0);return;
   }
   $("#app").innerHTML=`<div class="stack tk">
     <div class="row"><button class="icon-btn" data-tk="simback" aria-label="Volver">←</button><div style="min-width:0"><div class="muted small">Simulacro · ${esc(x.examen)}</div><b style="font-size:1.05rem">${esc(x.titulo)}</b></div></div>
     <div class="simbar"><b id="simT"></b><span>Respondidas <b id="simN">${simCuenta()}</b></span></div>
+    ${simPdfBarra(x)}
     ${x.secs.map(([sec,n])=>`<section class="card"><b>Sección ${sec}</b><div class="simg">${Array.from({length:n},(_,i)=>{const q=sec+"-"+(i+1);return `<div class="simrow"><span class="simn">${i+1}</span>${SIM_LETRAS.concat("?").map(r=>`<button class="simb${x.resp[q]===r?" on":""}${r==="?"?" nose":""}" data-tk="simr" data-q="${q}" data-r="${r}" aria-label="Pregunta ${i+1}: ${r==="?"?"no sé":"opción "+r}">${r==="?"?"No sé":r}</button>`).join("")}</div>`}).join("")}</div></section>`).join("")}
     <div class="row" style="flex-wrap:wrap"><button class="btn tk-send" data-tk="simentregar">Entregar simulacro</button><button class="btn" data-tk="simcancel">Descartar</button></div>
   </div>`;
@@ -2313,6 +2343,8 @@ document.addEventListener("click",e=>{
   if(k==="simstart"){simStart(v);return}
   if(k==="simopen"){view="simu";renderSimHoja();return}
   if(k==="simback"){view="sim";renderSimLista();return}
+  if(k==="simpdf"){simPdfVer=!simPdfVer;renderSimHoja();return}
+  if(k==="simpdfotro"){delete simPdfImgs[simPdfId(T.sim)];simPdfVer=true;renderSimHoja();const el=document.getElementById("simPdf");if(el)el.innerHTML=simPdfElegir(simPdfId(T.sim));return}
   if(k==="simsec"){simSec(+b.dataset.i,+b.dataset.d);return}
   if(k==="simgo"){T.sim.secs=T.sim.secs.filter(x=>x[1]>0);if(!T.sim.secs.length){toast("Pon al menos una pregunta");return}T.sim.start=Date.now();tSave(true);renderSimHoja();return}
   if(k==="simr"){simMarcar(b.dataset.q,b.dataset.r);return}
@@ -2536,6 +2568,8 @@ document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.matches&&d.match
 document.addEventListener("change",e=>{if(e.target.id==="fImg"&&e.target.files.length){const fs=[...e.target.files];e.target.value="";fondoAgregar(fs)}});
 document.addEventListener("input",e=>{if(e.target.id!=="fVel")return;FONDO.vel=+e.target.value;try{localStorage.setItem("forge-fondo-vel",FONDO.vel)}catch(_){}applyTheme()});
 fondoInit();
+document.addEventListener("change",e=>{const id=e.target.dataset&&e.target.dataset.simpdf,f=e.target.files&&e.target.files[0];if(!id||!f)return;
+  const el=document.getElementById("simPdf");if(el)el.innerHTML='<div class="muted small" style="padding:10px">Cargando el examen…</div>';simPdfCargar(id,f)});
 registerLessons();
 render();
 syncNow();
