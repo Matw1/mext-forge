@@ -367,6 +367,10 @@ details[open].card summary::after{content:"－"}
 .evolver{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;margin:8px 0;border-left:4px solid var(--accent);cursor:pointer}
 .mudanza{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;border:2px solid var(--accent);color:inherit;text-decoration:none}
 .simpdf{max-height:70vh;overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;margin:4px 0 8px;-webkit-overflow-scrolling:touch}.simpdf img{display:block;width:100%;height:auto}.simpdf img+img{border-top:1px solid #ddd}
+.epag{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0}.epag .btn{min-width:120px;font-weight:800}
+.epag-n{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px}.epag-n small{flex-basis:100%;text-align:center;color:var(--muted);font-size:.78rem}.epag-n i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--line)}.epag-n i.on{background:var(--accent);width:20px;border-radius:4px}.epag-n button.ok{width:12px;height:12px;border-radius:50%;border:0;padding:0;background:var(--ok);cursor:pointer}.epag-n button.ok:hover{transform:scale(1.3)}
+.epagina>*+*{margin-top:14px}.epagina.aIn{animation:aIn .4s cubic-bezier(.2,.8,.2,1) both}
+#etoc .toc-p{height:22px;margin-top:4px}#etoc .toc-p b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;font-size:.7rem;background:var(--ok);color:#fff}#etoc .toc-p.sig b{background:var(--accent)}
 .pleg{margin-bottom:10px}
 /* Lecciones y Precisión: dos cuadros a la par; lo que se abre baja a lo ancho debajo de ambos */
 .duo{display:grid;grid-template-columns:1fr 1fr;column-gap:12px;row-gap:0;margin:20px 0 4px}
@@ -2051,17 +2055,21 @@ function ladoPintar(){let el=document.getElementById("lado");const ver=(T.lado||
   finally{blockHtml.sinPin=false}}
 /* Índice de la sesión: rayitas arriba a la derecha (junto a la barra de desplazamiento), una por actividad.
    Al pasar el mouse muestran el nombre; al tocar llevan a esa actividad. ⤒ sube al inicio. Con la 🔍 abierta se corren a su borde. */
+var pagMeta=[];
 function tocPintar(){let el=document.getElementById("etoc");
   const secs=view==="tarea"?[...document.querySelectorAll("#app .tk-act")]:[];
   if(!secs.length){if(el)el.remove();return}
   if(!el){el=document.createElement("nav");el.id="etoc";el.setAttribute("aria-label","Índice de la sesión");document.body.appendChild(el);
     el.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
       if(b.dataset.toc==="top")return window.scrollTo({top:0,behavior:"smooth"});
+      if(b.dataset.tocp!=null){T.pag=T.pag||{};T.pag[tDate]=+b.dataset.tocp;tSave();renderTarea();return window.scrollTo({top:0})}
       const t=document.querySelectorAll("#app .tk-act")[+b.dataset.toc];if(t)window.scrollTo({top:t.getBoundingClientRect().top+window.scrollY-12,behavior:"smooth"})})}
   el.innerHTML=`<button data-toc="top" class="toc-top" title="Volver al inicio"><span class="toc-l">Volver al inicio</span>⤒</button>`+secs.map((x,i)=>{
     const k=x.querySelector(".tag"),b=x.querySelector(".tk-title"),kt=k?k.textContent.trim():"",bt=b?b.textContent.trim():"";
     const t=(kt&&bt?kt+" · "+bt:kt||bt).slice(0,70);
-    return `<button data-toc="${i}" title="${esc(t)}"><span class="toc-l">${esc(t)}</span><i></i></button>`}).join("");
+    return `<button data-toc="${i}" title="${esc(t)}"><span class="toc-l">${esc(t)}</span><i></i></button>`}).join("")
+    // otras páginas: las anteriores siempre; las siguientes solo si ya escribiste algo en ellas
+    +pagMeta.map((m,i)=>i===pagMeta.pi||(i>pagMeta.pi&&!m.ok)?"":`<button data-tocp="${i}" class="toc-p${i<pagMeta.pi?"":" sig"}" title="${esc("Actividad "+(i+1)+": "+m.t)}"><span class="toc-l">${esc(("Actividad "+(i+1)+": "+m.t).slice(0,80))}</span><b>${i+1}</b></button>`).join("");
   tocActual()}
 function tocActual(){const el=document.getElementById("etoc");if(!el)return;let cur=0;
   document.querySelectorAll("#app .tk-act").forEach((x,i)=>{if(x.getBoundingClientRect().top<160)cur=i});
@@ -2246,15 +2254,24 @@ function renderTarea(keepScroll){
   if(!s){view="tareas";return renderTareas()}
   const p=parseSession(s.blocks),locked=tLocked(d),ents=entregasDe(d),m=totalMin(d,p);corrMap(p);
   const dudas=Object.values(T.ans[d]||{}).filter(a=>a.d).length;
+  // Por páginas: una actividad por página; la 📘 Consulta va en la misma página que la actividad que sigue
+  const pags=[];let pend=[];
+  for(const a of p.acts){pend.push(a);if(a.ty!=="ref"){pags.push(pend);pend=[]}}
+  if(pend.length){if(pags.length)pags[pags.length-1].push(...pend);else pags.push(pend)}
+  const np=Math.max(1,pags.length);T.pag=T.pag||{};const pi=Math.max(0,Math.min(T.pag[d]||0,np-1)),ult=pi===np-1;
+  const A=T.ans[d]||{},escrito=a=>a.blocks.some(b=>{const x=A[b.id];return x&&(String(x.v||"").trim()||x.ch!=null||x.d)});
+  pagMeta=pags.map(l=>{const m=l.find(a=>a.ty!=="ref")||l[0];return{t:(m.n||"")+" · "+m.title,ok:l.some(escrito)}});pagMeta.pi=pi;
+  const nav=np>1?`<nav class="epag">${pi>0?'<button class="btn" data-tk="pag" data-v="-1">← Anterior</button>':"<span></span>"}<span class="epag-n">${pags.map((_,i)=>i<pi?`<button class="ok" data-tk="pagir" data-v="${i}" title="Ver la actividad ${i+1}" aria-label="Ver la actividad ${i+1}"></button>`:`<i class="${i===pi?"on":""}"></i>`).join("")}<small>Actividad ${pi+1} de ${np}</small></span>${pi<np-1?'<button class="btn tk-send" data-tk="pag" data-v="1">Siguiente →</button>':"<span></span>"}</nav>`:"";
   $("#app").innerHTML=`<div class="stack tk">
     <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><div style="min-width:0"><b style="font-size:1.05rem">${sDate(d)===today()?"Hoy · ":""}${sDate(d)}</b><div class="muted small">${esc(s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""))}</div></div><span class="sp"></span><button class="btn" data-tk="refresh" title="Actualizar">↻</button></div>
     <div class="muted small" id="tkState">${esc(tkLabel())}</div>
     ${ents.length?`<div class="card tk-sent"><b>📤 ${ents.length>1?ents.length+" entregas":"Entregada"}</b> · ${ents.map(e=>`Entrega ${e.n}: ${new Date(e.t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"})}${DB.outbox.includes(e.i)?" (en cola, se enviará con conexión)":""}`).join(" · ")}
       ${locked?`<div style="margin-top:8px"><button class="btn" data-tk="unlock">Corregir algo y entregar de nuevo</button></div>`:`<div class="muted small" style="margin-top:6px">Editando para una nueva entrega. La anterior no se borra.</div>`}</div>`:""}
-    ${p.intro.length?`<section class="card">${p.intro.map(blockHtml).join("")}</section>`:""}
-    ${p.acts.map(a=>actHtml(d,a,locked)).join("")||`<div class="card muted">El instructor todavía no agregó actividades a esta sesión.</div>`}
-    ${p.retro.length?`<section class="card tk-retro"><div class="row" style="justify-content:space-between"><h3 style="margin:0">🧑‍🏫 Resumen del instructor</h3>${notaPill(d)}</div>${p.retro.map(blockHtml).join("")}</section>`:""}
-    ${p.acts.some(a=>a.ty!=="ref")?`<section class="card tk-end"><div class="row" style="flex-wrap:wrap"><span><b id="tkTotal">${m.total} min</b> <span class="muted small" id="tkSub">(app ${m.app} + fuera ${m.out}) · ${dudas} ${dudas===1?"duda":"dudas"}</span></span><span class="sp"></span>
+    ${pi===0&&p.intro.length?`<section class="card">${p.intro.map(blockHtml).join("")}</section>`:""}
+    <div class="epagina">${(pags[pi]||[]).map(a=>actHtml(d,a,locked)).join("")||`<div class="card muted">El instructor todavía no agregó actividades a esta sesión.</div>`}</div>
+    ${nav}
+    ${ult&&p.retro.length?`<section class="card tk-retro"><div class="row" style="justify-content:space-between"><h3 style="margin:0">🧑‍🏫 Resumen del instructor</h3>${notaPill(d)}</div>${p.retro.map(blockHtml).join("")}</section>`:""}
+    ${ult&&p.acts.some(a=>a.ty!=="ref")?`<section class="card tk-end"><div class="row" style="flex-wrap:wrap"><span><b id="tkTotal">${m.total} min</b> <span class="muted small" id="tkSub">(app ${m.app} + fuera ${m.out}) · ${dudas} ${dudas===1?"duda":"dudas"}</span></span><span class="sp"></span>
       <button class="btn" data-tk="copy">📋 Copiar respuestas</button>${locked?"":`<button class="btn tk-send" data-tk="send">📤 Entregar</button>`}</div>
       <div class="muted small" style="margin-top:8px">La app no corrige: el instructor revisa tu entrega en el chat y deja su retroalimentación aquí.</div></section>`:""}
   </div>`;
@@ -2330,6 +2347,7 @@ document.addEventListener("click",e=>{
   if(k==="pleg"){const w=b.closest(".pleg");PLEG[v]=!PLEG[v];w.classList.toggle("on",PLEG[v]);if(PLEG[v]){w.classList.add("abre");setTimeout(()=>w.classList.remove("abre"),900)}b.setAttribute("aria-expanded",PLEG[v]);return}
   if(k==="volver"){const u=T.ultimo;if(!u||!T.ses[u.d])return;openTarea(u.d);setTimeout(()=>window.scrollTo(0,u.y||0),60);return}
   if(k==="matdia"){const val=b.dataset.matdia;matQ=matQ.trim().toLowerCase()===val.toLowerCase()?"":val;const i=document.getElementById("matSearch");if(i)i.value=matQ;matFiltrar();return}
+  if(k==="pag"||k==="pagir"){T.pag=T.pag||{};T.pag[tDate]=k==="pag"?Math.max(0,(T.pag[tDate]||0)+(+v)):+v;tSave();renderTarea();window.scrollTo({top:0});const g=document.querySelector(".epagina");if(g){g.classList.remove("aIn");void g.offsetWidth;g.classList.add("aIn")}return}
   if(k==="list"){lupaCerrar();if(view==="tarea"){addItemTime();pauseAll(tDate);tSave(true)}view="tareas";renderTareas();return}
   if(k==="date"){openTarea(v);return}
   if(k==="refresh"){fetchTareas(view==="tarea"?tDate:null,true);try{navigator.serviceWorker.getRegistration().then(r=>r&&r.update()).catch(()=>{})}catch(e){}return}
