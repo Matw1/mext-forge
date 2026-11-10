@@ -801,8 +801,25 @@ function legacySnap(o){
   if(typeof best.score!=="number"){bestMode=best;best={score:Math.max(0,...Object.values(best).map(Number).filter(n=>!isNaN(n))),combo:0}}
   return {cats:o.cats,items:o.items,buffer:o.buffer,sessions:o.sessions,fossils:o.fossils,best,bestMode};
 }
+/* Espacio y avisos de guardado: el navegador da ~5 MB a la app. Si un guardado falla (espacio lleno o bloqueado)
+   se muestra un aviso fijo arriba hasta que vuelva a funcionar: antes fallaba en silencio y lo escrito se perdía al cerrar. */
+const TAM={D:0,T:0},TAM_MAX=5e6,GUARDA={D:true,T:true,B:true};
+function guardaAviso(k,ok){
+  if(GUARDA[k]===ok)return;GUARDA[k]=ok;
+  const mal=!GUARDA.D||!GUARDA.T||!GUARDA.B;let el=document.getElementById("gAviso");
+  if(!mal){if(el)el.remove();return}
+  if(el)return;
+  el=document.createElement("div");el.id="gAviso";el.setAttribute("role","alert");
+  el.style.cssText="position:fixed;left:0;right:0;top:0;z-index:99999;background:#b3261e;color:#fff;padding:10px 14px;font-size:.9rem;line-height:1.35;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.35)";
+  el.textContent="⚠ No se pudo guardar en este dispositivo (espacio lleno o bloqueado). No cierres la app: usa «Copiar respuestas» en la sesión o «Exportar respaldo» en Ajustes.";
+  document.body.appendChild(el);
+}
+function espacioPct(){return Math.round(100*(TAM.D+TAM.T)/TAM_MAX)}
+function espacioHtml(){const p=espacioPct(),mb=((TAM.D+TAM.T)/1e6).toFixed(1).replace(".",",");
+  return `<div class="set"><span>Espacio usado en este dispositivo</span><span class="small" style="color:var(--${p>=90?"bad":p>=70?"warn":"muted"})">${mb} MB de ~5 MB · ${p}%</span></div>`}
+function espacioAviso(){const p=espacioPct();return p>=80?`<div class="card" role="alert" style="border-color:var(--warn)"><b>⚠ El espacio de la app está al ${p}%</b><div class="muted small">Si se llena, la app no podrá guardar lo nuevo. Exporta un respaldo en Ajustes y avisa para liberar espacio.</div></div>`:""}
 function load(){
-  let o=null;try{o=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+  let o=null;try{const raw=localStorage.getItem(KEY);TAM.D=raw?raw.length:0;o=JSON.parse(raw)}catch(e){}
   const f=fresh();
   if(o&&o.v===2){o.settings=Object.assign(f.settings,o.settings);DB=Object.assign(f,o)}
   else{DB=f;if(o&&o.cats){Object.assign(DB.settings,o.settings||{});
@@ -810,7 +827,7 @@ function load(){
   rebuild();save();
 }
 function persisted(){const{cats,items,buffer,sessions,fossils,best,bestMode,...p}=DB;return p}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(persisted()))}catch(e){}}
+function save(){try{const j=JSON.stringify(persisted());localStorage.setItem(KEY,j);TAM.D=j.length;guardaAviso("D",true)}catch(e){guardaAviso("D",false)}}
 try{load()}catch(e){DB=fresh();derivedReset(DB)}
 const errRate=c=>{const s=cs(c);return (s.w+1)/(s.n+2)};
 const catAcc=c=>{const s=cs(c);if(s.r.length)return s.r.reduce((a,b)=>a+b,0)/s.r.length;return s.n?1-s.w/s.n:null};
@@ -1156,7 +1173,7 @@ function renderHome(){
   const {ph,pct,days}=phaseInfo();
   const keys=Object.keys(CATS).filter(k=>k!=="DIA"&&k!=="ESC"),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
   $("#app").innerHTML=`${tabsHtml("juego")}
-    ${mudanzaHtml()}
+    ${mudanzaHtml()}${espacioAviso()}
     <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge${nivelBadge()}</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
       <button class="icon-btn" data-act="prog" aria-label="Panel de progreso" title="Panel de progreso (P)">📈</button><button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
     ${volverHtml()}
@@ -1207,6 +1224,7 @@ function renderHome(){
         <div class="set"><span>Este dispositivo</span><span class="seg">${["Teléfono","PC"].map(n=>`<button data-dev="${n}" class="${DB.dev.name===n?"on":""}">${n}</button>`).join("")}</span></div>
         <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="syncsave">Guardar y sincronizar</button><span class="muted small">${DB.lastSync?"Última: "+new Date(DB.lastSync).toLocaleString("es",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"Nunca sincronizado"} · ${DB.outbox.length} pend.</span></div>
       </div>
+      ${espacioHtml()}
       <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="export">Exportar respaldo</button><button class="btn" data-act="import">Importar</button><span class="sp"></span><button class="btn" data-act="reset" style="color:var(--bad)">Borrar todo</button></div>
     </div></details>
     <div class="foot"><span class="kbd">Enter</span> empezar · <span class="kbd">1</span>–<span class="kbd">4</span> / <span class="kbd">A</span>–<span class="kbd">D</span> responder · <span class="kbd">Enter</span> seguir · <span class="kbd">Esc</span> salir · <span class="kbd">S</span> estadísticas</div>`;
@@ -1335,7 +1353,7 @@ function render(){applyTheme();if(view==="prog")return renderProg();if(view==="s
    La entrega viaja como evento 't' por la misma cola que el juego (sin conexión espera y se reenvía). */
 const TK="mextforge.tareas.v1";
 let T={list:[],ses:{},ans:{},tm:{},out:{},edit:{},hb:0,at:0};
-try{const o=JSON.parse(localStorage.getItem(TK));if(o)T=Object.assign(T,o)}catch(e){}
+try{const raw=localStorage.getItem(TK);TAM.T=raw?raw.length:0;const o=JSON.parse(raw);if(o)T=Object.assign(T,o)}catch(e){}
 // Cada sesión se guarda por su clave: la fecha en los días viejos (desplegables) y el id de la página en la base
 // (como en japonés), así dos páginas con la misma fecha conviven. Lo guardado antes por fecha se mueve a su página.
 (function porPagina(){let mv=0;
@@ -1349,7 +1367,7 @@ function sDate(k){const x=T.ses[k];if(x&&x.date)return x.date;const y=T.list.fin
 // Más reciente primero; en la misma fecha, en el orden de la lista de Notion.
 const porFecha=ks=>ks.sort((a,b)=>{const da=sDate(a),db=sDate(b);if(da!==db)return da<db?1:-1;const ia=T.list.findIndex(x=>x.k===a),ib=T.list.findIndex(x=>x.k===b);return (ia<0?1e9:ia)-(ib<0?1e9:ib)});
 let tSaveH=0;
-function tSave(now){clearTimeout(tSaveH);const f=()=>{try{localStorage.setItem(TK,JSON.stringify(T))}catch(e){}};if(now)f();else tSaveH=setTimeout(f,300)}
+function tSave(now){clearTimeout(tSaveH);const f=()=>{try{const j=JSON.stringify(T);localStorage.setItem(TK,j);TAM.T=j.length;guardaAviso("T",true)}catch(e){guardaAviso("T",false)}};if(now)f();else tSaveH=setTimeout(f,300)}
 let tDate=null,tState="idle",tErr="";
 
 /* ---------- 📋 Simulacros: hoja de respuestas (las preguntas se leen del PDF oficial del examen) ----------
@@ -1577,7 +1595,7 @@ const tLocked=d=>entregasDe(d).length>0&&!T.edit[d];
 const BK="mextforge.borr.v1";let BQ={bs:{},bt:{},bc:0};
 try{const o=JSON.parse(localStorage.getItem(BK));if(o)BQ=Object.assign(BQ,o)}catch(e){}
 if(BQ.v!==2){BQ.bc=0;BQ.v=2} // una vez: se vuelven a pedir los borradores que antes se descartaban por estar la sesión entregada
-const bqSave=()=>{try{localStorage.setItem(BK,JSON.stringify(BQ))}catch(e){}};
+const bqSave=()=>{try{localStorage.setItem(BK,JSON.stringify(BQ));guardaAviso("B",true)}catch(e){guardaAviso("B",false)}};
 const bTm=t=>({acc:Math.round(tEl(t)/1000)*1000});
 function bCampos(){const m={};
   for(const k in T.ans)for(const id in T.ans[k])m[k+"|a:"+id]=T.ans[k][id];

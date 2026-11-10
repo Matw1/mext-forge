@@ -23,8 +23,17 @@ const reg = `<script>
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   const hadSW = !!navigator.serviceWorker.controller;
   let pending = false, done = false;
-  const focused = () => { const a = document.activeElement; return !!(a && a.closest && a.closest("input,textarea")); };
-  const busy = () => false; // se aplica enseguida: antes de recargar se guardan las respuestas (tSave)
+  // La versión nueva espera a que termines lo que no se puede recuperar: una grabación 🎙️ en curso, una ronda a medias,
+  // o que estés escribiendo (15 s sin teclear). Se reintenta cada 5 s; antes de recargar se guardan las respuestas (tSave).
+  let typed = 0, composing = false;
+  document.addEventListener("input", () => { typed = Date.now(); }, true);
+  document.addEventListener("compositionstart", () => { composing = true; typed = Date.now(); }, true);
+  document.addEventListener("compositionend", () => { composing = false; typed = Date.now(); }, true);
+  const busy = () => {
+    try { return !!auRec || composing || Date.now() - typed < 15000 || view === "drill"; }
+    catch (e) { return false; }
+  };
+  window.__recargaOcupado = busy; // para pruebas
   const tryReload = () => {
     if (!pending || done || busy()) return;
     done = true;
