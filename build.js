@@ -38,7 +38,10 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     if (!pending || done || busy()) return;
     done = true;
     try { if (typeof tSave === "function") tSave(true); } catch (e) {}
-    location.reload();
+    // se recarga cuando el almacén confirmó el guardado (o a los 2 s, por si acaso)
+    let gone = false; const go = () => { if (!gone) { gone = true; location.reload(); } };
+    try { window.ALM ? ALM.listo().then(go, go) : go(); } catch (e) { go(); }
+    setTimeout(go, 2000);
   };
   navigator.serviceWorker.addEventListener("controllerchange", () => { if (!hadSW) return; pending = true; tryReload(); });
   setInterval(tryReload, 5000);
