@@ -495,6 +495,89 @@ button:active:not(:disabled),.lesson:active,.mode:active{transform:scale(.97)}
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <input id="imp" type="file" accept="application/json" class="hide">
 <script>
+/* ---------- Almacén de la app ----------
+   Antes todo (historial, sesiones, respuestas) vivía en localStorage, que el navegador limita a ~5 MB.
+   Ahora vive en IndexedDB (sin ese tope). Este cargador corre ANTES que la app:
+     1. Abre el almacén nuevo y lee todo a memoria; después arranca la app, que sigue leyendo «de inmediato» como siempre.
+     2. La primera vez migra: (a) guarda una copia de seguridad de todo en un almacén aparte, (b) copia los datos,
+        (c) los vuelve a leer y compara letra por letra, y solo entonces marca «mextforge.almacen = idb».
+        NO borra nada de localStorage: lo viejo queda intacto como estaba el día de la migración.
+     3. Si algo falla, la app sigue con el almacén viejo, igual que antes.
+   Vuelta atrás: abrir la app con «?almacen=viejo» devuelve los datos actuales a localStorage (si caben) y se queda ahí;
+   «?almacen=nuevo» vuelve a migrar. */
+(function(){
+  const CLAVES=["mextforge.v1","mextforge.tareas.v1","mextforge.tareas.v1.ses","mextforge.borr.v1"],FLAG="mextforge.almacen";
+  const BD="mextforge-datos",RESP="mextforge-respaldo";
+  const abrir=n=>new Promise((ok,no)=>{let r;try{r=indexedDB.open(n,1)}catch(e){return no(e)}
+    r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error||new Error("no abre"));r.onblocked=()=>no(new Error("bloqueado"))});
+  const leer=(db,ks)=>new Promise((ok,no)=>{const t=db.transaction("kv"),st=t.objectStore("kv"),o={};
+    ks.forEach(k=>{const q=st.get(k);q.onsuccess=()=>{if(q.result!==undefined)o[k]=q.result}});
+    t.oncomplete=()=>ok(o);t.onerror=t.onabort=()=>no(t.error||new Error("lectura"))});
+  const escribir=(db,o,relax)=>new Promise((ok,no)=>{let t;
+    try{t=db.transaction("kv","readwrite",relax?{}:{durability:"strict"})}catch(e){try{t=db.transaction("kv","readwrite")}catch(e2){return no(e2)}}
+    const st=t.objectStore("kv");for(const k in o){if(o[k]==null)st.delete(k);else st.put(o[k],k)}
+    t.oncomplete=()=>ok();t.onerror=t.onabort=()=>no(t.error||new Error("escritura"))});
+  const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+  const cola={};let enCurso=null,agendado=false;
+  const avisar=(k,ok)=>{try{A.aviso&&A.aviso(k,ok)}catch(e){}};
+  function vaciar(){agendado=false;if(enCurso)return;
+    const lote={},ks=[];let relax=true;
+    for(const k in cola){const c=cola[k];if(!c.sucio)continue;lote[k]=c.v;c.sucio=false;ks.push(k);if(!c.relax)relax=false}
+    if(!ks.length)return;
+    enCurso=escribir(A.db,lote,relax).then(()=>{A.err="";ks.forEach(k=>{if(!cola[k].sucio)avisar(k,true)})},
+      e=>{A.err=String(e&&e.message||e);ks.forEach(k=>{if(!cola[k].sucio){cola[k].sucio=true}avisar(k,false)});setTimeout(agendar,5000)})
+      .then(()=>{enCurso=null;if(Object.values(cola).some(c=>c.sucio)&&!A.err)agendar()});}
+  function agendar(){if(agendado)return;agendado=true;Promise.resolve().then(vaciar)}
+  const A=window.ALM={modo:"ls",mem:{},CLAVES,FLAG,db:null,err:"",migrado:0,previaT:0,volcar:false,aviso:null,
+    get(k){return this.modo==="idb"?(k in this.mem?this.mem[k]:null):lsGet(k)},
+    // Guarda un valor (null = quitarlo). En el almacén viejo es inmediato; en el nuevo va a disco enseguida, en segundo plano:
+    // lo guardado en el mismo instante entra junto (todo o nada). «aviso(clave, ok)» dice si quedó guardado.
+    set(k,v,relax){
+      if(this.modo!=="idb"){let ok=true;try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){ok=false}avisar(k,ok);return}
+      if(v==null)delete this.mem[k];else this.mem[k]=v;
+      const c=cola[k]||(cola[k]={});c.v=v;c.sucio=true;c.relax=!!relax;agendar()},
+    async listo(){await Promise.resolve();while(enCurso||agendado){if(enCurso)await enCurso;else await Promise.resolve()}},
+    async respaldo(){const db=await abrir(RESP);try{return (await leer(db,["pre-migracion"]))["pre-migracion"]||null}finally{db.close()}},
+  };
+  // La app arranca solo cuando la página terminó de leerse entera (si no, su código podría llegar cortado)
+  const domListo=new Promise(z=>{if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>z(),{once:true});else z()});
+  async function correr(){await domListo;const c=document.getElementById("forge-codigo"),sc=document.createElement("script");sc.textContent=c.textContent;document.body.appendChild(sc)}
+  async function falla(msg){await domListo;document.getElementById("app").innerHTML='<div style="font:16px system-ui;padding:24px;line-height:1.5"><h2>No se pudo abrir la app</h2><p>'+msg+'</p><p>Tus datos no se borraron. Cierra otras pestañas de la app y vuelve a intentar.</p><button onclick="location.reload()" style="font:inherit;padding:10px 18px">Reintentar</button><p style="color:#888;font-size:13px">'+String(A.err).replace(/[<&]/g,"")+'</p></div>'}
+  (async function(){
+    const q=new URLSearchParams(location.search).get("almacen");let flag=lsGet(FLAG);
+    try{A.db=await abrir(BD)}catch(e){A.db=null;A.err="almacén nuevo no disponible: "+(e&&e.message||e)}
+    if(flag==="idb"){
+      if(!A.db)return falla("El almacenamiento de la app no abrió.");
+      try{A.mem=await leer(A.db,CLAVES)}catch(e){A.err=String(e&&e.message||e);return falla("El almacenamiento de la app no se pudo leer.")}
+      A.modo="idb";A.volcar=q==="viejo";
+      abrir(RESP).then(db=>leer(db,["pre-migracion-t"]).then(o=>{A.previaT=o["pre-migracion-t"]||0;db.close()})).catch(()=>{});
+      return correr()}
+    if(q==="nuevo"&&flag==="ls")flag=null;
+    if(flag==null&&A.db&&q!=="viejo"){ // primera vez: migrar
+      try{
+        const datos={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(k.startsWith("mextforge")||k.startsWith("forge-")))datos[k]=localStorage.getItem(k)}
+        const t=Date.now(),rdb=await abrir(RESP);
+        // (a) copia de seguridad de todo, en un almacén aparte, y se comprueba
+        // (si ya hubo una migración antes, su copia original se conserva y esta se guarda como «última»)
+        const ya=(await leer(rdb,["pre-migracion-t"]))["pre-migracion-t"],kc=ya?"migracion-ultima":"pre-migracion";
+        await escribir(rdb,ya?{[kc]:{t,datos}}:{[kc]:{t,datos},"pre-migracion-t":t});
+        const chk=(await leer(rdb,[kc]))[kc];rdb.close();
+        if(!chk||Object.keys(chk.datos).length!==Object.keys(datos).length||Object.keys(datos).some(k=>chk.datos[k]!==datos[k]))throw new Error("la copia de seguridad no coincide");
+        // (b) copiar y (c) volver a leer y comparar
+        const lote={};for(const k of CLAVES)lote[k]=datos[k]!=null?datos[k]:null;
+        await escribir(A.db,lote);
+        const leido=await leer(A.db,CLAVES);
+        for(const k of CLAVES)if((lote[k]==null?null:lote[k])!==(leido[k]===undefined?null:leido[k]))throw new Error("no coincide "+k);
+        // solo ahora se cambia de almacén; lo viejo NO se borra
+        localStorage.setItem(FLAG,"idb");if(lsGet(FLAG)!=="idb")throw new Error("no se pudo marcar el cambio");
+        A.mem=leido;A.modo="idb";A.migrado=t;A.previaT=ya||t;
+      }catch(e){A.err="no se pudo migrar: "+(e&&e.message||e);A.modo="ls"}
+    }
+    correr();
+  })();
+})();
+</script>
+<script type="text/plain" id="forge-codigo">
 /* ---------- Mudanza: Forge vive ahora en su propia dirección ----------
    En matw1.github.io comparte dominio con Ráfaga y Android solo deja instalar una app por dominio.
    La app nueva trae los datos de la vieja: abre la vieja en otra pestaña y esta se los pasa con
@@ -510,9 +593,11 @@ if(MUDA_ES_VIEJA&&new URLSearchParams(location.search).get("exportar")==="1"&&wi
 }
 if(MUDA_ES_NUEVA)addEventListener("message",e=>{
   if(e.origin!==MUDA_VIEJA||!e.data||!e.data.forgeMudanza)return;
-  const d=e.data.forgeMudanza;let n=0;for(const k in d)if(k.startsWith("mextforge.")){localStorage.setItem(k,d[k]);n++}
+  const d=e.data.forgeMudanza;let n=0;for(const k in d)if(k.startsWith("mextforge.")&&k!==ALM.FLAG){if(ALM.CLAVES.includes(k))ALM.set(k,d[k]);else localStorage.setItem(k,d[k]);n++}
+  if(ALM.modo==="idb"&&d["mextforge.tareas.v1"])ALM.set("mextforge.tareas.v1.ses",null); // las sesiones vienen dentro de las tareas
+  try{localStorage.removeItem("mextforge.diario")}catch(_){}
   localStorage.setItem("mextforge.mudado","1");
-  alert(n?"Listo: tus datos de inglés ya están en esta app. Se va a recargar.":"No encontré datos en la dirección anterior.");location.reload();
+  ALM.listo().then(()=>{alert(n?"Listo: tus datos de inglés ya están en esta app. Se va a recargar.":"No encontré datos en la dirección anterior.");location.reload()});
 });
 function mudanzaHtml(){
   if(MUDA_ES_VIEJA)return `<a class="card mudanza" href="${MUDA_NUEVA}/" target="_blank" rel="noopener"><b>📦 Forge se mudó</b><span class="muted small">Ábrela en su dirección nueva, toca «Traer mis datos» e instálala desde ahí. Así puedes tener Ráfaga y Forge instaladas a la vez.</span></a>`;
@@ -804,6 +889,7 @@ function legacySnap(o){
 /* Espacio y avisos de guardado: el navegador da ~5 MB a la app. Si un guardado falla (espacio lleno o bloqueado)
    se muestra un aviso fijo arriba hasta que vuelva a funcionar: antes fallaba en silencio y lo escrito se perdía al cerrar. */
 const TAM={D:0,T:0},TAM_MAX=5e6,GUARDA={D:true,T:true,B:true};
+ALM.aviso=(k,ok)=>guardaAviso(k==="mextforge.v1"?"D":k==="mextforge.borr.v1"?"B":"T",ok); // el almacén avisa si cada guardado llegó a disco
 function guardaAviso(k,ok){
   if(GUARDA[k]===ok)return;GUARDA[k]=ok;
   const mal=!GUARDA.D||!GUARDA.T||!GUARDA.B;let el=document.getElementById("gAviso");
@@ -814,12 +900,15 @@ function guardaAviso(k,ok){
   el.textContent="⚠ No se pudo guardar en este dispositivo (espacio lleno o bloqueado). No cierres la app: usa «Copiar respuestas» en la sesión o «Exportar respaldo» en Ajustes.";
   document.body.appendChild(el);
 }
-function espacioPct(){return Math.round(100*(TAM.D+TAM.T)/TAM_MAX)}
+function espacioPct(){return ALM.modo==="idb"?0:Math.round(100*(TAM.D+TAM.T)/TAM_MAX)} // el almacén nuevo no tiene el tope de 5 MB
 function espacioHtml(){const p=espacioPct(),mb=((TAM.D+TAM.T)/1e6).toFixed(1).replace(".",",");
-  return `<div class="set"><span>Espacio usado en este dispositivo</span><span class="small" style="color:var(--${p>=90?"bad":p>=70?"warn":"muted"})">${mb} MB de ~5 MB · ${p}%</span></div>`}
+  const fch=t=>new Date(t).toLocaleDateString("es",{day:"numeric",month:"short"});
+  return `<div class="set"><span>Espacio usado en este dispositivo</span>${ALM.modo==="idb"?`<span class="small muted">${mb} MB · almacén nuevo, sin el tope de 5 MB</span>`:`<span class="small" style="color:var(--${p>=90?"bad":p>=70?"warn":"muted"})">${mb} MB de ~5 MB · ${p}%</span>`}</div>
+      ${ALM.modo!=="idb"&&ALM.err?`<div class="muted small">Sigues en el almacén anterior (${esc(ALM.err)}).</div>`:""}
+      <div class="row" style="flex-wrap:wrap"><button class="btn" data-act="copia">⬇ Copia de seguridad completa</button>${ALM.previaT?`<button class="btn" data-act="copia-previa">⬇ Copia previa al cambio de almacén (${fch(ALM.previaT)})</button>`:""}</div>`}
 function espacioAviso(){const p=espacioPct();return p>=80?`<div class="card" role="alert" style="border-color:var(--warn)"><b>⚠ El espacio de la app está al ${p}%</b><div class="muted small">Si se llena, la app no podrá guardar lo nuevo. Exporta un respaldo en Ajustes y avisa para liberar espacio.</div></div>`:""}
 function load(){
-  let o=null;try{const raw=localStorage.getItem(KEY);TAM.D=raw?raw.length:0;o=JSON.parse(raw)}catch(e){}
+  let o=null;try{const raw=ALM.get(KEY);TAM.D=raw?raw.length:0;o=JSON.parse(raw)}catch(e){}
   const f=fresh();
   if(o&&o.v===2){o.settings=Object.assign(f.settings,o.settings);DB=Object.assign(f,o)}
   else{DB=f;if(o&&o.cats){Object.assign(DB.settings,o.settings||{});
@@ -827,7 +916,7 @@ function load(){
   rebuild();save();
 }
 function persisted(){const{cats,items,buffer,sessions,fossils,best,bestMode,...p}=DB;return p}
-function save(){try{const j=JSON.stringify(persisted());localStorage.setItem(KEY,j);TAM.D=j.length;guardaAviso("D",true)}catch(e){guardaAviso("D",false)}}
+function save(){try{const j=JSON.stringify(persisted());ALM.set(KEY,j);TAM.D=j.length}catch(e){guardaAviso("D",false)}}
 try{load()}catch(e){DB=fresh();derivedReset(DB)}
 const errRate=c=>{const s=cs(c);return (s.w+1)/(s.n+2)};
 const catAcc=c=>{const s=cs(c);if(s.r.length)return s.r.reduce((a,b)=>a+b,0)/s.r.length;return s.n?1-s.w/s.n:null};
@@ -1353,22 +1442,35 @@ function render(){applyTheme();if(view==="prog")return renderProg();if(view==="s
    La entrega viaja como evento 't' por la misma cola que el juego (sin conexión espera y se reenvía). */
 const TK="mextforge.tareas.v1";
 let T={list:[],ses:{},ans:{},tm:{},out:{},edit:{},hb:0,at:0};
-try{const raw=localStorage.getItem(TK);TAM.T=raw?raw.length:0;const o=JSON.parse(raw);if(o)T=Object.assign(T,o)}catch(e){}
+// En el almacén nuevo las sesiones del instructor (lo pesado, y que se puede volver a bajar) van aparte de tus respuestas.
+const DIARIO="mextforge.diario";let tPend=false;
+try{const raw=ALM.get(TK),rs=ALM.modo==="idb"?ALM.get(TK+".ses"):null;TAM.T=(raw?raw.length:0)+(rs?rs.length:0);const o=JSON.parse(raw);if(o)T=Object.assign(T,o);if(rs)T.ses=JSON.parse(rs)}catch(e){}
+// Diario: copia inmediata de la sesión que tienes abierta. Si la app se cerró de golpe antes de que el almacén nuevo
+// terminara de guardar, lo último que escribiste se recupera de aquí.
+if(ALM.modo==="idb")try{const d=JSON.parse(localStorage.getItem(DIARIO)||"null");if(d&&d.k&&d.t>(T.gt||0)){if(d.ans)T.ans[d.k]=d.ans;if(d.tm)T.tm[d.k]=d.tm;if(d.out)T.out[d.k]=d.out;tPend=true}}catch(e){}
 // Cada sesión se guarda por su clave: la fecha en los días viejos (desplegables) y el id de la página en la base
 // (como en japonés), así dos páginas con la misma fecha conviven. Lo guardado antes por fecha se mueve a su página.
 (function porPagina(){let mv=0;
   for(const d of Object.keys(T.ses)){const x=T.ses[d];if(!x.date)x.date=/^\d{4}-\d{2}-\d{2}$/.test(d)?d:"";
     if(x.src==="db"&&x.tid&&d!==x.tid){for(const f of["ses","ans","tm","out","edit"])if(T[f][d]!==undefined){if(T[f][x.tid]===undefined)T[f][x.tid]=T[f][d];delete T[f][d]}mv++}}
   for(const x of T.list)if(!x.k)x.k=x.src==="db"?x.tid:x.date;
-  if(mv)try{localStorage.setItem(TK,JSON.stringify(T))}catch(e){}})();
+  if(mv)tPend=true})();
 const evKey=e=>e.src==="db"&&e.tid?e.tid:e.date;
 function sDate(k){const x=T.ses[k];if(x&&x.date)return x.date;const y=T.list.find(z=>z.k===k);if(y)return y.date;
   if(/^\d{4}-\d{2}-\d{2}$/.test(k))return k;const e=DB.ev.find(v=>v.k==="t"&&evKey(v)===k);return e?e.date:""}
 // Más reciente primero; en la misma fecha, en el orden de la lista de Notion.
 const porFecha=ks=>ks.sort((a,b)=>{const da=sDate(a),db=sDate(b);if(da!==db)return da<db?1:-1;const ia=T.list.findIndex(x=>x.k===a),ib=T.list.findIndex(x=>x.k===b);return (ia<0?1e9:ia)-(ib<0?1e9:ib)});
 let tSaveH=0;
-function tSave(now){clearTimeout(tSaveH);const f=()=>{try{const j=JSON.stringify(T);localStorage.setItem(TK,j);TAM.T=j.length;guardaAviso("T",true)}catch(e){guardaAviso("T",false)}};if(now)f();else tSaveH=setTimeout(f,300)}
+let sesSucio=false,sesLen=null; // sesSucio: cambió el contenido de alguna sesión (solo entonces se reescribe esa parte)
+function tSave(now){clearTimeout(tSaveH);const f=()=>{try{const t=Date.now();T.gt=t;
+    if(ALM.modo==="idb"){const{ses,...r}=T;
+      if(sesSucio||sesLen==null){const js=JSON.stringify(ses);ALM.set(TK+".ses",js,true);sesLen=js.length;sesSucio=false}
+      const j=JSON.stringify(r);ALM.set(TK,j);TAM.T=j.length+sesLen;
+      try{if(tDate)localStorage.setItem(DIARIO,JSON.stringify({k:tDate,t,ans:T.ans[tDate],tm:T.tm[tDate],out:T.out[tDate]}))}catch(e){}}
+    else{const j=JSON.stringify(T);ALM.set(TK,j);TAM.T=j.length}
+  }catch(e){guardaAviso("T",false)}};if(now)f();else tSaveH=setTimeout(f,300)}
 let tDate=null,tState="idle",tErr="";
+if(tPend)tSave(true);
 
 /* ---------- 📋 Simulacros: hoja de respuestas (las preguntas se leen del PDF oficial del examen) ----------
    Como en japonés: la app es pública y no guarda exámenes; solo marcas A–D o «no sé» con cronómetro.
@@ -1593,9 +1695,9 @@ const tLocked=d=>entregasDe(d).length>0&&!T.edit[d];
    Cada respuesta, actividad «fuera de la app» y cronómetro viaja por separado; gana la edición más reciente.
    Sin conexión espera; en Android el service worker lo manda solo al volver la señal aunque la app esté cerrada. */
 const BK="mextforge.borr.v1";let BQ={bs:{},bt:{},bc:0};
-try{const o=JSON.parse(localStorage.getItem(BK));if(o)BQ=Object.assign(BQ,o)}catch(e){}
+try{const o=JSON.parse(ALM.get(BK));if(o)BQ=Object.assign(BQ,o)}catch(e){}
 if(BQ.v!==2){BQ.bc=0;BQ.v=2} // una vez: se vuelven a pedir los borradores que antes se descartaban por estar la sesión entregada
-const bqSave=()=>{try{localStorage.setItem(BK,JSON.stringify(BQ));guardaAviso("B",true)}catch(e){guardaAviso("B",false)}};
+const bqSave=()=>{try{ALM.set(BK,JSON.stringify(BQ),true)}catch(e){guardaAviso("B",false)}};
 const bTm=t=>({acc:Math.round(tEl(t)/1000)*1000});
 function bCampos(){const m={};
   for(const k in T.ans)for(const id in T.ans[k])m[k+"|a:"+id]=T.ans[k][id];
@@ -1684,6 +1786,7 @@ async function fetchTareas(extra,force){
       const j=await r.json();
       if(!j.ok){tState=j.error==="sin-seccion"?"nosection":"error";tErr=j.detail||j.error||"";return}
       T.list=(j.list||[]).map(x=>Object.assign(x,{k:x.k||(x.src==="db"?x.tid:x.date)}));
+      sesSucio=true;T.sinNotion=j.sinNotion||[];
       for(const[d,blocks]of Object.entries(j.sessions||{})){const it=T.list.find(x=>x.k===d);T.ses[d]={tid:it&&it.tid,date:it?it.date:d,title:it?it.title:d,blocks,at:Date.now(),src:it&&it.src,edited:it&&it.edited,props:it&&it.props}}
       for(const x of T.list)if(T.ses[x.k]){T.ses[x.k].date=x.date;if(x.src==="db"){T.ses[x.k].props=x.props;T.ses[x.k].title=x.title}}
       // Lo que el instructor borró desaparece también de la app (las entregas quedan aparte); si cambió la fecha, la sesión la sigue.
@@ -2283,7 +2386,7 @@ function renderTarea(keepScroll){
   $("#app").innerHTML=`<div class="stack tk">
     <div class="row"><button class="icon-btn" data-tk="list" aria-label="Volver">←</button><div style="min-width:0"><b style="font-size:1.05rem">${sDate(d)===today()?"Hoy · ":""}${sDate(d)}</b><div class="muted small">${esc(s.title.replace(/^\S*\s*\d{4}-\d{2}-\d{2}\s*·?\s*/,""))}</div></div><span class="sp"></span><button class="btn" data-tk="refresh" title="Actualizar">↻</button></div>
     <div class="muted small" id="tkState">${esc(tkLabel())}</div>
-    ${ents.length?`<div class="card tk-sent"><b>📤 ${ents.length>1?ents.length+" entregas":"Entregada"}</b> · ${ents.map(e=>`Entrega ${e.n}: ${new Date(e.t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"})}${DB.outbox.includes(e.i)?" (en cola, se enviará con conexión)":""}`).join(" · ")}
+    ${ents.length?`<div class="card tk-sent"><b>📤 ${ents.length>1?ents.length+" entregas":"Entregada"}</b> · ${ents.map(e=>`Entrega ${e.n}: ${new Date(e.t).toLocaleTimeString("es",{hour:"2-digit",minute:"2-digit"})}${DB.outbox.includes(e.i)?" (en cola, se enviará con conexión)":""}`).join(" · ")}${(T.sinNotion||[]).includes(d)&&!ents.some(e=>DB.outbox.includes(e.i))?`<div class="small" style="color:var(--warn);margin-top:6px">⚠ Esta entrega todavía no llegó a Notion. Se reintenta sola; si mañana sigue así, avisa.</div>`:""}
       ${locked?`<div style="margin-top:8px"><button class="btn" data-tk="unlock">Corregir algo y entregar de nuevo</button></div>`:`<div class="muted small" style="margin-top:6px">Editando para una nueva entrega. La anterior no se borra.</div>`}</div>`:""}
     ${pi===0&&p.intro.length?`<section class="card">${p.intro.map(blockHtml).join("")}</section>`:""}
     <div class="epagina">${(pags[pi]||[]).map(a=>actHtml(d,a,locked)).join("")||`<div class="card muted">El instructor todavía no agregó actividades a esta sesión.</div>`}</div>
@@ -2519,6 +2622,37 @@ function renderProg(){
 }
 
 /* ================= EVENTS ================= */
+/* Copia de seguridad completa: todo lo de este dispositivo (historial, sesiones, respuestas, borradores, ajustes) en un archivo.
+   «previa» = la copia automática que se hizo justo antes de cambiar de almacén. Se restaura con «Importar». */
+function descargar(nombre,obj){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(obj)],{type:"application/json"}));a.download=nombre;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000)}
+async function copiaCompleta(previa){
+  try{
+    if(previa){const r=await ALM.respaldo();if(!r){toast("No hay copia previa en este dispositivo");return}
+      descargar(`mext-forge-copia-previa-${today(new Date(r.t))}.json`,{app:"mext-forge",tipo:"previa",t:r.t,datos:r.datos});return}
+    const datos={};try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&(k.startsWith("mextforge")||k.startsWith("forge-"))&&!ALM.CLAVES.includes(k)&&k!==DIARIO)datos[k]=localStorage.getItem(k)}}catch(e){}
+    datos[KEY]=JSON.stringify(persisted());datos[TK]=JSON.stringify(T);datos[BK]=JSON.stringify(BQ);
+    descargar(`mext-forge-copia-completa-${today()}.json`,{app:"mext-forge",tipo:"completa",t:Date.now(),datos});
+    toast("Copia de seguridad descargada");
+  }catch(e){toast("No se pudo hacer la copia: "+(e.message||e))}
+}
+async function restaurarCopia(o){
+  const d=o.datos||{},n=[KEY,TK,BK].filter(k=>typeof d[k]==="string").length;
+  if(!n){toast("Esa copia no trae datos");return}
+  if(!confirm(`¿Restaurar la copia del ${new Date(o.t).toLocaleString("es")}?\n\nReemplaza lo que hay ahora en ESTE dispositivo (historial, sesiones y respuestas) por lo de la copia. Si dudas, descarga antes una «Copia de seguridad completa».`))return;
+  for(const k of[KEY,TK,BK])if(typeof d[k]==="string")ALM.set(k,d[k]);
+  if(ALM.modo==="idb"&&typeof d[TK]==="string")ALM.set(TK+".ses",null); // las sesiones vienen dentro de la copia de tareas
+  try{localStorage.removeItem(DIARIO)}catch(e){}
+  await ALM.listo();if(!GUARDA.D||!GUARDA.T||!GUARDA.B){toast("No se pudo guardar la copia restaurada");return}
+  location.reload();
+}
+// Vuelta atrás (abrir con «?almacen=viejo»): devuelve los datos actuales al almacén anterior, si caben, y se queda ahí.
+function almVolver(){
+  const v={[KEY]:JSON.stringify(persisted()),[TK]:JSON.stringify(T),[BK]:JSON.stringify(BQ)};
+  try{for(const k in v){localStorage.setItem(k,v[k]);if(localStorage.getItem(k)!==v[k])throw new Error("no coincide")}
+    try{localStorage.removeItem(DIARIO)}catch(_){}
+    localStorage.setItem(ALM.FLAG,"ls");ALM.modo="ls";ALM.volcar=false;toast("Listo: la app volvió al almacén anterior");render()}
+  catch(e){ALM.volcar=false;toast("No cabe en el almacén anterior: sigues en el nuevo, sin perder nada")}
+}
 function exportData(){
   const a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob([JSON.stringify(persisted())],{type:"application/json"}));
@@ -2526,6 +2660,7 @@ function exportData(){
 }
 $("#imp").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
   r.onload=()=>{try{const d=JSON.parse(r.result);
+    if(d&&d.app==="mext-forge"&&d.datos){restaurarCopia(d);return}
     if(d&&d.v===2&&Array.isArray(d.ev)){const have=new Set(DB.ev.map(e=>e.i));for(const e of d.ev)if(!have.has(e.i)){DB.ev.push(e);DB.outbox.push(e.i)}}
     else if(d&&d.cats){const e={t:1,k:"b",snap:legacySnap(d)};e.i=DB.dev.id+"-imp-"+rid();e.d=DB.dev.id;DB.ev.push(e);DB.outbox.push(e.i)}
     else throw 0;
@@ -2558,6 +2693,8 @@ document.addEventListener("click",e=>{
     case "prodbad":answer(0,{ok:false,typed:G.typed});break;
     case "prodok":answer(0,{ok:true,exact:false,typed:G.typed});break;
     case "export":exportData();break;
+    case "copia":copiaCompleta(false);break;
+    case "copia-previa":copiaCompleta(true);break;
     case "mudanza":window.open(MUDA_VIEJA+"/mext-forge/?exportar=1","_blank");break;
     case "mudanza-no":localStorage.setItem("mextforge.mudado","1");render();break;
     case "fondoadd":{const i=document.getElementById("fImg");if(i)i.click();break}
@@ -2608,6 +2745,7 @@ document.addEventListener("change",e=>{const id=e.target.dataset&&e.target.datas
   const el=document.getElementById("simPdf");if(el)el.innerHTML='<div class="muted small" style="padding:10px">Cargando el examen…</div>';simPdfCargar(id,f)});
 registerLessons();
 render();
+if(ALM.volcar)almVolver();
 syncNow();
 fetchTareas();
 addEventListener("online",()=>{syncNow();bSync()});
