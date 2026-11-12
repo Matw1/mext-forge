@@ -67,6 +67,17 @@ h3{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--mu
 .ring .in small{font-size:.7rem;color:var(--muted)}
 .eyebrow{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:800}
 .hero .h{font-size:1.05rem;font-weight:700;margin:4px 0 10px}
+.hero .hsub{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-top:2px}
+/* 🗓 Hoy: lo que toca, en un solo lugar */
+.hoy{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.hoy-h{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.hoy-b{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface2);border-radius:14px;padding:11px 14px;color:inherit;font:inherit;cursor:pointer}
+.hoy-b.pri{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.hoy-b .ic{flex:none;width:28px;text-align:center;font-size:1.25rem}
+.hoy-b .tx{flex:1;min-width:0}.hoy-b b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.25}
+.hoy-b small{display:block;color:var(--muted);font-size:.8rem}
+.hoy-b .chev{flex:none;color:var(--muted);font-size:1.2rem}
+.hoy-f{font-size:.78rem;color:var(--muted);padding:0 2px}
 .pills{display:flex;flex-wrap:wrap;gap:6px}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-variant-numeric:tabular-nums}
 .pill.viejo{opacity:.55}.pill.viejo .hace{font-weight:600}
@@ -1263,6 +1274,45 @@ function instructorPills(){
     h+=`<span class="pill${viejoCls(n)}" title="(meta ${hrs.meta} h − ${hrs.acc} h acumuladas) ÷ ${dias} días hasta el 15 jul 2027 · datos del instructor, ${fechaCorta(sDate(hrs.d))}">⏱ Debes estudiar ${Math.floor(min/60)} h ${min%60} min/día${viejoTxt(n,"horas de ")}</span>`}
   return h;
 }
+/* 🗓 Hoy: lo que toca, en un solo lugar: la sesión del día (o la pendiente), el repaso de errores y la lección nueva.
+   Solo muestra y lleva; no califica ni inventa metas: el tiempo diario sale de las horas que anota el instructor. */
+function hoyHtml(){
+  const fila=(attrs,ic,tit,sub,pri)=>`<button class="hoy-b${pri?" pri":""}" ${attrs}><span class="ic">${ic}</span><span class="tx"><b>${tit}</b><small>${sub}</small></span><span class="chev" aria-hidden="true">›</span></button>`;
+  const hoyK=porFecha(Object.keys(T.ses).filter(k=>sDate(k)===today()));
+  const d=hoyK.find(k=>sesStatus(k)[0]==="Por hacer")||hoyK[0]||porFecha(Object.keys(T.ses)).find(k=>sesStatus(k)[0]==="Por hacer");
+  let h="";
+  if(d){const st=sesStatus(d)[0],n=parseSession(T.ses[d].blocks).acts.filter(a=>a.ty!=="ref").length;
+    const hecho=Object.values(T.ans[d]||{}).some(a=>String(a.v||"").trim()||a.ch!=null),pi=Math.min(((T.pag||{})[d]||0)+1,Math.max(1,n));
+    let sub,pri=false;
+    if(st==="Corregida")sub="Corregida por el instructor";
+    else if(st.startsWith("Entregada"))sub="Entregada · esperando la corrección";
+    else if(hecho){sub=`A medias · vas en la actividad ${pi} de ${n}`;pri=true}
+    else{sub="Por hacer"+(n?` · ${n} actividad${n>1?"es":""}`:"");pri=true}
+    const seguir=pri&&hecho&&T.ultimo&&T.ultimo.d===d; // vuelve al punto exacto donde ibas
+    h+=fila(seguir?`data-tk="volver"`:`data-tk="open" data-v="${esc(d)}"`,"📝",esc((sDate(d)===today()?"":"Pendiente · ")+tituloSes(d)),sub,pri);
+  }else h+=fila(`data-tk="tab-estudio"`,"📝","Aún no hay sesión para hoy","Toca para abrir Estudio y actualizar",false);
+  if(Object.keys(DB.buffer).length)h+=fila(`data-focus-go="buf"`,"↻","Repasar errores","Una ronda corta con lo que fallaste",false);
+  const nueva=lessonDays().find(k=>!LESSONS.filter(x=>x.L===k).some(x=>DB.items[x.id]));
+  if(nueva)h+=fila(`data-focus-go="day:${esc(nueva)}"`,"📅","Lección nueva",esc(tituloSes(nueva)),false);
+  const ts=todayStats(),{hrs}=instructorStats(),st=streakNow(),pie=[];
+  if(hrs){const min=Math.max(0,Math.round((hrs.meta-hrs.acc)*60/Math.max(1,daysTo(EXAM))));pie.push(`⏱ Debes estudiar ${min>=60?Math.floor(min/60)+" h "+(min%60)+" min":min+" min"}/día`)}
+  if(ts.n)pie.push(`✓ ${ts.n} respuestas hoy`);
+  if(st>1)pie.push(`🔥 ${st} días seguidos`);
+  return `<section class="card hoy"><div class="hoy-h">Hoy · ${new Date().toLocaleDateString("es",{weekday:"long",day:"numeric",month:"short"}).replace(".","")}</div>${h}${pie.length?`<div class="hoy-f">${pie.join(" · ")}</div>`:""}</section>`;
+}
+/* Titular del inicio: la fase y su dominio salen de lo que el instructor pone en Notion (Fase, temas en 100 %, Dominio %).
+   Antes era una fecha de «checkpoint» fija en el código. */
+function faseTitular(){
+  const df=dominioFase(),{dom}=instructorStats();
+  if(df){const n=hace(df.fecha);return `${esc(df.fase)} · <span style="color:var(--accent)">${String(df.pct).replace(".",",")}% dominado</span><small class="hsub">${df.dom} de ${df.n} temas${n?` · dato de hace ${n} días`:""}</small>`}
+  if(dom){const n=hace(sDate(dom.d));return `Fase ${esc(dom.fase)} · <span style="color:var(--accent)">${dom.pct}% dominado</span><small class="hsub">según el instructor${n?` · dato de hace ${n} días`:""}</small>`}
+  return "Camino al examen";
+}
+function temaPillHtml(){
+  const{tem}=instructorStats();if(!tem)return"";const n=hace(sDate(tem.d));
+  return tem.pct>=100?`<span class="pill${viejoCls(n)}" style="color:var(--inf)" title="El instructor lo dio por superado">✅ ${esc(tem.tema)}: superado · instructor, ${fechaCorta(sDate(tem.d))}${viejoTxt(n)}</span>`
+    :`<span class="pill${viejoCls(n)}" style="color:var(--inf)" title="Lo estima el instructor; no lo calcula la app">🎯 ${esc(tem.tema)}: ${tem.pct}% · instructor, ${fechaCorta(sDate(tem.d))}${viejoTxt(n)}</span>`;
+}
 function renderHome(){
   if(/^(day|prod)/.test(String(DB.settings.focus))&&!buildQueue(DB.settings.focus).length)DB.settings.focus="mix"; // la lección ya no existe
   const ts=todayStats(),bufN=Object.keys(DB.buffer).length,f=DB.settings.focus;
@@ -1273,7 +1323,7 @@ function renderHome(){
     ${mudanzaHtml()}${espacioAviso()}
     <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge${nivelBadge()}</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
       <button class="icon-btn" data-act="prog" aria-label="Panel de progreso" title="Panel de progreso (P)">📈</button><button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
-    ${volverHtml()}
+    ${hoyHtml()}
     <section class="hero">
       <div class="ring" aria-label="${exam} días para el examen">
         <svg viewBox="0 0 100 100"><defs><linearGradient id="g1" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#ffb3cd"/><stop offset="1" stop-color="var(--accent)"/></linearGradient></defs>
@@ -1283,8 +1333,8 @@ function renderHome(){
       </div>
       <div>
         <div class="eyebrow">Exam · 15 jul 2027</div>
-        <div class="h">${ph.n<4?`Checkpoint Fase ${ph.n} en <span style="color:var(--accent)">${days} días</span>`:`Simulacro final en <span style="color:var(--accent)">${days} días</span>`}</div>
-        <div class="pills">${instructorPills()}<span class="pill">🔥 ${streakNow()} ${streakNow()===1?"día":"días"}</span><span class="pill">✓ ${ts.n} hoy${ts.n?" · "+Math.round(100*ts.ok/ts.n)+"%":""}</span><span class="pill" style="color:var(--warn)">↻ ${bufN}</span>${DB.fossils?`<span class="pill" style="color:var(--fos)">! ${DB.fossils}</span>`:""}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
+        <div class="h">${faseTitular()}</div>
+        <div class="pills">${temaPillHtml()}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
       </div>
     </section>
     <button class="start" data-act="go"><span class="play">▶</span><span><b>${String(f).startsWith("day")?"Lección":String(f).startsWith("prod")?"Producción":"Ronda de "+ROUND}</b><small>${esc(modeLabel(f).replace(/^Lección · /,""))} · Enter</small></span></button>
@@ -1295,8 +1345,8 @@ function renderHome(){
     <div class="modes">${FOCI.map(k=>{
       const p=CATS[k]?catAcc(k):null;
       return `<button class="mode ${k===f?"on":""}" data-focus="${k}" style="--c:${cv(k)}">
-        <span class="glyph">${CUI[k].g}</span><span class="mn">${CUI[k].n}</span><span class="ms">${k==="buf"?(bufN?bufN+" por liberar":"Vacío ✨"):CUI[k].s}</span>
-        ${k==="buf"&&bufN?`<span class="badge">${bufN}</span>`:p!=null?`<span class="acc">${Math.round(p*100)}%</span>`:""}
+        <span class="glyph">${CUI[k].g}</span><span class="mn">${CUI[k].n}</span><span class="ms">${k==="buf"?(bufN?"Pendientes de repasar":"Vacío ✨"):CUI[k].s}</span>
+        ${k==="buf"?"":p!=null?`<span class="acc">${Math.round(p*100)}%</span>`:""}
         ${p!=null?`<span class="mb" style="width:${p*100}%"></span>`:""}</button>`}).join("")}</div>
     <h3>Regla del día</h3>
     <div class="card rule-day" style="--c:${cv(tipCat)}"><span class="wm" aria-hidden="true">${CUI[tipCat].g}</span>${glyph(tipCat)}
@@ -1889,16 +1939,16 @@ function modeLabel(m){
 }
 function lessonsHtml(f){
   const days=lessonDays(),pn=k=>PROD.filter(x=>x.L===k).length;
-  const prodCard=PROD.length?`<button class="lesson lp" data-mode="prod"><span class="glyph" style="--c:var(--esc)">✎</span><span class="lt"><b>✏️ Producción: escribir</b><span class="muted small">${PROD.length} tarjetas · tus errores corregidos y las preguntas del juego</span></span><span class="pct">▶</span></button>`:"";
-  if(!days.length)return prodCard?plegHtml("lec",`<span class="glyph" style="--c:var(--dia)">📅</span><span class="lt"><b>Lecciones de días estudiados</b><span class="muted small">Aún sin días · ✏️ ${PROD.length} para escribir</span></span>`,`<div class="lessons">${prodCard}</div>`)
+  const prodCard=PROD.length?`<button class="lesson lp" data-mode="prod"><span class="glyph" style="--c:var(--esc)">✎</span><span class="lt"><b>✏️ Producción: escribir</b><span class="muted small">Tus errores corregidos y las preguntas del juego</span></span><span class="pct">▶</span></button>`:"";
+  if(!days.length)return prodCard?plegHtml("lec",`<span class="glyph" style="--c:var(--dia)">📅</span><span class="lt"><b>Lecciones de días estudiados</b><span class="muted small">Aún sin días · ✏️ para escribir</span></span>`,`<div class="lessons">${prodCard}</div>`)
     :`<div class="pleg"><div class="lesson pleg-h lempty"><span class="glyph" style="--c:var(--dia)">📅</span><span class="lt"><b>Aún no hay lecciones</b><span class="muted small">Aparecen cuando el instructor corrige un día con la sección «🎮 Juego».</span></span></div></div>`;
   const acc=ids=>{let n=0,ok=0;for(const id of ids){const it=DB.items[id];if(it&&it.n){n+=it.n;ok+=it.ok||0}}return n?ok/n:null};
   const card=(mode,title,sub,ids,isNew,pk)=>{const p=acc(ids),n=pk?pn(pk):0;return `<div class="lrow"><button class="lesson ${f===mode?"on":""}" data-focus="${esc(mode)}">
       <span class="glyph" style="--c:var(--dia)">Día</span><span class="lt"><b>${esc(title)}</b><span class="muted small">${sub}${isNew?' · <span class="lnew">nueva</span>':""}</span></span>
       <span class="pct">${p==null?"▶":Math.round(p*100)+"%"}</span>${p!=null?`<span class="mb" style="width:${p*100}%;background:var(--dia)"></span>`:""}</button>${n?`<button class="lprod" data-mode="prod:${esc(pk)}" title="Escribir las respuestas" aria-label="Producción: escribir">✏️<small>${n}</small></button>`:""}</div>`};
   const all=LESSONS.map(x=>x.id);
-  return plegHtml("lec",`<span class="glyph" style="--c:var(--dia)">📅</span><span class="lt"><b>Lecciones de días estudiados</b><span class="muted small">${days.length} día${days.length>1?"s":""} · ${all.length} preguntas${PROD.length?` · ✏️ ${PROD.length} para escribir`:""}</span></span>`,`<div class="lessons">
-    ${days.length>1?card("days","Todas las lecciones",`${days.length} días · ${all.length} preguntas`,all):""}
+  return plegHtml("lec",`<span class="glyph" style="--c:var(--dia)">📅</span><span class="lt"><b>Lecciones de días estudiados</b><span class="muted small">${days.length} día${days.length>1?"s":""} con lección</span></span>`,`<div class="lessons">
+    ${days.length>1?card("days","Todas las lecciones",`${days.length} días`,all):""}
     ${prodCard}
     ${days.map(d=>{const ids=LESSONS.filter(x=>x.L===d).map(x=>x.id);return card("day:"+d,tituloSes(d),`${esc(fechaCorta(sDate(d)))} · ${ids.length} preguntas`,ids,!ids.some(id=>DB.items[id]),d)}).join("")}
   </div>`);
