@@ -435,6 +435,22 @@ details[open].card summary::after{content:"－"}
 .ehoy .edia small{color:rgba(255,255,255,.85)}.ehoy .edia b{font-size:1.8rem}
 .ehoy .efecha{color:var(--accent)}.ecard.eses.ehoy .etit{font-size:1.16rem}
 .echip,.enota{font-family:"Nunito",sans-serif;font-weight:800}
+/* ===== Rediseño 21-nov: barra de navegación abajo + «Hoy» como tarjeta principal ===== */
+#bnav{position:fixed;left:0;right:0;bottom:0;z-index:45;display:flex;justify-content:center;padding:6px 10px calc(6px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--surface) 94%,transparent);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(0,0,0,.06)}
+#bnav .in{display:flex;gap:4px;width:100%;max-width:560px}
+#bnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:0;background:none;color:var(--muted);font:inherit;font-size:.7rem;font-weight:800;letter-spacing:.01em;padding:7px 0 5px;border-radius:14px;min-height:54px;transition:color .2s,background-color .2s}
+#bnav button.on{color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+#bnav button:active{transform:scale(.94)}
+body.bnav #app{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+body.bnav #toast{bottom:calc(84px + env(safe-area-inset-bottom))}
+.hoy{background:linear-gradient(160deg,color-mix(in srgb,var(--accent) 13%,var(--surface)),var(--surface) 60%);border-color:color-mix(in srgb,var(--accent) 28%,var(--line));padding:18px;gap:10px}
+.hoy-h{color:var(--accent);font-size:.74rem}
+.hoy-b{border-radius:16px;padding:13px 14px;background:color-mix(in srgb,var(--surface2) 70%,transparent)}
+.hoy-b .ic{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);font-size:1.1rem}
+.hoy-b.pri{border:0;box-shadow:0 10px 26px var(--glow);padding:16px;color:#fff;background:linear-gradient(120deg,color-mix(in srgb,var(--accent) 92%,#000),color-mix(in srgb,var(--accent) 68%,#000))}
+.hoy-b.pri b{font-size:1.06rem}.hoy-b.pri small{color:rgba(255,255,255,.86)}.hoy-b.pri .chev{color:#fff}
+.hoy-b.pri .ic{background:rgba(255,255,255,.18);color:#fff}
+@media (hover:hover) and (pointer:fine){.hoy-b:hover{transform:translateY(-2px)}.hoy-b.pri:hover{box-shadow:0 14px 32px var(--glow)}}
 /* ===== Fondo propio (imagen de este dispositivo; la paleta sale de la imagen) ===== */
 #fondo{position:fixed;top:0;left:0;width:100%;height:100vh;height:100lvh;z-index:-1;background:var(--bg) center/cover no-repeat;pointer-events:none;animation:aFade .6s both}
 #fondo::after{content:"";position:absolute;inset:0;background:var(--bg);opacity:var(--fvel,.35);transition:opacity .2s}
@@ -802,7 +818,7 @@ const FOSSILS=[
 ];
 
 /* ================= CONFIG ================= */
-const EXAM=new Date(2027,6,15,9,0,0);
+const EXAM=new Date(2027,5,15,9,0,0);
 const JOURNEY_START=new Date(2026,6,30);          // primer registro en «Ingles Avance»
 const PHASES=[                                      // checkpoints del temario (Ingles Avance.pdf)
   {n:1,d:new Date(2026,11,6),cats:["COP","INF","NEG","UNC","IND"]},
@@ -1271,7 +1287,7 @@ function instructorPills(){
   if(tem){const n=hace(sDate(tem.d));h+=tem.pct>=100?`<span class="pill${viejoCls(n)}" style="color:var(--inf)" title="El instructor lo dio por superado">✅ ${esc(tem.tema)}: superado · instructor, ${fechaCorta(sDate(tem.d))}${viejoTxt(n)}</span>`
     :`<span class="pill${viejoCls(n)}" style="color:var(--inf)" title="Lo estima el instructor; no lo calcula la app">🎯 ${esc(tem.tema)}: ${tem.pct}% · instructor, ${fechaCorta(sDate(tem.d))}${viejoTxt(n)}</span>`}
   if(hrs){const dias=Math.max(1,daysTo(EXAM)),min=Math.max(0,Math.round((hrs.meta-hrs.acc)*60/dias)),n=hace(sDate(hrs.d));
-    h+=`<span class="pill${viejoCls(n)}" title="(meta ${hrs.meta} h − ${hrs.acc} h acumuladas) ÷ ${dias} días hasta el 15 jul 2027 · datos del instructor, ${fechaCorta(sDate(hrs.d))}">⏱ Debes estudiar ${Math.floor(min/60)} h ${min%60} min/día${viejoTxt(n,"horas de ")}</span>`}
+    h+=`<span class="pill${viejoCls(n)}" title="(meta ${hrs.meta} h − ${hrs.acc} h acumuladas) ÷ ${dias} días hasta el 15 jun 2027 · datos del instructor, ${fechaCorta(sDate(hrs.d))}">⏱ Debes estudiar ${Math.floor(min/60)} h ${min%60} min/día${viejoTxt(n,"horas de ")}</span>`}
   return h;
 }
 /* 🗓 Hoy: lo que toca, en un solo lugar: la sesión del día (o la pendiente), el repaso de errores y la lección nueva.
@@ -1289,9 +1305,9 @@ function hoyHtml(){
     else if(hecho){sub=`A medias · vas en la actividad ${pi} de ${n}`;pri=true}
     else{sub="Por hacer"+(n?` · ${n} actividad${n>1?"es":""}`:"");pri=true}
     const seguir=pri&&hecho&&T.ultimo&&T.ultimo.d===d; // vuelve al punto exacto donde ibas
-    h+=fila(seguir?`data-tk="volver"`:`data-tk="open" data-v="${esc(d)}"`,"📝",esc((sDate(d)===today()?"":"Pendiente · ")+tituloSes(d)),sub,pri);
-  }else h+=fila(`data-tk="tab-estudio"`,"📝","Aún no hay sesión para hoy","Toca para abrir Estudio y actualizar",false);
-  if(Object.keys(DB.buffer).length)h+=fila(`data-focus-go="buf"`,"↻","Repasar errores","Una ronda corta con lo que fallaste",false);
+    h+=fila(seguir?`data-tk="volver"`:`data-tk="open" data-v="${esc(d)}"`,ICO.libro,esc((sDate(d)===today()?"":"Pendiente · ")+tituloSes(d)),sub,pri);
+  }else h+=fila(`data-tk="tab-estudio"`,ICO.libro,"Aún no hay sesión para hoy","Toca para abrir Estudio y actualizar",false);
+  if(Object.keys(DB.buffer).length)h+=fila(`data-focus-go="buf"`,ICO.repite,"Repasar errores","Una ronda corta con lo que fallaste",false);
   const nueva=lessonDays().find(k=>!LESSONS.filter(x=>x.L===k).some(x=>DB.items[x.id]));
   if(nueva)h+=fila(`data-focus-go="day:${esc(nueva)}"`,"📅","Lección nueva",esc(tituloSes(nueva)),false);
   const ts=todayStats(),{hrs}=instructorStats(),st=streakNow(),pie=[];
@@ -1321,8 +1337,7 @@ function renderHome(){
   const keys=Object.keys(CATS).filter(k=>k!=="DIA"&&k!=="ESC"),tipCat=keys[Math.floor(Date.now()/864e5)%keys.length];
   $("#app").innerHTML=`${tabsHtml("juego")}
     ${mudanzaHtml()}${espacioAviso()}
-    <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge${nivelBadge()}</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div><span class="sp"></span>
-      <button class="icon-btn" data-act="prog" aria-label="Panel de progreso" title="Panel de progreso (P)">📈</button><button class="icon-btn" data-act="stats" aria-label="Estadísticas" title="Estadísticas (S)">📊</button></div>
+    <div class="row"><div class="brand"><span class="hanko">英</span><div><b>MEXT Forge${nivelBadge()}</b><small>Inglés · rondas de ${ROUND} · 1–2 min</small></div></div></div>
     ${hoyHtml()}
     <section class="hero">
       <div class="ring" aria-label="${exam} días para el examen">
@@ -1332,7 +1347,7 @@ function renderHome(){
         <div class="in"><div><b>${exam}</b><small>días</small></div></div>
       </div>
       <div>
-        <div class="eyebrow">Exam · 15 jul 2027</div>
+        <div class="eyebrow">Exam · 15 jun 2027</div>
         <div class="h">${faseTitular()}</div>
         <div class="pills">${temaPillHtml()}<button class="pill" id="syncPill" data-act="syncpill" data-s="${syncLabel()[1]}">${syncLabel()[0]}</button></div>
       </div>
@@ -2023,7 +2038,8 @@ function matFiltrar(){
 document.addEventListener("input",e=>{if(view==="mat"&&e.target.id==="matSearch"){matQ=e.target.value;matFiltrar()}});
 
 /* ---------- pestañas y formato de fechas ---------- */
-const tabsHtml=on=>`<nav class="tabs" role="tablist"><button role="tab" aria-selected="${on==="juego"}" data-tk="tab-juego" class="${on==="juego"?"on":""}">🎮 Juego</button><button role="tab" aria-selected="${on==="estudio"}" data-tk="tab-estudio" class="${on==="estudio"?"on":""}">📝 Estudio</button></nav>`;
+const tabsHtml=on=>""; // la navegación ahora es la barra de abajo (bnavPintar)
+const tabsHtmlViejo=on=>`<nav class="tabs" role="tablist"><button role="tab" aria-selected="${on==="juego"}" data-tk="tab-juego" class="${on==="juego"?"on":""}">🎮 Juego</button><button role="tab" aria-selected="${on==="estudio"}" data-tk="tab-estudio" class="${on==="estudio"?"on":""}">📝 Estudio</button></nav>`;
 const subTabs=on=>`<div class="seg esub"><button data-tk="sub-ses" class="${on==="ses"?"on":""}">Sesiones</button><button data-tk="ref" class="${on==="ref"?"on":""}">📘 Referencia</button><button data-tk="mat" class="${on==="mat"?"on":""}">📊 Materia</button><button data-tk="sim" class="${on==="sim"?"on":""}">📋 Simulacros</button><button data-tk="tem" class="${on==="tem"?"on":""}">🗺️ Temas</button></div>`;
 function renderSimLista(){
   const hoyF=today(),hechos=new Set((T.sims||[]).map(x=>x.examen)),fmtP=v=>typeof v==="number"?Math.round(v)+"%":"—";
@@ -2272,7 +2288,23 @@ function popAplicar(){const b=popSel&&document.querySelector(popSel);popSel='';i
   Object.defineProperty(app,'innerHTML',{configurable:true,get(){return d.get.call(this)},set(v){if(v===ult&&Date.now()-ultToque>1500)return;ult=v;d.set.call(this,v)}})})();
 // La entrada se anima solo al cambiar de pantalla (no al repintar por un toque)
 let postVista="";
-function trasPintar(){ladoPintar();tocPintar();
+/* Íconos de línea (mismo grosor en toda la app) y barra de navegación fija abajo, al alcance del pulgar.
+   Se esconde donde estorba: en la ráfaga, dentro de una sesión, en el simulacro y en la tabla a pantalla completa. */
+const SVG_=d=>`<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICO={casa:SVG_('<path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'),
+  libro:SVG_('<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19"/><path d="M9 7h6"/>'),
+  sube:SVG_('<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>'),
+  barras:SVG_('<path d="M5 20V11M12 20V4M19 20v-6"/>'),
+  repite:SVG_('<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/>')};
+function bnavPintar(){let el=document.getElementById('bnav');const ver=!['drill','tarea','simu'].includes(view);
+  document.body.classList.toggle('bnav',ver);
+  if(!ver){if(el)el.remove();return}
+  if(!el){el=document.createElement('nav');el.id='bnav';el.setAttribute('aria-label','Navegación');document.body.appendChild(el)}
+  const act=['tareas','ref','mat','tem','sim'].includes(view)?'estudio':view==='prog'?'prog':view==='stats'?'stats':'home';
+  const b=(k,at,ic,t)=>`<button ${at} class="${act===k?'on':''}"${act===k?' aria-current="page"':''}>${ic}<span>${t}</span></button>`;
+  const h=`<div class="in">${b('home','data-tk="tab-juego"',ICO.casa,'Inicio')}${b('estudio','data-tk="tab-estudio"',ICO.libro,'Estudio')}${b('prog','data-act="prog"',ICO.sube,'Progreso')}${b('stats','data-act="stats"',ICO.barras,'Estadísticas')}</div>`;
+  if(el.innerHTML!==h)el.innerHTML=h}
+function trasPintar(){ladoPintar();tocPintar();bnavPintar();
   const v=view+"|"+(view==="tarea"?tDate:""),a=document.getElementById("app");
   if(v!==postVista&&view!=="drill"&&a){a.classList.remove("enter");void a.offsetWidth;a.classList.add("enter");clearTimeout(trasPintar.t);trasPintar.t=setTimeout(()=>a.classList.remove("enter"),1400)}
   postVista=v}
@@ -2583,7 +2615,7 @@ setInterval(()=>{T.hb=Date.now();if(view==="tarea"||hbN++%15===0)try{localStorag
 /* ================= PANEL DE PROGRESO =================
    Un gráfico por pregunta, una sola serie cada uno (más su línea de referencia), marcas finas, etiqueta solo en
    el último valor, valor al tocar/pasar y tabla «Ver datos». SVG en línea: funciona sin conexión. */
-const P_EXAMEN="2027-07-15",dms=f=>new Date(f+"T12:00:00").getTime();
+const P_EXAMEN="2027-06-15",dms=f=>new Date(f+"T12:00:00").getTime();
 const fcT=t=>fechaCorta(today(new Date(t)));
 function verTip(el){const c=el.closest(".chart");if(!c)return;c.querySelectorAll(".sel").forEach(x=>x.classList.remove("sel"));el.classList.add("sel");const cap=c.querySelector(".ccap");if(cap)cap.textContent=el.dataset.tip}
 function tabla(cols,rows){return `<details class="cdatos"><summary>Ver datos</summary><div class="tk-table"><table><tr>${cols.map(c=>`<th>${esc(c)}</th>`).join("")}</tr>${rows.map(r=>`<tr>${r.map(v=>`<td>${esc(v)}</td>`).join("")}</tr>`).join("")}</table></div></details>`}
@@ -2653,7 +2685,7 @@ function renderProg(){
     const ideal=t=>ini.horas+(meta-ini.horas)*(t-t0)/Math.max(1,tE-t0),delta=ult.horas-ideal(dms(ult.fecha));
     const x0=dms(ini.fecha)-3*864e5,x1=Math.max(dms(ult.fecha),Date.now())+3*864e5,mx=Math.max(ideal(x1),ult.horas)*1.15;
     const paso=mx>80?20:mx>40?10:5,maxY=Math.ceil(mx/paso)*paso;
-    const hero=`<div class="chero"><b class="${delta>=0?"pos":"neg"}">${delta>=0?"+":"−"}${coma(Math.abs(delta))} h</b><span class="muted small">${delta>=0?"adelantado":"atrasado"} respecto al ritmo necesario desde el ${fechaCorta(ini.fecha)} para llegar a ${meta} h el 15 jul 2027</span></div>`;
+    const hero=`<div class="chero"><b class="${delta>=0?"pos":"neg"}">${delta>=0?"+":"−"}${coma(Math.abs(delta))} h</b><span class="muted small">${delta>=0?"adelantado":"atrasado"} respecto al ritmo necesario desde el ${fechaCorta(ini.fecha)} para llegar a ${meta} h el 15 jun 2027</span></div>`;
     html+=card("Horas de estudio","Tus horas reales (instructor) · punteada = ritmo necesario",hero+lineas(hs.map(s=>({t:dms(s.fecha),v:s.horas,tip:`${fechaCorta(s.fecha)} · ${coma(s.horas)} h (necesarias: ${coma(ideal(dms(s.fecha)))} h)`})),{max:maxY,paso,fmt:v=>Math.round(v)+"h",x0,x1,ref2:{t0:x0,v0:ideal(x0),t1:x1,v1:ideal(x1)},color:"var(--unc)"})
       +`<div class="cleg"><span><i style="background:var(--unc)"></i>Tus horas</span><span><i class="dash"></i>Ritmo necesario</span></div>`
       +tabla(["Fecha","Horas reales","Necesarias"],hs.map(s=>[s.fecha,coma(s.horas),coma(ideal(dms(s.fecha)))])));
