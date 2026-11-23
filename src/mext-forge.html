@@ -458,6 +458,7 @@ body.bnav #toast{bottom:calc(84px + env(safe-area-inset-bottom))}
 .chart:has(.cvacio) .ccap{display:none}
 .chart h3{color:var(--text);letter-spacing:.06em}
 @media (hover:none),(pointer:coarse){.kbd,.foot{display:none!important}}
+.etreset{border:1px solid var(--line);background:var(--surface);border-radius:99px;width:34px;height:34px;margin-left:6px;font-size:1rem;color:var(--muted);flex:none}.etreset:hover{color:var(--text)}
 /* ===== Fondo propio (imagen de este dispositivo; la paleta sale de la imagen) ===== */
 #fondo{position:fixed;top:0;left:0;width:100%;height:100vh;height:100lvh;z-index:-1;background:var(--bg) center/cover no-repeat;pointer-events:none;animation:aFade .6s both}
 #fondo::after{content:"";position:absolute;inset:0;background:var(--bg);opacity:var(--fvel,.35);transition:opacity .2s}
@@ -2452,7 +2453,7 @@ function actHtml(d,a,locked){
   }
   const t=tTm(d,a.key),lim=a.ty==="mock"&&a.min?a.min*60000:0;
   const vs=(a.verd||[]).filter(Boolean),cuenta=vs.length?`<span class="tag tk-cnt">${vs.filter(v=>v.v==="ok").length}/${vs.length} ✓</span>`:"";
-  const timer=(isTask||(a.ty==="ref"&&a.min))&&!locked?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>`:"";
+  const timer=(isTask||(a.ty==="ref"&&a.min))&&!locked?`<button class="tk-timer ${t.since?"run":""}" data-tk="timer" data-v="${a.key}" data-lim="${lim}" ${locked?"disabled":""}><span data-clock="${a.key}">${lim?"⏳ "+fmtMS(lim-tEl(t)):"▶ "+fmtMS(tEl(t))}</span></button>${!t.since&&tEl(t)>0?`<button class="etreset" data-tk="treset" data-v="${a.key}" title="Poner el tiempo en 0" aria-label="Poner el tiempo en 0">↺</button>`:""}`:"";
   const sug=a.min?`<span class="muted small">${a.ty==="mock"?"límite":"sugerido"} ${a.min} min</span>`:"";
   if(a.ty==="match"&&matchOpts(a).length)body=`<div class="tk-legend">${matchOpts(a).map(o=>`<span><b>${esc(o.k)}</b> ${esc(o.t)}</span>`).join("")}</div>`+body;
   return `<section class="card tk-act ${a.ty==="ref"?"ref":""}" data-akey="${a.key}"><div class="tk-ah"><span class="tag">${esc(a.n)}</span>${cuenta}${sug}<span class="sp"></span>${!locked&&isTask&&a.ty!=="out"&&lupaOk(a)?`<button class="elupa" data-tk="lupa" data-v="${a.key}" title="Consultar Materia y Referencia sin salir" aria-label="Consultar Materia y Referencia">🔍</button>`:""}${timer}</div>
@@ -2595,6 +2596,7 @@ document.addEventListener("click",e=>{
   else if(k==="help"){tAns(d,v).h=b.dataset.h;b.parentNode.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));tSave()}
   else if(k==="mark"){const bx=b.closest("[data-act-key]");if(bx)startTimer(d,bx.dataset.actKey),updTimers();const A=tAns(d,v),o=b.dataset.o,l=A.mk||(A.mk=[]);const i=l.indexOf(o);if(i<0)l.push(o);else l.splice(i,1);b.classList.toggle("on",i<0);tSave()}
   else if(k==="doubt"){const A=tAns(d,v);A.d=A.d?0:1;b.classList.toggle("on",!!A.d);b.closest(".tk-item").classList.toggle("doubt",!!A.d);tSave();updTotal()}
+  else if(k==="treset"){if(!confirm("¿Poner el tiempo de esta actividad en 0?"))return;(T.tm[d]||(T.tm[d]={}))[v]={acc:0,since:null};tSave(true);if(typeof bSoon==="function")bSoon(800);renderTarea(true)}
   else if(k==="timer"){const t=tTm(d,v);if(t.since){t.acc+=Date.now()-t.since;t.since=null}else startTimer(d,v);tSave();updTimers()}
   else if(k==="au-rec")auGrabar(b);
   else if(k==="au-stop"){if(auRec)auRec.mr.stop()}
