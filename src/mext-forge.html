@@ -459,6 +459,9 @@ body.bnav #toast{bottom:calc(84px + env(safe-area-inset-bottom))}
 .chart h3{color:var(--text);letter-spacing:.06em}
 @media (hover:none),(pointer:coarse){.kbd,.foot{display:none!important}}
 .etreset{border:1px solid var(--line);background:var(--surface);border-radius:99px;width:34px;height:34px;margin-left:6px;font-size:1rem;color:var(--muted);flex:none}.etreset:hover{color:var(--text)}
+.tk-gaps{line-height:2.3}
+.tk-gap{display:inline-block;width:6.5em;max-width:55%;margin:0 4px;padding:2px 8px;border:0;border-bottom:2px solid var(--accent);border-radius:8px 8px 0 0;background:color-mix(in srgb,var(--accent) 8%,transparent);color:var(--text);font:inherit;font-weight:700;text-align:center;vertical-align:baseline}
+.tk-gap:focus{outline:none;background:color-mix(in srgb,var(--accent) 16%,transparent)}
 /* ===== Fondo propio (imagen de este dispositivo; la paleta sale de la imagen) ===== */
 #fondo{position:fixed;top:0;left:0;width:100%;height:100vh;height:100lvh;z-index:-1;background:var(--bg) center/cover no-repeat;pointer-events:none;animation:aFade .6s both}
 #fondo::after{content:"";position:absolute;inset:0;background:var(--bg);opacity:var(--fvel,.35);transition:opacity .2s}
@@ -2353,6 +2356,15 @@ function itemHtml(d,a,b,locked,V){
   const input=a.ty==="audio"?auHtml(id,A,locked):opts?`<div class="tk-opts${L&&!L.inl?" tk-letras":""}${L&&L.inl?" tk-inl":""}">${opts.map(o=>`<button class="tk-opt ${A.ch===o?"on":""}" data-tk="choice" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>${L&&L.match?`<div class="tk-mres muted small" data-mres="${id}">${A.ch?esc(matchTxt(a,A.ch)):""}</div>`:""}`
     :`<textarea class="tk-in" rows="${TLONG.has(a.ty)?3:1}" data-tk="text" data-v="${id}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-gramm="false" data-enable-grammarly="false" ${locked?"readonly":""} placeholder="Escribe en inglés…">${esc(A.v)}</textarea>${(()=>{const mo=marcaOpts(rtPlain(r))||marcaAct(a,id);return mo?`<div class="muted small" style="margin-top:6px">Marca las que usaste${marcaOpts(rtPlain(r))?"":" (en todo el párrafo)"}:</div><div class="tk-opts tk-marca">${mo.map(o=>`<button class="tk-opt ${(A.mk||[]).includes(o)?"on":""}" data-tk="mark" data-v="${id}" data-o="${esc(o)}" ${locked?"disabled":""}>${esc(o)}</button>`).join("")}</div>`:""})()}`;
   const kids=b.k&&b.k.length?`<div class="tk-sub">${b.k.map(blockHtml).join("")}</div>`:"";
+  // Consigna con espacios «___»: se escribe solo en los espacios, dentro de la misma oración (A.gp = lo de cada espacio; A.v = la oración armada)
+  const partes=!locked&&!opts&&a.ty!=="audio"?rtPlain(r).split(/_{3,}/):null;
+  if(partes&&partes.length>1){const gp=A.gp||[];
+    const q=partes.map((t,i)=>esc(t)+(i<partes.length-1?`<input class="tk-gap" data-tk="gap" data-v="${id}" data-i="${i}" value="${esc(gp[i]||"")}" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="Espacio ${i+1}">`:"")).join("");
+    return `<div class="tk-item ${A.d?"doubt":""}" data-item="${id}" data-act-key="${a.key}">
+    <div class="tk-q tk-gaps" data-partes="${esc(JSON.stringify(partes))}">${b.ty==="numbered_list_item"?"":"• "}${q}</div>${kids}
+    <div class="tk-meta"><button class="tk-doubt ${A.d?"on":""}" data-tk="doubt" data-v="${id}">❓ Tengo duda</button></div>
+    <textarea class="tk-note" rows="2" data-tk="note" data-v="${id}" placeholder="Nota para el instructor (en español)">${esc(A.nt)}</textarea>
+  </div>`}
   if(locked){ // entregada: solo lectura, con la corrección del instructor si ya la dejó
     const ans=opts?(L&&L.match&&A.ch?matchTxt(a,A.ch):(A.ch||"")):(A.v||""),d2=V&&V.fix&&ans.trim().length>2?cDiffHtml(ans,V.fix):null;
     return `<div class="tk-item ro ${V?"v-"+V.v:""}" data-item="${id}" data-act-key="${a.key}">
@@ -2542,14 +2554,17 @@ function sendEntrega(){
 let itemFocus=null;
 function addItemTime(){if(!itemFocus)return;const A=tAns(tDate,itemFocus.id);A.s+=Math.min(1800,(Date.now()-itemFocus.at)/1000);itemFocus=null;tSave()}
 document.addEventListener("focusin",e=>{
-  if(view!=="tarea")return;const el=e.target.closest("[data-tk=text],[data-tk=note]");if(!el||el.readOnly)return;
+  if(view!=="tarea")return;const el=e.target.closest("[data-tk=text],[data-tk=note],[data-tk=gap]");if(!el||el.readOnly)return;
   const box=el.closest("[data-act-key]");if(box)startTimer(tDate,box.dataset.actKey),updTimers();
-  if(el.dataset.tk==="text"){addItemTime();itemFocus={id:el.dataset.v,at:Date.now()}}
+  if(el.dataset.tk==="text"||el.dataset.tk==="gap"){addItemTime();itemFocus={id:el.dataset.v,at:Date.now()}}
 });
 document.addEventListener("focusout",e=>{if(view==="tarea"&&e.target.dataset&&e.target.dataset.tk==="text")addItemTime()});
 document.addEventListener("input",e=>{
   if(view!=="tarea")return;const el=e.target,k=el.dataset&&el.dataset.tk;if(!k)return;
   if(k==="text"){tAns(tDate,el.dataset.v).v=el.value;autoGrow(el)}
+  else if(k==="gap"){const A=tAns(tDate,el.dataset.v),box=el.closest("[data-partes]"),partes=JSON.parse(box.dataset.partes);
+    A.gp=[...box.querySelectorAll("input.tk-gap")].map(x=>x.value);
+    A.v=A.gp.some(x=>x.trim())?partes.map((t,i)=>t+(i<partes.length-1?(A.gp[i].trim()||"___"):"")).join("").trim():""}
   else if(k==="note")tAns(tDate,el.dataset.v).nt=el.value;
   else return;
   tSave();
